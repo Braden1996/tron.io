@@ -5,3 +5,5 @@ tronio.sublime-project
 node_modules/
 # Transipiled JavaScript
 src/site/static/js/main.js
+# Transipiled CSS
+src/site/static/css/main.css
