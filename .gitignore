@@ -1,0 +1,7 @@
+# Transipiled JavaScript
+static/js/main.js
+# Transipiled CSS
+static/css/main.css
+# Editor stuff
+tronio.sublime-workspace
+tronio.sublime-project
