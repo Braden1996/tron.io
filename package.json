@@ -6,8 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "client-build": "npm run client-build:js && npm run client-build:css",
-    "client-build:js": "browserify ./src/site/assets/js/entry.js -o ./src/site/static/js/main.js -t [ babelify --presets [ es2015 ] ]",
-    "client-build:css": "cleancss ./src/site/assets/css/main.css -o ./src/site/static/css/main.css"
+    "client-build:js": "browserify src/site/assets/js/entry.js -o src/site/static/js/main.js -t [ babelify --presets [ es2015 ] ]",
+    "client-build:css": "cleancss src/site/assets/css/main.css -o src/site/static/css/main.css",
+    "client-watch": "parallelshell \"npm run client-watch:js\" \"npm run client-watch:css\"",
+    "client-watch:js": "watchify src/site/assets/js/entry.js -o src/site/static/js/main.js -dv -t [ babelify --presets [ es2015 ] ]",
+    "client-watch:css": "onchange \"src/site/assets/css/main.css\" -v -- npm run client-build:css"
   },
   "repository": {
     "type": "git",
@@ -22,6 +25,9 @@
   "devDependencies": {
     "babelify": "^7.3.0",
     "browserify": "^14.0.0",
-    "clean-css-cli": "^4.0.0"
+    "clean-css-cli": "^4.0.0",
+    "onchange": "^3.2.1",
+    "parallelshell": "^2.0.0",
+    "watchify": "^3.9.0"
   }
 }
