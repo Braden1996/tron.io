@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "clientbuildjs": "browserify ./src/site/assets/js/entry.js -o ./src/site/static/js/main.js -t [ babelify --presets [ es2015 ] ]",
-    "clientbuildcss": "cleancss ./src/site/assets/css/main.css -o ./src/site/static/css/main.css"
+    "client-build": "npm run client-build:js && npm run client-build:css",
+    "client-build:js": "browserify ./src/site/assets/js/entry.js -o ./src/site/static/js/main.js -t [ babelify --presets [ es2015 ] ]",
+    "client-build:css": "cleancss ./src/site/assets/css/main.css -o ./src/site/static/css/main.css"
   },
   "repository": {
     "type": "git",
