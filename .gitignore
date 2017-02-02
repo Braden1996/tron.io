@@ -1,5 +1,7 @@
-# Transipiled JavaScript
-src/site/static/js/main.js
 # Editor stuff
 tronio.sublime-workspace
 tronio.sublime-project
+# Node modules
+node_modules/
+# Transipiled JavaScript
+src/site/static/js/main.js

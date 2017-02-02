@@ -1,0 +1,24 @@
+{
+  "name": "tron.io",
+  "version": "1.0.0",
+  "description": "A multiplayer browser implementation of the game tron including an AI computer player.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clientbuildjs": "browserify ./src/site/assets/js/main.js -o ./src/site/static/js/main.js -t [ babelify --presets [ es2015 ] ]"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Braden1996/tron.io.git"
+  },
+  "author": "Braden Marshall",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Braden1996/tron.io/issues"
+  },
+  "homepage": "https://github.com/Braden1996/tron.io#readme",
+  "devDependencies": {
+    "babelify": "^7.3.0",
+    "browserify": "^14.0.0"
+  }
+}
