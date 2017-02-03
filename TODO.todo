@@ -1,6 +1,7 @@
 Tron Game:
   Client-side:
    ☐ Research and then create the game loop.
+     Article - <https://www.sitepoint.com/quick-tip-game-loop-in-javascript/>
    ☐ Register user's keyboard input.
 
   Server-side:
