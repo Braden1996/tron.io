@@ -1,0 +1,10 @@
+Tron Game:
+  Client-side:
+   ☐ Research and then create the game loop.
+   ☐ Register user's keyboard input.
+
+  Server-side:
+
+  Misc:
+   ☐ Add readme to project repository, with instructions on how to set everything up.
+   ☐ Improve npm tasks so that static folder structure is created.
