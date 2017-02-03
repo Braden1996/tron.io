@@ -1,6 +1,6 @@
 Tron Game:
   Client-side:
-   ☐ Research and then create the game loop.
+   ✔ Research and then create the game loop. @done (17-02-03 23:37)
      Article - <https://www.sitepoint.com/quick-tip-game-loop-in-javascript/>
    ☐ Register user's keyboard input.
 
