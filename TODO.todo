@@ -2,6 +2,7 @@ Tron Game:
   Client-side:
    ✔ Research and then create the game loop. @done (17-02-03 23:37)
      Article - <https://www.sitepoint.com/quick-tip-game-loop-in-javascript/>
+   ☐ Create basic game state, including the player's position and direction.  
    ☐ Register user's keyboard input.
 
   Server-side:
