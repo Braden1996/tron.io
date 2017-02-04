@@ -13,3 +13,4 @@ Tron Game:
   Misc:
    ☐ Add readme to project repository, with instructions on how to set everything up.
    ☐ Improve npm tasks so that static folder structure is created.
+   ☐ Add an npm task to lint our JavaScript.
