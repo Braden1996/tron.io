@@ -1,6 +1,6 @@
 "use strict";
 
-export const DIRECTIONS = {"NORTH": 0, "SOUTH": 1, "WEST": 2, "EAST": 3};
+export const DIRECTIONS = {"north": 0, "south": 1, "west": 2, "east": 3};
 
 // A object factory to initialise a game state.
 export function createGameState(gridSize) {
@@ -10,8 +10,8 @@ export function createGameState(gridSize) {
 
 	// Create default state for each of the intended players.
 	state.players = [
-		{"position": [gridMiddleWidth, gridSize[1]], "direction": DIRECTIONS["NORTH"]},
-		{"position": [gridMiddleWidth, 0], "direction": DIRECTIONS["SOUTH"]}
+		{"position": [gridMiddleWidth, gridSize[1]], "direction": DIRECTIONS["north"]},
+		{"position": [gridMiddleWidth, 0], "direction": DIRECTIONS["south"]}
 	];
 
 	return state;
