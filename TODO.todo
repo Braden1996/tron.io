@@ -4,6 +4,9 @@ Tron Game:
      Article - <https://www.sitepoint.com/quick-tip-game-loop-in-javascript/>
    ✔ Create basic game state, including the player's position and direction. @done (17-02-04 00:12)
    ☐ Register user's keyboard input.
+   ☐ Draw grid on canvas.
+   ☐ Indicate the position of all players within the canvas.
+   ☐ Move all players along their chosen direction continuously at some standard speed.
 
   Server-side:
 
