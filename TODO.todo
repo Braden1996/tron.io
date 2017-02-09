@@ -7,7 +7,10 @@ Tron Game:
    ✔ Draw grid on canvas. @done (17-02-05 00:33)
    ✔ Indicate the position of all players within the canvas. @done (17-02-05 00:33)
    ☐ Move all players along their chosen direction continuously at some standard speed.
+   ☐ Store and add trail along the path in which a player has travelled.
+   ☐ Add collision detection for when a player moves.
    ☐ Resize canvas to scale appropriately in relation to the screen.
+   ☐ Allow player to be positioned between at a per-pixel basis, as opposed to occupying grid cells.
 
   Server-side:
 
