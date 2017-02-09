@@ -6,7 +6,7 @@ Tron Game:
    ✔ Register user's keyboard input. @done (17-02-04 23:30)
    ✔ Draw grid on canvas. @done (17-02-05 00:33)
    ✔ Indicate the position of all players within the canvas. @done (17-02-05 00:33)
-   ☐ Move all players along their chosen direction continuously at some standard speed.
+   ✔ Move all players along their chosen direction continuously at some standard speed. @done (17-02-09 16:06)
    ☐ Store and add trail along the path in which a player has travelled.
    ☐ Add collision detection for when a player moves.
    ☐ Resize canvas to scale appropriately in relation to the screen.

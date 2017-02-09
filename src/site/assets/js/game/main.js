@@ -19,24 +19,24 @@ function update(state, progress) {
 		} else if (state.input.pressedKeys["d"]) {
 			state.game.players[0].direction = "east";
 		}
+	}
 
-		if (oldDirection !== state.game.players[0].direction) {
-			switch(state.game.players[0].direction) {
-				case "north":
-					state.game.players[0].position[1]--;
-					break;
-				case "south":
-					state.game.players[0].position[1]++;
-					break;
-				case "west":
-					state.game.players[0].position[0]--;
-					break;
-				default:  // case "east":
-					state.game.players[0].position[0]++;
-					break;
-			}
-
-			console.log(`Player 0: ${state.game.players[0].position}, moving: ${state.game.players[0].direction}`);
+	// All players move the same distance for each tick.
+	let distance = progress * state.config.speed;
+	for (let ply of state.game.players) {
+		switch(ply.direction) {
+			case "north":
+				ply.position[1] -= distance;
+				break;
+			case "south":
+				ply.position[1] += distance;
+				break;
+			case "west":
+				ply.position[0] -= distance;
+				break;
+			default:  // case "east":
+				ply.position[0] += distance;
+				break;
 		}
 	}
 }
