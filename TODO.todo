@@ -7,10 +7,13 @@ Tron Game:
    ✔ Draw grid on canvas. @done (17-02-05 00:33)
    ✔ Indicate the position of all players within the canvas. @done (17-02-05 00:33)
    ✔ Move all players along their chosen direction continuously at some standard speed. @done (17-02-09 16:06)
-   ☐ Store and add trail along the path in which a player has travelled.
+   ✔ Store and add trail along the path in which a player has travelled. @done (17-02-09 19:12)
    ☐ Add collision detection for when a player moves.
    ☐ Resize canvas to scale appropriately in relation to the screen.
-   ☐ Allow player to be positioned between at a per-pixel basis, as opposed to occupying grid cells.
+   ✔ Allow player to be positioned between at a per-pixel basis, as opposed to occupying grid cells. @done (17-02-09 19:12)
+     Many issues arise when using a pixel-based grid system. For example, it would increase the complexity involved in getting the game to work across different sized browsers.
+
+     To combat this, I chose to stick with a grid based system that is used to normalise the arena size. A player, and their trail, are both equal in width to a single grid cell. I have also added a restriction which makes a player unable to change direction unless they have travelled by at least one grid-cell in their chosen direction. This is to prevent player's from unintentionally overlapping themselves when changing direction very quickly.
 
   Server-side:
 

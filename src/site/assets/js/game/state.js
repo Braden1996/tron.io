@@ -1,16 +1,21 @@
 "use strict";
 
 // A object factory to initialise a game state.
-export function createGameState(gridSize) {
+export function createGameState(config) {
 	let state = {};
 
-	let gridMiddleWidth = Math.floor(gridSize[0]/2);
+	let gridMiddleX = Math.floor(config.arenaSize / 2);
 
 	// Create default state for each of the intended players.
 	state.players = [
-		{"position": [gridMiddleWidth, gridSize[1]-1], "direction": "north"},
-		{"position": [gridMiddleWidth, 0], "direction": "south"}
+		{"position": [gridMiddleX, config.arenaSize - 1], "direction": "north", "trail": []},
+		{"position": [gridMiddleX, 0], "direction": "south", "trail": []}
 	];
+
+	// Add clone of start position to trail array.
+	for (let ply of state.players) {
+		ply.trail.push(ply.position.slice());
+	}
 
 	return state;
 }

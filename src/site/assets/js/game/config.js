@@ -1,6 +1,6 @@
 "use strict";
 
 export const CONFIG = {
-	"gridSize": [128, 128],
-	"speed": 0.1 // Pixels per-millisecond
+	"arenaSize": 128,
+	"speed": 0.1 // Arena cells per-millisecond
 };

@@ -9,15 +9,29 @@ let lastTick = 0;
 
 function update(state, progress) {
 	if (Object.keys(state.input.pressedKeys).length > 0) {
-		let oldDirection = state.game.players[0].direction;
-		if (state.input.pressedKeys["w"]) {
-			state.game.players[0].direction = "north";
-		} else if (state.input.pressedKeys["a"]) {
-			state.game.players[0].direction = "west";
-		} else if (state.input.pressedKeys["s"]) {
-			state.game.players[0].direction = "south";
-		} else if (state.input.pressedKeys["d"]) {
-			state.game.players[0].direction = "east";
+		let ply = state.game.players[0];
+
+		// Player must move at least one grid cell before changing direction.
+		let lastPoint = ply.trail.slice(-1)[0];
+
+		// No need for Pythagoras, as we can only move along one axis. 
+		let curDistance = Math.abs(lastPoint[0] - ply.position[0] + lastPoint[1] - ply.position[1]);
+		
+		if (curDistance >= 1) {
+			let oldDirection = ply.direction;
+			if (state.input.pressedKeys["w"]) {
+				ply.direction = "north";
+			} else if (state.input.pressedKeys["a"]) {
+				ply.direction = "west";
+			} else if (state.input.pressedKeys["s"]) {
+				ply.direction = "south";
+			} else if (state.input.pressedKeys["d"]) {
+				ply.direction = "east";
+			}
+
+			if (ply.direction !== oldDirection) {
+				ply.trail.push(ply.position.slice());
+			}
 		}
 	}
 
@@ -54,8 +68,8 @@ function tick(state, curtick) {
 export default function gameMain() {
 	let state = {
 		"config": CONFIG,
-		"game": createGameState(CONFIG.gridSize),
-		"input": createInputState()
+		"game": createGameState(CONFIG),
+		"input": createInputState(CONFIG)
 	};
 	window.requestAnimationFrame((curtick) => tick(state, curtick));
 }
