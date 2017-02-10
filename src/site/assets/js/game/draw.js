@@ -3,35 +3,42 @@
 function drawArena(ctx, state, arena) {
 	ctx.clearRect(arena.x, arena.y, arena.w, arena.h);
 
+	let borderSize = 1;
+
 	let cellSize;
 	if (arena.w > arena.h) {
-		cellSize = arena.h / state.config.arenaSize;
+		cellSize = arena.h / (state.config.arenaSize + 2*borderSize);
 	} else {
-		cellSize = arena.w / state.config.arenaSize;
+		cellSize = arena.w / (state.config.arenaSize + 2*borderSize);
 	}
 
 	let plySizeOffset = cellSize / 2;
 
 	// Draw all our players.
 	for (let ply of state.game.players) {
-		let x = arena.x + ply.position[0]*cellSize;
-		let y = arena.y + ply.position[1]*cellSize;
+		let trailColor = ply.alive ? "#90C695" : "#C0392B";
+		let playerColor = ply.alive ? "#3FC380" : "#CF000F";
+
+		let x = arena.x + (ply.position[0] + borderSize)*cellSize;
+		let y = arena.y + (ply.position[1] + borderSize)*cellSize;
 
 		// Draw trail backwards from current position.
 		ctx.beginPath();
 		ctx.moveTo(x, y);
 		for (let i = ply.trail.length; i-- > 0; ) {
-			ctx.lineTo(arena.x + ply.trail[i][0]*cellSize, arena.y + ply.trail[i][1]*cellSize);
+			let xi = arena.x + (ply.trail[i][0] + borderSize)*cellSize;
+			let yi = arena.y + (ply.trail[i][1] + borderSize)*cellSize;
+			ctx.lineTo(xi, yi);
 		}
 		ctx.lineWidth = cellSize;
-		ctx.strokeStyle = "#90C695";
+		ctx.strokeStyle = trailColor;
 		ctx.stroke();
 		ctx.closePath();
 
 		// Draw player.
 		ctx.beginPath();
 		ctx.rect(x - plySizeOffset, y - plySizeOffset, cellSize, cellSize);
-		ctx.fillStyle = "#3FC380";
+		ctx.fillStyle = playerColor;
 		ctx.fill();
 		ctx.closePath();
 	}
