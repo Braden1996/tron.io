@@ -8,7 +8,7 @@ export const KEYMAP = {
 };
 
 // An object factory to initialise an input state.
-export function createInputState() {
+export default function createInputState() {
 	let state = {"pressedKeys": {}};
 	window.addEventListener("keydown", (evnt) => {
 		if (KEYMAP[evnt.keyCode] !== undefined) {

@@ -1,7 +1,7 @@
 "use strict";
 
 // A object factory to initialise a game state.
-export function createGameState(config) {
+export default function createGameState(config) {
 	let state = {};
 
 	let gridMiddleX = Math.floor(config.arenaSize / 2);
