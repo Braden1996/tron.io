@@ -1,7 +1,7 @@
 "use strict";
 
 import draw from "./draw.js";
-import update from "./update.js";
+import update from "./update/main.js";
 import createState from "./state/main.js";
 
 let lastTick = 0;

@@ -1,6 +1,7 @@
 "use strict";
 
-export default function update(state, progress) {
+// Process user input allowing them to change their player's direction.
+export default function updateControl(state, progress) {
 	if (Object.keys(state.input.pressedKeys).length > 0) {
 		let ply = state.game.players[0];
 
@@ -31,25 +32,6 @@ export default function update(state, progress) {
 				ply.direction = newDirection;
 				ply.trail.push(ply.position.slice());
 			}
-		}
-	}
-
-	// All players move the same distance for each tick.
-	let distance = progress * state.config.speed;
-	for (let ply of state.game.players) {
-		switch(ply.direction) {
-			case "north":
-				ply.position[1] -= distance;
-				break;
-			case "south":
-				ply.position[1] += distance;
-				break;
-			case "west":
-				ply.position[0] -= distance;
-				break;
-			default:  // case "east":
-				ply.position[0] += distance;
-				break;
 		}
 	}
 }
