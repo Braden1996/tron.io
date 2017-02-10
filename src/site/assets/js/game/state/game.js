@@ -8,8 +8,8 @@ export default function createGameState(config) {
 
 	// Create default state for each of the intended players.
 	state.players = [
-		{"position": [gridMiddleX, config.arenaSize - 1], "direction": "north", "trail": []},
-		{"position": [gridMiddleX, 0], "direction": "south", "trail": []}
+		{"position": [gridMiddleX, config.arenaSize - 1], "direction": "north", "trail": [], "alive": true},
+		//{"position": [gridMiddleX, 0], "direction": "south", "trail": [], "alive": true}
 	];
 
 	// Add clone of start position to trail array.
