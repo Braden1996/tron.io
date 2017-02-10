@@ -49,8 +49,7 @@ function drawArena(ctx, state, arena) {
 }
 
 // A object factory to initialise a game state.
-export default function draw(state) {
-	let canvas = document.getElementById("game__canvas");
+export default function draw(canvas, state) {
 	let ctx = canvas.getContext("2d");
 
 	let arena = {padding: 4};

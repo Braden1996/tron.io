@@ -19,17 +19,23 @@ function update(state, progress) {
 		
 		if (curDistance >= 1) {
 			let oldDirection = ply.direction;
+			let newDirection;
 			if (state.input.pressedKeys["w"]) {
-				ply.direction = "north";
+				newDirection = "north";
 			} else if (state.input.pressedKeys["a"]) {
-				ply.direction = "west";
+				newDirection = "west";
 			} else if (state.input.pressedKeys["s"]) {
-				ply.direction = "south";
+				newDirection = "south";
 			} else if (state.input.pressedKeys["d"]) {
-				ply.direction = "east";
+				newDirection = "east";
 			}
 
-			if (ply.direction !== oldDirection) {
+			if (newDirection !== oldDirection &&
+				!(oldDirection === "north" && newDirection === "south") &&
+				!(oldDirection === "south" && newDirection === "north") &&
+				!(oldDirection === "west" && newDirection === "east") &&
+				!(oldDirection === "east" && newDirection === "west")) {
+				ply.direction = newDirection;
 				ply.trail.push(ply.position.slice());
 			}
 		}
@@ -55,21 +61,33 @@ function update(state, progress) {
 	}
 }
 
-function tick(state, curtick) {
+function tick(canvas, state, curtick) {
 	let progress = curtick - lastTick;
 
 	update(state, progress);
-	draw(state);
+	draw(canvas, state);
 
 	lastTick = curtick;
-	window.requestAnimationFrame((curtick) => tick(state, curtick));
+	window.requestAnimationFrame((curtick) => tick(canvas, state, curtick));
 }
 
 export default function gameMain() {
+	let canvas = document.getElementById("game__canvas");
+
 	let state = {
 		"config": CONFIG,
 		"game": createGameState(CONFIG),
 		"input": createInputState(CONFIG)
 	};
-	window.requestAnimationFrame((curtick) => tick(state, curtick));
+
+	let fixWidth = () => {
+		canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        draw(canvas, state);
+	}
+
+	window.addEventListener("resize", fixWidth, false);
+	fixWidth();
+
+	window.requestAnimationFrame((curtick) => tick(canvas, state, curtick));
 }
