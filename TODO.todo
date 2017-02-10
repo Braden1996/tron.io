@@ -13,7 +13,7 @@ Tron Game:
      Many issues arise when using a pixel-based grid system. For example, it would increase the complexity involved in getting the game to work across different sized browsers.
 
      To combat this, I chose to stick with a grid based system that is used to normalise the arena size. A player, and their trail, are both equal in width to a single grid cell. I have also added a restriction which makes a player unable to change direction unless they have travelled by at least one grid-cell in their chosen direction. This is to prevent player's from unintentionally overlapping themselves when changing direction very quickly.
-   ☐ Fix arena size normalisation so window can be resized freely.
+   ✔ Fix arena size normalisation so window can be resized freely. @done (17-02-10 13:54)
    ☐ Add collision detection for when a player hits the arena borders.
    ☐ Add collision detection for when a player hits a trail.
 
