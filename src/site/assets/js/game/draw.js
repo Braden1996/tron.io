@@ -12,6 +12,18 @@ function drawArena(ctx, state, arena) {
 		cellSize = arena.w / (state.config.arenaSize + 2*borderSize);
 	}
 
+	// Draw border
+	ctx.beginPath();
+	ctx.moveTo(arena.x, arena.y);
+    ctx.lineTo(arena.x + arena.w, arena.y);
+    ctx.lineTo(arena.x + arena.w, arena.y + arena.h);
+    ctx.lineTo(arena.x, arena.y + arena.h);
+    ctx.lineTo(arena.x, arena.y);
+	ctx.lineWidth = cellSize;
+	ctx.strokeStyle = "#2574A9";
+	ctx.stroke();
+	ctx.closePath();
+
 	let plySizeOffset = cellSize / 2;
 
 	// Draw all our players.
@@ -25,11 +37,27 @@ function drawArena(ctx, state, arena) {
 		// Draw trail backwards from current position.
 		ctx.beginPath();
 		ctx.moveTo(x, y);
+		let xi, yi;
 		for (let i = ply.trail.length; i-- > 0; ) {
-			let xi = arena.x + (ply.trail[i][0] + borderSize)*cellSize;
-			let yi = arena.y + (ply.trail[i][1] + borderSize)*cellSize;
+			xi = arena.x + (ply.trail[i][0] + borderSize)*cellSize;
+			yi = arena.y + (ply.trail[i][1] + borderSize)*cellSize;
+
+			// Player position is the centre.
+			// So we need to make the first line a little longer.
+			if (i == 0) {
+				let lastX = x, lastY = y;
+				if (ply.trail.length >= 2) {
+					lastX = arena.x + (ply.trail[1][0] + borderSize)*cellSize;
+					lastY = arena.y + (ply.trail[1][1] + borderSize)*cellSize;
+				}
+				let xDir = xi - lastX, yDir = yi - lastY;
+				xi = xi + plySizeOffset*((xDir === 0) ? 0 : (xDir > 0 ? 1 : -1));
+				yi = yi + plySizeOffset*((yDir === 0) ? 0 : (yDir > 0 ? 1 : -1));
+			}
+
 			ctx.lineTo(xi, yi);
 		}
+
 		ctx.lineWidth = cellSize;
 		ctx.strokeStyle = trailColor;
 		ctx.stroke();
@@ -42,17 +70,6 @@ function drawArena(ctx, state, arena) {
 		ctx.fill();
 		ctx.closePath();
 	}
-
-	// Draw border
-	ctx.beginPath();
-	ctx.moveTo(arena.x, arena.y);
-    ctx.lineTo(arena.x + arena.w, arena.y);
-    ctx.lineTo(arena.x + arena.w, arena.y + arena.h);
-    ctx.lineTo(arena.x, arena.y + arena.h);
-    ctx.lineTo(arena.x, arena.y);
-	ctx.strokeStyle = "#2574A9";
-	ctx.stroke();
-	ctx.closePath();
 }
 
 // A object factory to initialise a game state.
