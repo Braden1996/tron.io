@@ -1,6 +1,7 @@
 "use strict";
 
 export const KEYMAP = {
+  13: "enter",
   65: "a",
   68: "d",
   83: "s",
