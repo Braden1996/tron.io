@@ -1,8 +1,7 @@
 "use strict";
 
 import draw from "./draw.js";
-import drawMenu from "./menu/draw.js";
-import updateMenu from "./menu/update.js";
+import initMenu, {drawMenu} from "./menu.js";
 import update from "./update/main.js";
 import createState from "./state/main.js";
 
@@ -12,7 +11,6 @@ function tick(canvas, state, curtick) {
 	let progress = curtick - lastTick;
 
 	if (state.game === undefined) {
-		updateMenu(state, progress);
 		drawMenu(canvas, state);
 	} else {
 		update(state, progress);
@@ -40,6 +38,8 @@ export default function gameMain() {
 
 	window.addEventListener("resize", fixSize, false);
 	fixSize();
+
+	initMenu(state);
 
 	window.requestAnimationFrame((curtick) => tick(canvas, state, curtick));
 }
