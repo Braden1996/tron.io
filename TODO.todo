@@ -20,6 +20,7 @@ Tron Game:
    ✔ Add basic menu functionality before the game has begun. @done (17-02-16 21:49)
    ☐ Extend the menu so that the user is able to change basic game configurations (e.g. number of players, speed).
    ☐ Prepare for network functionality by adding a lobby into the menu.
+   ☐ Improve collision detection by taking into account the entire travelled distance.
 
   Server-side:
 
