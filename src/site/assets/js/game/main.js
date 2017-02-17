@@ -13,8 +13,10 @@ function tick(canvas, state, curtick) {
 	if (state.game === undefined) {
 		drawMenu(canvas, state);
 	} else {
-		update(state, progress);
-		draw(canvas, state);
+		if (!state.game.over) {
+			update(state, progress);
+			draw(canvas, state);
+		}
 	}
 
 	lastTick = curtick;
