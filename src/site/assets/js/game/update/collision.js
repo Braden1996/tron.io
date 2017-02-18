@@ -106,5 +106,6 @@ export default function updateCollision(state, progress) {
 	for (let p of newPositions) {
 		p[0].alive = false;
 		p[0].position = p[1];
+		p[0].trail[p[0].trail.length-1] = p[1];
 	}
 }

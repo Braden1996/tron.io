@@ -19,7 +19,7 @@ export default function updateControl(state, progress) {
 
 			if (newDirection !== undefined) {
 				// Player must move at least one grid cell before changing direction.
-				let lastPoint = ply.trail.slice(-1)[0];
+				let lastPoint = ply.trail.slice(-2)[0];
 
 				// No need for Pythagoras, as we can only move along one axis. 
 				let curDistance = Math.abs(lastPoint[0] - ply.position[0] + lastPoint[1] - ply.position[1]);
@@ -33,6 +33,8 @@ export default function updateControl(state, progress) {
 						!(oldDirection === "west" && newDirection === "east") &&
 						!(oldDirection === "east" && newDirection === "west")) {
 						ply.direction = newDirection;
+
+						ply.position = [Math.round(ply.position[0]), Math.round(ply.position[1])];
 						ply.trail[ply.trail.length-1] = ply.position.slice();
 						ply.trail.push(ply.position.slice());
 					}
