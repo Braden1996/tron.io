@@ -2,6 +2,7 @@
 
 import draw from "./draw.js";
 import initMenu, {drawMenu} from "./menu.js";
+import initUi from "./ui/main.js";
 import update from "./update/main.js";
 import createState from "./state/main.js";
 
@@ -13,7 +14,7 @@ function tick(canvas, state, curtick) {
 	if (state.game === undefined) {
 		drawMenu(canvas, state);
 	} else {
-		if (!state.game.over) {
+		if (!state.game.finished) {
 			update(state, progress);
 			draw(canvas, state);
 		}
@@ -24,9 +25,10 @@ function tick(canvas, state, curtick) {
 }
 
 export default function gameMain() {
-	let canvas = document.getElementById("game__canvas");
-
 	let state = createState();
+	initUi(state);
+
+	let canvas = document.getElementById("game__canvas");
 
 	let fixSize = () => {
 		if (window.innerWidth > window.innerHeight) {

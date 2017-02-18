@@ -14,9 +14,4 @@ export function drawMenu(canvas, state) {
   	ctx.fillText("TRON", canvas.clientWidth/2, canvas.clientHeight/2);
 }
 
-export default function initMenu(state) {
-	let playObj = document.getElementById("menu__begingame");
-	playObj.addEventListener("click", () => {
-		state.game = createGameState(state.config);
-	});
-}
+export default function initMenu(state) {}

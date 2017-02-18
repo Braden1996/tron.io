@@ -5,11 +5,13 @@ import updateControl from "./control.js";
 import updateMove from "./move.js";
 
 export default function update(state, progress) {
-	updateControl(state, progress);
-	updateMove(state, progress);
-	updateCollision(state, progress);
+	if (state.game.started) {
+		updateControl(state, progress);
+		updateMove(state, progress);
+		updateCollision(state, progress);
+	}
 
 	if (state.game.players.filter((p) => p.alive).length <= 1) {
-		state.game.over = true;
+		state.game.finished = true;
 	}
 }
