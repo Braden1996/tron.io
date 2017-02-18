@@ -36,6 +36,13 @@ export default function gameMain() {
 			canvas.width = window.innerWidth;
 	        canvas.height = window.innerWidth;
 		}
+
+		// Redraw
+		if (state.game === undefined) {
+			drawMenu(canvas, state);
+		} else {
+			draw(canvas, state);
+		}
 	}
 
 	window.addEventListener("resize", fixSize, false);
