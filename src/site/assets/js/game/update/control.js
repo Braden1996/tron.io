@@ -33,6 +33,7 @@ export default function updateControl(state, progress) {
 						!(oldDirection === "west" && newDirection === "east") &&
 						!(oldDirection === "east" && newDirection === "west")) {
 						ply.direction = newDirection;
+						ply.trail[ply.trail.length-1] = ply.position.slice();
 						ply.trail.push(ply.position.slice());
 					}
 				}

@@ -14,8 +14,11 @@ export default function createGameState(config) {
 		//{"position": [config.arenaSize, gridMiddle], "direction": "west", "trail": [], "alive": true}
 	];
 
-	// Add clone of start position to trail array.
+	// Clone position into trail array.
+	// First element is the start position.
+	// The last element is the position after last tick.
 	for (let ply of state.players) {
+		ply.trail.push(ply.position.slice());
 		ply.trail.push(ply.position.slice());
 	}
 
