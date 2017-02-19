@@ -18,8 +18,8 @@ Tron Game:
    ✔ Add collision detection for when a player hits a trail. @started @done (17-02-12 21:53)
      Need to fix issue where the player is positioned incorrectly in relation to the line they've hit.
    ✔ Add basic menu functionality before the game has begun. @done (17-02-16 21:49)
-   ☐ Extend the menu so that the user is able to change basic game configurations (e.g. number of players, speed).
-   ☐ Prepare for network functionality by adding a lobby into the menu.
+   ✔ Extend the menu so that the user is able to change basic game configurations (e.g. number of players, speed). @done (17-02-19 17:29)
+   ☐ Prepare for network functionality by adding a lobby into the menu. @started
    ☐ Improve collision detection by taking into account the entire travelled distance.
 
   Server-side:
