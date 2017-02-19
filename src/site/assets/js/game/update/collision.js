@@ -54,7 +54,27 @@ function collideTrail(state, ply) {
 			        plyRect.x + plyRect.w > ply2Rect.x &&
 			        plyRect.y < ply2Rect.y + ply2Rect.h &&
 			        plyRect.h + plyRect.y > ply2Rect.y) {
-					return [plyX0, plyY0];
+
+					// Idea is to position ply using where they came from, not
+					// where they've ended up. In the case of a head-on collision (e.g. | | or _ _),
+					// we effectively move the colliding players back by half the overlapping distance.
+					if (plyRect.w === plySize) {
+						if (ply2Rect.w === plySize) {
+							let overlapPart = Math.min(plyRect.y + plyRect.h, ply2Rect.y + ply2Rect.h);
+            				let overlap = Math.max(0, overlapPart - Math.max(plyRect.y, ply2Rect.y));
+							return [plyX0, plyY0 + (((plyY0 > plyY1 ? -1 : 1)*overlap)/2)];
+						} else if (ply2Rect.h === plySize) {
+							return [plyX0, ply2Y0 - (plySize+ply2Rect.h)*0.5*Math.sign(ply2Y0 - plyY1)];
+						}
+					} else if (plyRect.h === plySize) {
+						if (ply2Rect.w === plySize) {
+							return [ply2X0 - (plySize+ply2Rect.w)*0.5*Math.sign(ply2X0 - plyX1), plyY0];
+						} else if (ply2Rect.h === plySize) {
+							let overlapPart = Math.min(plyRect.x + plyRect.w, ply2Rect.x + ply2Rect.w)
+							let overlap = Math.max(0, overlapPart - Math.max(plyRect.x, ply2Rect.x));
+							return [plyX0 + (((plyX0 > plyX1 ? -1 : 1)*overlap)/2), plyY0];
+						}
+					}
 				}
 			}
 
@@ -84,5 +104,6 @@ export default function updateCollision(state, progress) {
 		p[0].alive = false;
 		p[0].position = p[1];
 		p[0].trail[p[0].trail.length-1] = p[1];
+		console.log(p[0], p[1]);
 	}
 }
