@@ -42,7 +42,9 @@ function collideTrail(state, ply) {
 		let ply2X0 = ply2.position[0];
 		let ply2Y0 = ply2.position[1];
 
-		for (let i = ply2.trail.length - 1; i >= 0; i--) {
+		// As the last element in the trail array is not the consequence of a direction change,
+		// we can simply ignore it to form a larger rectangle.
+		for (let i = ply2.trail.length - 2; i >= 0; i--) {
 			let ply2X1 = ply2.trail[i][0];
 			let ply2Y1 = ply2.trail[i][1];
 
@@ -62,6 +64,14 @@ function collideTrail(state, ply) {
 						if (ply2Rect.w === plySize) {
 							let overlapPart = Math.min(plyRect.y + plyRect.h, ply2Rect.y + ply2Rect.h);
             				let overlap = Math.max(0, overlapPart - Math.max(plyRect.y, ply2Rect.y));
+
+            				// In the case when ply 'overshoots' ply2, add dy to overlap.
+							if (plyY0 > plyY1) {
+            					overlap += Math.max((plyRect.y+plyRect.h) - (ply2Rect.x+ply2Rect.h), 0);
+							} else {
+								overlap += Math.max(ply2Rect.y - plyRect.y, 0);
+							}
+
 							return [plyX0, plyY0 + (((plyY0 > plyY1 ? -1 : 1)*overlap)/2)];
 						} else if (ply2Rect.h === plySize) {
 							return [plyX0, ply2Y0 - (plySize+ply2Rect.h)*0.5*Math.sign(ply2Y0 - plyY1)];
@@ -71,8 +81,15 @@ function collideTrail(state, ply) {
 							return [ply2X0 - (plySize+ply2Rect.w)*0.5*Math.sign(ply2X0 - plyX1), plyY0];
 						} else if (ply2Rect.h === plySize) {
 							let overlapPart = Math.min(plyRect.x + plyRect.w, ply2Rect.x + ply2Rect.w)
-							let overlap = Math.max(0, overlapPart - Math.max(plyRect.x, ply2Rect.x));
-							return [plyX0 + (((plyX0 > plyX1 ? -1 : 1)*overlap)/2), plyY0];
+							let overlap = Math.max(0, overlapPart - Math.max(plyRect.x, ply2Rect.x)) / 2;
+
+							if (plyX0 > plyX1) {
+            					overlap += Math.max((plyRect.x+plyRect.w) - (ply2Rect.x+ply2Rect.w), 0);
+							} else {
+								overlap += Math.max(ply2Rect.x - plyRect.x, 0);
+							}
+
+							return [plyX0 + (plyX0 > plyX1 ? -1 : 1)*overlap, plyY0];
 						}
 					}
 				}
@@ -89,9 +106,9 @@ function collideTrail(state, ply) {
 export default function updateCollision(state, progress) {
 	let newPositions = [];
 	for (let ply of state.game.players.filter((p) => p.alive)) {
-		let intersectPoint = collideBorder(state, ply);
+		let intersectPoint = collideTrail(state, ply);
 		if (intersectPoint === undefined) {
-			intersectPoint = collideTrail(state, ply);
+			intersectPoint = collideBorder(state, ply);
 		}
 
 		if (intersectPoint !== undefined) {
@@ -104,6 +121,5 @@ export default function updateCollision(state, progress) {
 		p[0].alive = false;
 		p[0].position = p[1];
 		p[0].trail[p[0].trail.length-1] = p[1];
-		console.log(p[0], p[1]);
 	}
 }

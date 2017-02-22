@@ -20,7 +20,7 @@ Tron Game:
    ✔ Add basic menu functionality before the game has begun. @done (17-02-16 21:49)
    ✔ Extend the menu so that the user is able to change basic game configurations (e.g. number of players, speed). @done (17-02-19 17:29)
    ✔ Improve collision detection by taking into account the entire travelled distance. @done (17-02-22 12:43)
-   ☐ Fix head-on collision bug. The issue 'seems' to be that the overlap gained during one tick is greater than the single line segment of the previous tick.
+   ✔ Fix head-on collision bug. The issue 'seems' to be that the overlap gained during one tick is greater than the single line segment of the previous tick. @done (17-02-22 16:23)
    ☐ Prepare for network functionality by adding a lobby into the menu. @started
    ☐ Send client player's position data to server.
    ☐ Ability to receive player data from server and then sync up.
