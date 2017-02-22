@@ -22,10 +22,18 @@ Tron Game:
    ✔ Improve collision detection by taking into account the entire travelled distance. @done (17-02-22 12:43)
    ☐ Fix head-on collision bug. The issue 'seems' to be that the overlap gained during one tick is greater than the single line segment of the previous tick.
    ☐ Prepare for network functionality by adding a lobby into the menu. @started
+   ☐ Send client player's position data to server.
+   ☐ Ability to receive player data from server and then sync up.
 
   Server-side:
+   ☐ Research and prepare a basic server technology.
+   ☐ Player can setup a lobby, existing on the server, that other players are then able to join.
+   ☐ Able to broadcast data sent between lobby players.
 
   Misc:
    ☐ Add readme to project repository, with instructions on how to set everything up.
    ☐ Improve npm tasks so that static folder structure is created.
    ☐ Add an npm task to lint our JavaScript.
+
+ Research:
+  ☐ Realtime HTML5 Multiplayer Games with NodeJS: https://www.youtube.com/watch?v=z1_QpUkX2Gg
