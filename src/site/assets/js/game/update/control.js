@@ -24,7 +24,7 @@ export default function updateControl(state, progress) {
 				// No need for Pythagoras, as we can only move along one axis. 
 				let curDistance = Math.abs(lastPoint[0] - ply.position[0] + lastPoint[1] - ply.position[1]);
 				
-				if (curDistance >= 1) {
+				if (curDistance >= state.config.playerSize) {
 					let oldDirection = ply.direction;
 
 					if (newDirection !== oldDirection &&

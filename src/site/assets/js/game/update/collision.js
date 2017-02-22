@@ -1,14 +1,15 @@
 "use strict";
 
 function collideBorder(state, ply) {
-	if (ply.position[0] < 0) {
-		return [0, ply.position[1]];
-	} else if (ply.position[0] > state.config.arenaSize) {
-		return [state.config.arenaSize, ply.position[1]];
-	} else if (ply.position[1] < 0) {
-		return [ply.position[0], 0];
-	} else if (ply.position[1] > state.config.arenaSize) {
-		return [ply.position[0], state.config.arenaSize];
+	let plySizeOffset = state.config.playerSize/2;
+	if (ply.position[0] - plySizeOffset < 0) {
+		return [plySizeOffset, ply.position[1]];
+	} else if (ply.position[0] + plySizeOffset > state.config.arenaSize) {
+		return [state.config.arenaSize - plySizeOffset, ply.position[1]];
+	} else if (ply.position[1] - plySizeOffset < 0) {
+		return [ply.position[0], plySizeOffset];
+	} else if (ply.position[1] + plySizeOffset > state.config.arenaSize) {
+		return [ply.position[0], state.config.arenaSize - plySizeOffset];
 	} else {
 		return undefined;
 	}
@@ -24,7 +25,7 @@ function lineToRect(x0, y0, x1, y1, expand) {
 }
 
 function collideTrail(state, ply) {
-	let plySize = 1;
+	let plySize = state.config.playerSize;
 
 	// Convert ply's line-segment from this tick into a rectangle.
 	let plyX0 = ply.position[0];

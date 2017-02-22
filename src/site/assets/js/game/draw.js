@@ -12,11 +12,8 @@ export function getArenaObject(canvas, state) {
 	}
 
 	// Calculate arena cell-size.
-	if (arena.w > arena.h) {
-		arena.cellSize = arena.h / (state.config.arenaSize + 2*arena.borderSize);
-	} else {
-		arena.cellSize = arena.w / (state.config.arenaSize + 2*arena.borderSize);
-	}
+	let refSize = arena.w > arena.h ? arena.h : arena.w;
+	arena.cellSize = refSize / (state.config.arenaSize + 2*arena.borderSize);
 
 	return arena;
 }
@@ -28,7 +25,7 @@ export function drawBorder(ctx, state, arena) {
     ctx.lineTo(arena.x + arena.w, arena.y + arena.h);
     ctx.lineTo(arena.x, arena.y + arena.h);
     ctx.lineTo(arena.x, arena.y);
-	ctx.lineWidth = arena.cellSize;
+	ctx.lineWidth = arena.cellSize*arena.borderSize*2;
 	ctx.strokeStyle = "#2574A9";
 	ctx.stroke();
 	ctx.closePath();
@@ -39,7 +36,8 @@ function drawArena(ctx, state, arena) {
 
 	drawBorder(ctx, state, arena);
 
-	let plySizeOffset = arena.cellSize / 2;
+	let plySize = arena.cellSize*state.config.playerSize;
+	let plySizeOffset = plySize / 2;
 
 	// Draw all our players.
 	for (let ply of state.game.players) {
@@ -73,14 +71,14 @@ function drawArena(ctx, state, arena) {
 			ctx.lineTo(xi, yi);
 		}
 
-		ctx.lineWidth = arena.cellSize;
+		ctx.lineWidth = plySize;
 		ctx.strokeStyle = trailColor;
 		ctx.stroke();
 		ctx.closePath();
 
 		// Draw player.
 		ctx.beginPath();
-		ctx.rect(x - plySizeOffset, y - plySizeOffset, arena.cellSize, arena.cellSize);
+		ctx.rect(x - plySizeOffset, y - plySizeOffset, plySize, plySize);
 		ctx.fillStyle = playerColor;
 		ctx.fill();
 		ctx.closePath();

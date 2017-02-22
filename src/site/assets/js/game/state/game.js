@@ -6,12 +6,14 @@ export default function createGameState(config) {
 
 	let gridMiddle = Math.floor(config.arenaSize / 2);
 
+	let plySizeOffset = config.playerSize/2;
+
 	// Create default state for each of the intended players.
 	state.players = [
-		{"position": [gridMiddle, config.arenaSize], "direction": "north", "trail": [], "alive": true, "name": undefined},
-		{"position": [gridMiddle, 0], "direction": "south", "trail": [], "alive": true, "name": undefined},
-		//{"position": [0, gridMiddle], "direction": "east", "trail": [], "alive": true},
-		//{"position": [config.arenaSize, gridMiddle], "direction": "west", "trail": [], "alive": true}
+		{"position": [gridMiddle, config.arenaSize-plySizeOffset], "direction": "north", "trail": [], "alive": true, "name": undefined},
+		{"position": [gridMiddle, plySizeOffset], "direction": "south", "trail": [], "alive": true, "name": undefined},
+		//{"position": [plySizeOffset, gridMiddle], "direction": "east", "trail": [], "alive": true, "name": undefined},
+		{"position": [config.arenaSize-plySizeOffset, gridMiddle], "direction": "west", "trail": [], "alive": true, "name": undefined}
 	];
 
 	// First element is the start position.
