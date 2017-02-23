@@ -5,12 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "client-build": "npm run client-build:js && npm run client-build:css",
-    "client-build:js": "browserify src/site/assets/js/entry.js -o src/site/static/js/main.js -t [ babelify --presets [ es2015 ] ] -t [ riotify ]",
-    "client-build:css": "cleancss src/site/assets/css/main.css -o src/site/static/css/main.css",
-    "client-watch": "parallelshell \"npm run client-watch:js\" \"npm run client-watch:css\"",
-    "client-watch:js": "watchify src/site/assets/js/entry.js -o src/site/static/js/main.js -dv -t [ babelify --presets [ es2015 ] ] -t [ riotify ]",
-    "client-watch:css": "onchange \"src/site/assets/css/main.css\" -v -- npm run client-build:css"
+    "build": "webpack --config ./webpack.config.js",
+    "watch": "webpack-dev-server -d"
   },
   "repository": {
     "type": "git",
@@ -23,17 +19,19 @@
   },
   "homepage": "https://github.com/Braden1996/tron.io#readme",
   "devDependencies": {
+    "babel-core": "^6.23.1",
+    "babel-loader": "^6.3.2",
     "babel-preset-es2015": "^6.22.0",
-    "babelify": "^7.3.0",
-    "browserify": "^14.0.0",
-    "clean-css-cli": "^4.0.0",
-    "onchange": "^3.2.1",
-    "parallelshell": "^2.0.0",
-    "watchify": "^3.9.0"
+    "babel-preset-react": "^6.23.0",
+    "css-loader": "^0.26.1",
+    "extract-text-webpack-plugin": "^2.0.0-rc.3",
+    "html-loader": "^0.4.4",
+    "html-webpack-plugin": "^2.28.0",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.4.1"
   },
   "dependencies": {
-    "riot": "^3.3.0",
-    "riot-compiler": "^3.2.0",
-    "riotify": "^2.0.0"
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2"
   }
 }

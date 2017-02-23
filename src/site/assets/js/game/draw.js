@@ -85,9 +85,25 @@ function drawArena(ctx, state, arena) {
 	}
 }
 
+function drawMenu(canvas, state) {
+	let ctx = canvas.getContext("2d");
+	let arena = getArenaObject(canvas, state);
+
+	drawBorder(ctx, state, arena);
+	ctx.font = "48px 'Lucida Sans Unicode'";
+	ctx.fillStyle = '#3FC380';
+	ctx.textAlign = "center";
+  	ctx.fillText("TRON", canvas.clientWidth/2, canvas.clientHeight/2);
+}
+
 // A object factory to initialise a game state.
 export default function draw(canvas, state) {
 	let ctx = canvas.getContext("2d");
 	let arena = getArenaObject(canvas, state);
-	drawArena(ctx, state, arena);
+
+	if (state.game === undefined) {
+		drawMenu(canvas, state);
+	} else {
+		drawArena(ctx, state, arena);
+	}
 }
