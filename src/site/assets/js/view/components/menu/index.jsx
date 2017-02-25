@@ -18,6 +18,10 @@ import {
 class Menu extends React.Component {
 	constructor(props) {
 		super(props);
+
+		this.state = {
+			computerPlayers: 0
+		}
 	}
 
 	onStartGame() {
@@ -27,6 +31,12 @@ class Menu extends React.Component {
 	onEndGame() {
 		this.props.startGame(false);
 		this.props.resetPlayers();
+	}
+
+	onAddComputer() {
+		const computerPlayers = this.state.computerPlayers + 1;
+		this.props.addPlayer(`Computer ${computerPlayers}`);
+		this.setState({computerPlayers});
 	}
 
 	onCreateLobby(speed, name) {
@@ -43,6 +53,7 @@ class Menu extends React.Component {
 				code={"blahblah264276"}
 				onStartGame={this.onStartGame.bind(this)}
 				onEndGame={this.onEndGame.bind(this)}
+				onAddComputer={this.onAddComputer.bind(this)}
 			/>;
 		} else {
 			lobby = <MenuPreLobby

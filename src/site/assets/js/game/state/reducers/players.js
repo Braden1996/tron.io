@@ -13,7 +13,7 @@ import {
 import getSpawn from "../../util/spawn.js";
 
 function addPlayer(state, action, gameState) {
-	const lastId = state.maxBy(pl => pl.id) || -1;
+	const lastId = state.size > 0 ? state.max(pl => pl.get("id")).get("id") : -1;
 	const ply = Immutable.Map({
 		id: lastId + 1,
 		name: action.name,
@@ -24,11 +24,11 @@ function addPlayer(state, action, gameState) {
 		trail: Immutable.List()
 	});
 
-	return resetPlayers(state.push(ply), resetPlayersAction, gameState);
+	return resetPlayers(state.push(ply), resetPlayersAction(), gameState);
 }
 
 function killPlayer(state, action) {
-	return state.update(state.findIndex(ply => ply.id === action.id), ply => {
+	return state.update(state.findIndex(ply => ply.get("id") === action.id), ply => {
 		ply = ply.set("alive", false)
 		if (!action.position.isEmpty()) {
 			ply = ply
@@ -52,12 +52,12 @@ function resetPlayers(state, action, gameState) {
 		return ply.set("alive", true)
 			.set("direction", spawn.direction)
 			.set("position", spawn.position)
-			.set("trail", Immutable.List());
+			.set("trail", Immutable.List([spawn.position, spawn.position]));
 	});
 }
 
 function updatePlayerDirection(state, action) {
-	return state.update(state.findIndex(ply => ply.id === action.id), ply => {
+	return state.update(state.findIndex(ply => ply.get("id") === action.id), ply => {
 		const pos = Immutable.List([
 			Math.round(ply.get("position").get(0)),
 			Math.round(ply.get("position").get(1))
@@ -70,15 +70,10 @@ function updatePlayerDirection(state, action) {
 }
 
 function updatePlayerPosition(state, action) {
-	return state.update(state.findIndex(ply => ply.id === action.id), ply => {
+	return state.update(state.findIndex(ply => ply.get("id") === action.id), ply => {
 		const oldPos = ply.get("position");
-		if (ply.get("trail").size === 0) {
-			return ply.set("position", action.value)
-				.set("trail", Immutable.List([oldPos, oldPos]));
-		} else {
-			return ply.set("position", action.value)
-				.update("trail", t => t.set(t.size-1, oldPos));
-		}
+		return ply.set("position", action.value)
+			.update("trail", t => t.set(t.size-1, oldPos));
 	});
 }
 
