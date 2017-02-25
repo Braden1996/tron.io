@@ -73,17 +73,28 @@ function collideTrail(ply, players, plySize) {
 					// we effectively move the colliding players back by half the overlapping distance.
 					if (plyRect.w === plySize) {
 						if (ply2Rect.w === plySize) {
-							let overlapPart = Math.min(plyRect.y + plyRect.h, ply2Rect.y + ply2Rect.h);
-            				let overlap = Math.max(0, overlapPart - Math.max(plyRect.y, ply2Rect.y));
+							const overlapPart = Math.min(plyRect.y + plyRect.h, ply2Rect.y + ply2Rect.h);
+            				const overlap = Math.max(0, overlapPart - Math.max(plyRect.y, ply2Rect.y));
 
             				// In the case when ply 'overshoots' ply2, add dy to overlap.
+            				let overshoot = 0;
 							if (plyY0 > plyY1) {
-            					overlap += Math.max((plyRect.y+plyRect.h) - (ply2Rect.x+ply2Rect.h), 0);
+            					overshoot = Math.max(
+            						(plyRect.y+plyRect.h) - (ply2Rect.y+ply2Rect.h),
+            						plyRect.y - ply2Rect.y,
+            						0
+            					);
 							} else {
-								overlap += Math.max(ply2Rect.y - plyRect.y, 0);
+								overshoot = Math.max(
+									ply2Rect.y - plyRect.y,
+									(ply2Rect.y+ply2Rect.h) - (plyRect.y+plyRect.h),
+									0
+								);
 							}
 
-							insectionPoint = [plyX0, plyY0 + (((plyY0 > plyY1 ? -1 : 1)*overlap)/2)];
+							const fixOffset = (plyY0 > plyY1 ? -1 : 1)*((overlap+overshoot)/2);
+
+							insectionPoint = [plyX0, plyY0 + fixOffset];
 							return false;
 
 						} else if (ply2Rect.h === plySize) {
@@ -98,15 +109,26 @@ function collideTrail(ply, players, plySize) {
 
 						} else if (ply2Rect.h === plySize) {
 							let overlapPart = Math.min(plyRect.x + plyRect.w, ply2Rect.x + ply2Rect.w)
-							let overlap = Math.max(0, overlapPart - Math.max(plyRect.x, ply2Rect.x)) / 2;
+							let overlap = Math.max(0, overlapPart - Math.max(plyRect.x, ply2Rect.x));
 
+							let overshoot = 0;
 							if (plyX0 > plyX1) {
-            					overlap += Math.max((plyRect.x+plyRect.w) - (ply2Rect.x+ply2Rect.w), 0);
+            					overshoot = Math.max(
+            						(plyRect.x+plyRect.w) - (ply2Rect.x+ply2Rect.w),
+            						plyRect.x - ply2Rect.x,
+            						0
+            					);
 							} else {
-								overlap += Math.max(ply2Rect.x - plyRect.x, 0);
+								overshoot = Math.max(
+									ply2Rect.x - plyRect.x,
+									(ply2Rect.x+ply2Rect.w) - (plyRect.x+plyRect.w),
+									0
+								);
 							}
 
-							insectionPoint = [plyX0 + (plyX0 > plyX1 ? -1 : 1)*overlap, plyY0];
+							const fixOffset = (plyX0 > plyX1 ? -1 : 1)*((overlap+overshoot)/2);
+
+							insectionPoint = [plyX0 + fixOffset, plyY0];
 							return false;
 						}
 					}
