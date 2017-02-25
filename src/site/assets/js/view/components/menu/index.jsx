@@ -7,6 +7,7 @@ import MenuPreLobby from "./prelobby.jsx";
 
 import {
 	updateStartGame,
+	updateFinishGame,
 	updateSpeed
 } from "../../../game/state/actions/game.js";
 import {
@@ -26,6 +27,7 @@ class Menu extends React.Component {
 
 	onStartGame() {
 		this.props.startGame(true);
+		this.props.finishGame(false);
 	}
 
 	onEndGame() {
@@ -85,6 +87,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
 	return bindActionCreators({
 		startGame: updateStartGame,
+		finishGame: updateFinishGame,
 		updateSpeed: updateSpeed,
 		addPlayer: addPlayer,
 		resetPlayers: resetPlayers

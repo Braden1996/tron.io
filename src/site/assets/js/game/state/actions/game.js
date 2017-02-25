@@ -9,9 +9,10 @@ export function updateStartGame(inValue) {
 }
 
 export const FINISH_GAME = "FINISH_GAME";
-export function finishGame() {
+export function updateFinishGame(inValue) {
 	return { 
-		type: FINISH_GAME
+		type: FINISH_GAME,
+		value: inValue
 	};
 }
 
