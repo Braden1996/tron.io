@@ -9,6 +9,11 @@ export function updateStartGame(inValue) {
 }
 
 export const FINISH_GAME = "FINISH_GAME";
+export function finishGame() {
+	return { 
+		type: FINISH_GAME
+	};
+}
 
 export const UPDATE_ARENA_SIZE = "UPDATE_ARENA_SIZE";
 export function updateArenaSize(size) {

@@ -41,8 +41,8 @@ function drawArena(ctx, state, arena) {
 
 	// Draw all our players.
 	state.players.forEach((ply, k) => {
-		let trailColor = ply.alive ? "#90C695" : "#C0392B";
-		let playerColor = ply.alive ? "#3FC380" : "#CF000F";
+		let trailColor = ply.get("alive") ? "#90C695" : "#C0392B";
+		let playerColor = ply.get("alive") ? "#3FC380" : "#CF000F";
 
 		let x = arena.x + (ply.get("position").get(0) + arena.borderSize)*arena.cellSize;
 		let y = arena.y + (ply.get("position").get(1) + arena.borderSize)*arena.cellSize;

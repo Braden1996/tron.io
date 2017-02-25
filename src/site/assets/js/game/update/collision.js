@@ -1,12 +1,12 @@
 "use strict";
 
-import {killPlayer} from "../state/actions/players.js";
+import { killPlayer, updatePlayerPosition } from "../state/actions/players.js";
 
 
 function collideBorder(ply, plySize, arenaSize) {
 	const plyX = ply.get("position").get(0);
 	const plyY = ply.get("position").get(1);
-	const plySizeOffset = playerSize / 2;
+	const plySizeOffset = plySize / 2;
 
 	if (plyX - plySizeOffset < 0) {
 		return [plySizeOffset, plyY];
@@ -36,12 +36,14 @@ function lineToRect(x0, y0, x1, y1, expand) {
 
 function collideTrail(ply, players, plySize) {
 	// Convert ply's line-segment from this tick into a rectangle.
-	let plyX0 = ply.get("position").get(0);
-	let plyY0 = ply.get("position").get(1);
-	let plyX1 = ply.get("trail").get(ply.trail.length-1).get(0);
-	let plyY1 = ply.get("trail").get(ply.trail.length-1).get(1);
+	const plyX0 = ply.get("position").get(0);
+	const plyY0 = ply.get("position").get(1);
+	const plyX1 = ply.get("trail").last().get(0);
+	const plyY1 = ply.get("trail").last().get(1);
 
 	let plyRect = lineToRect(plyX0, plyY0, plyX1, plyY1, plySize);
+
+	let insectionPoint = undefined;
 
 	// For now, we check for collisions against every trail in the arena.
 	// There may be room for optimisation here...
@@ -54,8 +56,8 @@ function collideTrail(ply, players, plySize) {
 		// As the last element in the trail array is not the consequence of a direction change,
 		// we can simply ignore it to form a larger rectangle.
 		for (let i = ply2.get("trail").size - 2; i >= 0; i--) {
-			let ply2X1 = ply2.get("trail").get(i).get(0);
-			let ply2Y1 = ply2.get("trail").get(i).get(1);
+			const ply2X1 = ply2.get("trail").get(i).get(0);
+			const ply2Y1 = ply2.get("trail").get(i).get(1);
 
 			// Ignore ply's two most-recent trail line-segments.
 			if (ply !== ply2 || i < ply.get("trail").size - 3) {
@@ -81,13 +83,19 @@ function collideTrail(ply, players, plySize) {
 								overlap += Math.max(ply2Rect.y - plyRect.y, 0);
 							}
 
-							return [plyX0, plyY0 + (((plyY0 > plyY1 ? -1 : 1)*overlap)/2)];
+							insectionPoint = [plyX0, plyY0 + (((plyY0 > plyY1 ? -1 : 1)*overlap)/2)];
+							return false;
+
 						} else if (ply2Rect.h === plySize) {
-							return [plyX0, ply2Y0 - (plySize+ply2Rect.h)*0.5*Math.sign(ply2Y0 - plyY1)];
+							insectionPoint = [plyX0, ply2Y0 - (plySize+ply2Rect.h)*0.5*Math.sign(ply2Y0 - plyY1)];
+							return false;
+
 						}
 					} else if (plyRect.h === plySize) {
 						if (ply2Rect.w === plySize) {
-							return [ply2X0 - (plySize+ply2Rect.w)*0.5*Math.sign(ply2X0 - plyX1), plyY0];
+							insectionPoint = [ply2X0 - (plySize+ply2Rect.w)*0.5*Math.sign(ply2X0 - plyX1), plyY0];
+							return false;
+
 						} else if (ply2Rect.h === plySize) {
 							let overlapPart = Math.min(plyRect.x + plyRect.w, ply2Rect.x + ply2Rect.w)
 							let overlap = Math.max(0, overlapPart - Math.max(plyRect.x, ply2Rect.x)) / 2;
@@ -98,7 +106,8 @@ function collideTrail(ply, players, plySize) {
 								overlap += Math.max(ply2Rect.x - plyRect.x, 0);
 							}
 
-							return [plyX0 + (plyX0 > plyX1 ? -1 : 1)*overlap, plyY0];
+							insectionPoint = [plyX0 + (plyX0 > plyX1 ? -1 : 1)*overlap, plyY0];
+							return false;
 						}
 					}
 				}
@@ -109,7 +118,7 @@ function collideTrail(ply, players, plySize) {
 		}
 	});
 
-	return undefined;
+	return insectionPoint;
 }
 
 // Check to see if a collision has occured.
@@ -129,13 +138,13 @@ export default function updateCollision(store, progress) {
 			}
 
 			if (intersectPoint !== undefined) {
-				newPositions.push([ply, intersectPoint]);
+				newPositions.push({ply, intersectPoint});
 			};
 		}
 	});
 
 	// Only update players after we have checked all collisions.
 	for (let p of newPositions) {
-		store.dispatch(killPlayer(p[1]));
+		store.dispatch(killPlayer(p.ply.get("id"), p.intersectPoint));
 	}
 }

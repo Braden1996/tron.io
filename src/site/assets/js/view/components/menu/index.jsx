@@ -1,47 +1,53 @@
 import React from "react";
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import MenuLobby from "./lobby.jsx";
 import MenuPreLobby from "./prelobby.jsx";
 
-import {createLobby, addPlayer} from "../../../game/state/actions/players.js";
+
+import {
+	updateStartGame,
+	updateSpeed
+} from "../../../game/state/actions/game.js";
+import {
+	addPlayer,
+	resetPlayers
+} from "../../../game/state/actions/players.js";
 
 
-export default class Menu extends React.Component {
+class Menu extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			inLobby: false,
-			code: undefined
-		};
-
-		this.startGame = this.startGame.bind(this);
-		this.createLobby = this.createLobby.bind(this);
 	}
 
-	startGame() {
-		this.props.tronStore.dispatch(START_GAME);
+	onStartGame() {
+		this.props.startGame(true);
 	}
 
-	createLobby(speed, name) {
-	 	this.props.tronStore.dispatch(createLobby(speed));
-	 	this.props.tronStore.dispatch(addPlayer(name));
+	onEndGame() {
+		this.props.startGame(false);
+		this.props.resetPlayers();
+	}
 
-		this.setState({inLobby: true, code: "blahblah264276"});
+	onCreateLobby(speed, name) {
+	 	this.props.updateSpeed(speed);
+	 	this.props.addPlayer(name);
 	}
 
   	render() {
   		let lobby = null;
-		if (this.state.inLobby) {
+		if (this.props.players.size > 0) {
 			lobby = <MenuLobby
-				players={this.props.tronState.game.players}
-				code={this.state.code}
-				startGameCallback={this.startGame}
+				started={this.props.started}
+				players={this.props.players}
+				code={"blahblah264276"}
+				onStartGame={this.onStartGame.bind(this)}
+				onEndGame={this.onEndGame.bind(this)}
 			/>;
 		} else {
 			lobby = <MenuPreLobby
-				tronState={this.props.tronState}
-				speed={this.props.tronState.config.speed}
-				createLobbyCallback={this.createLobby}
+				speed={this.props.speed}
+				onCreateLobby={this.onCreateLobby.bind(this)}
 			/>;
 		}
 
@@ -53,3 +59,25 @@ export default class Menu extends React.Component {
 	    )
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+  	started: state.game.get("started"),
+  	finished: state.game.get("finished"),
+  	arenaSize: state.game.get("arenaSize"),
+  	playerSize: state.game.get("playerSize"),
+  	speed: state.game.get("speed"),
+    players: state.players
+  };
+}
+
+const mapDispatchToProps = (dispatch) => {
+	return bindActionCreators({
+		startGame: updateStartGame,
+		updateSpeed: updateSpeed,
+		addPlayer: addPlayer,
+		resetPlayers: resetPlayers
+	}, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Menu);

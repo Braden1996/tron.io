@@ -23,7 +23,7 @@ export default class MenuPreLobby extends React.Component {
 	}
 
 	createLobby(event) {
-		this.props.createLobbyCallback(this.state.speed, this.state.name);
+		this.props.onCreateLobby(this.state.speed, this.state.name);
 	}
 
 	render() {

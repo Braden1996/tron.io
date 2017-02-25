@@ -10,7 +10,7 @@ import {
 } from "../actions/game.js";
 
 
-const INITIAL_GAME_STATE = Immutable.Map({
+export const INITIAL_GAME_STATE = Immutable.Map({
 	started: false,
 	finished: undefined,
 	arenaSize: 128,
@@ -21,7 +21,7 @@ const INITIAL_GAME_STATE = Immutable.Map({
 export default function gameReducer(state = INITIAL_GAME_STATE, action) {
 	switch (action.type) {
 		case START_GAME:
-			return state.set("started", true)
+			return state.set("started", action.value)
 				.set("finished", action.value ? false : undefined);
 
 		case FINISH_GAME:

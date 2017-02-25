@@ -13,18 +13,18 @@ export function addPlayer(name, color="#0f0") {
 }
 
 export const KILL_PLAYER = "KILL_PLAYER";
-export function killPlayer(plyId) {
+export function killPlayer(plyId, deathPosition) {
 	return {
 		type: KILL_PLAYER,
-		id: plyId
+		id: plyId,
+		position: Immutable.List(deathPosition)
 	};
 }
 
-export const RESET_PLAYER = "RESET_PLAYER";
-export function resetPlayer(plyId) {
-	return {
-		type: RESET_PLAYER,
-		id: plyId
+export const RESET_PLAYERS = "RESET_PLAYERS";
+export function resetPlayers() {
+	return { 
+		type: RESET_PLAYERS
 	};
 }
 
@@ -38,10 +38,10 @@ export function updatePlayerDirection(plyId, direction) {
 }
 
 export const UPDATE_PLAYER_POSITION = "UPDATE_PLAYER_POSITION";
-export function updatePlayerPosition(plyId, positionX, positionY) {
+export function updatePlayerPosition(plyId, position) {
 	return {
 		type: UPDATE_PLAYER_POSITION,
 		id: plyId,
-		value: Immutable.List([positionX, positionY])
+		value: Immutable.List(position)
 	};
 }

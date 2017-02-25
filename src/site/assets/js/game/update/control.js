@@ -1,6 +1,6 @@
 "use strict";
 
-import {updateDirection} from "../state/actions/players.js";
+import {updatePlayerDirection} from "../state/actions/players.js";
 
 
 const MOVE_DIRECTIONS = ["MOVE_NORTH", "MOVE_SOUTH", "MOVE_EAST", "MOVE_WEST"];
@@ -9,11 +9,11 @@ const MOVE_DIRECTIONS = ["MOVE_NORTH", "MOVE_SOUTH", "MOVE_EAST", "MOVE_WEST"];
 export default function updateControl(store, progress) {
 	const state = store.getState();
 
-	const inputAction = state.input.findLastEntry(v => MOVE_DIRECTIONS.includes(v), null);
-	if (inputAction !== null) {
+	const inputAction = state.input.findLast(v => MOVE_DIRECTIONS.includes(v));
+	if (typeof inputAction !== undefined) {
 		const ply = state.players.find(pl => pl.get("id") === 0);
 
-		if (ply.alive) {
+		if (ply.get("alive")) {
 			let newDirection;
 			switch (inputAction) {
 				case "MOVE_NORTH":
@@ -49,7 +49,7 @@ export default function updateControl(store, progress) {
 						!(oldDirection === "south" && newDirection === "north") &&
 						!(oldDirection === "west" && newDirection === "east") &&
 						!(oldDirection === "east" && newDirection === "west")) {
-						store.dispatch(updateDirection(ply.get("id"), newDirection));
+						store.dispatch(updatePlayerDirection(ply.get("id"), newDirection));
 					}
 				}
 			}

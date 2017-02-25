@@ -28,7 +28,7 @@ export default function updateMove(store, progress) {
 					break;
 			}
 
-			store.dispatch(updatePlayerPosition(ply.id, posX, posY));
+			store.dispatch(updatePlayerPosition(ply.get("id"), [posX, posY]));
 		}
 	});
 }

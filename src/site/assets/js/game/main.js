@@ -4,7 +4,6 @@ import { createStore } from "redux";
 
 import draw from "./draw.js";
 import update from "./update/index.js";
-import handleSpawnPositions from "./util/spawn.js";
 import tronReducer from "./state/reducers/index.js";
 import { updateKeyDown, updateKeyUp } from "./state/actions/input.js";
 
@@ -31,9 +30,6 @@ export default function gameMain() {
 	window.addEventListener("keyup", (evnt) => {
 		store.dispatch(updateKeyUp(evnt.keyCode));
 	}, false);
-
-	// Subscribe to store so we can set initial spawn positions.
-	const unsubscribe = store.subscribe(() => handleSpawnPositions(store));
 
 	const canvas = document.getElementById("game__canvas");
 

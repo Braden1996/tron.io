@@ -4,7 +4,7 @@ import Immutable from "immutable";
 import {
 	KEYDOWN,
 	KEYUP
-} from "../actions/game.js";
+} from "../actions/input.js";
 
 
 export const KEYMAP = {

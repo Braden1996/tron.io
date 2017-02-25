@@ -1,18 +1,21 @@
 "use strict";
 
 import Immutable from "immutable";
+
 import {
 	ADD_PLAYER,
 	KILL_PLAYER,
-	RESET_PLAYER,
+	RESET_PLAYERS,
 	UPDATE_PLAYER_DIRECTION,
-	UPDATE_PLAYER_POSITION
+	UPDATE_PLAYER_POSITION,
+	resetPlayers as resetPlayersAction
 } from "../actions/players.js";
+import getSpawn from "../../util/spawn.js";
 
-
-function addPlayer(state, action) {
+function addPlayer(state, action, gameState) {
+	const lastId = state.maxBy(pl => pl.id) || -1;
 	const ply = Immutable.Map({
-		id: state.maxBy(pl => pl.id) + 1,
+		id: lastId + 1,
 		name: action.name,
 		color: action.color,
 		alive: true,
@@ -21,60 +24,72 @@ function addPlayer(state, action) {
 		trail: Immutable.List()
 	});
 
-	return state.push(ply);
+	return resetPlayers(state.push(ply), resetPlayersAction, gameState);
 }
 
 function killPlayer(state, action) {
-	return state.update(state.findIdx(ply => ply.id === action.id), ply => {
-		return ply.set("alive", false);
+	return state.update(state.findIndex(ply => ply.id === action.id), ply => {
+		ply = ply.set("alive", false)
+		if (!action.position.isEmpty()) {
+			ply = ply
+				.set("position", action.position)
+				.update("trail", t => t.set(t.size-1, action.position));
+		}
+		return ply;
 	});
 }
 
-function resetPlayer(state, action) {
-	return state.update(state.findIdx(ply => ply.id === action.id), ply => {
+function resetPlayers(state, action, gameState) {
+	const plySize = gameState.get("playerSize");
+	const arenaSize = gameState.get("arenaSize");
+
+	return state.map((ply, k) => {
+		const spawn = getSpawn(ply, k, plySize, arenaSize);
+		if (!Immutable.List.isList(spawn.position)) {
+			spawn.position = Immutable.List(spawn.position);
+		}
+
 		return ply.set("alive", true)
-			.set("direction", undefined)
-			.set("position", undefined)
+			.set("direction", spawn.direction)
+			.set("position", spawn.position)
 			.set("trail", Immutable.List());
 	});
 }
 
 function updatePlayerDirection(state, action) {
-	return state.update(state.findIdx(ply => ply.id === action.id), ply => {
+	return state.update(state.findIndex(ply => ply.id === action.id), ply => {
 		const pos = Immutable.List([
 			Math.round(ply.get("position").get(0)),
 			Math.round(ply.get("position").get(1))
 		]);
 		return ply
-			.set("direction", action.direction)
+			.set("direction", action.value)
 			.set("position", pos)
-			.update("trail", t => t.insert(t.size-1, pos).push(pos));
+			.update("trail", t => t.set(t.size-1, pos).push(pos));
 	});
 }
 
 function updatePlayerPosition(state, action) {
-	let pos = action.position;
-	if (!Immutable.List.isList(pos)) {
-		pos = Immutable.List(action.position);
-	}
-
-	return state.update(state.findIdx(ply => ply.id === action.id), ply => {
+	return state.update(state.findIndex(ply => ply.id === action.id), ply => {
+		const oldPos = ply.get("position");
 		if (ply.get("trail").size === 0) {
-			return ply.set("position", pos)
-				.set("trail", Immutable.List([pos, pos]));
+			return ply.set("position", action.value)
+				.set("trail", Immutable.List([oldPos, oldPos]));
 		} else {
-			return ply.set("position", pos)
-				.update("trail", t => t.insert(ply.size-1, pos));
+			return ply.set("position", action.value)
+				.update("trail", t => t.set(t.size-1, oldPos));
 		}
 	});
 }
 
-export default function playerReducer(state = Immutable.List(), action) {
+export default function playerReducer(state=Immutable.List(), action, gameState) {
 	switch (action.type) {
 		case ADD_PLAYER:
-			return addPlayer(state, action);
+			return addPlayer(state, action, gameState);
 		case KILL_PLAYER:
 			return killPlayer(state, action);
+		case RESET_PLAYERS:
+			return resetPlayers(state, action, gameState);
 		case UPDATE_PLAYER_DIRECTION:
 			return updatePlayerDirection(state, action);
 		case UPDATE_PLAYER_POSITION:
