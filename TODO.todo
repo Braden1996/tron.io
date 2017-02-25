@@ -24,6 +24,7 @@ Tron Game:
    ☐ Prepare for network functionality by adding a lobby into the menu. @started
    ☐ Send client player's position data to server.
    ☐ Ability to receive player data from server and then sync up.
+   ☐ Cleaner way to initially position players.
 
   Server-side:
    ☐ Research and prepare a basic server technology.

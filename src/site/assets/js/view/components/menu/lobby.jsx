@@ -1,17 +1,20 @@
 import React from "react";
 
+
 export default class MenuLobby extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			players: this.props.players,
+			gameStarted: false
 		};
 
 		this.beginGame = this.beginGame.bind(this);
 	}
 
-	beginGame(event) {
-		this.props.beginGameCallback();
+	startGame(event) {
+		this.props.startGameCallback();
+		this.setState({gameStarted: true});
 	}
 
 	render() {
@@ -29,8 +32,10 @@ export default class MenuLobby extends React.Component {
 				  <figcaption>Players:</figcaption>
 				  <ol>{plyList}</ol>
 				</figure>
-				<button id="menu__addcomputerplayer">Add computer player</button><br />
-				<button id="menu__begingame" onClick={this.beginGame}>Begin Game</button>
+				<button>Add computer player</button><br />
+				<button onClick={this.startGame}>
+					{this.state.gameStarted ? "Restart" : "Begin"} Game
+				</button>
 			</div>
 		)
 	}

@@ -1,28 +1,30 @@
 import React from "react";
+import { connect } from "react-redux";
 import MenuLobby from "./lobby.jsx";
 import MenuPreLobby from "./prelobby.jsx";
-import createGameState from "../../../game/state/game.js";
+
+import {createLobby, addPlayer} from "../../../game/state/actions/players.js";
+
 
 export default class Menu extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			inLobby: this.props.tronState.game !== undefined,
+			inLobby: false,
 			code: undefined
 		};
 
+		this.startGame = this.startGame.bind(this);
 		this.createLobby = this.createLobby.bind(this);
-		this.beginGame = this.beginGame.bind(this);
 	}
 
-	beginGame() {
-    	this.props.tronState.game.started = true;
+	startGame() {
+		this.props.tronStore.dispatch(START_GAME);
 	}
 
 	createLobby(speed, name) {
-		this.props.tronState.config.speed = speed;
-		this.props.tronState.game = createGameState(this.props.tronState.config);
-	 	this.props.tronState.game.players[0].name = name;
+	 	this.props.tronStore.dispatch(createLobby(speed));
+	 	this.props.tronStore.dispatch(addPlayer(name));
 
 		this.setState({inLobby: true, code: "blahblah264276"});
 	}
@@ -33,7 +35,7 @@ export default class Menu extends React.Component {
 			lobby = <MenuLobby
 				players={this.props.tronState.game.players}
 				code={this.state.code}
-				beginGameCallback={this.beginGame}
+				startGameCallback={this.startGame}
 			/>;
 		} else {
 			lobby = <MenuPreLobby

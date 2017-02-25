@@ -13,7 +13,7 @@ export function getArenaObject(canvas, state) {
 
 	// Calculate arena cell-size.
 	let refSize = arena.w > arena.h ? arena.h : arena.w;
-	arena.cellSize = refSize / (state.config.arenaSize + 2*arena.borderSize);
+	arena.cellSize = refSize / (state.game.get("arenaSize") + 2*arena.borderSize);
 
 	return arena;
 }
@@ -36,32 +36,32 @@ function drawArena(ctx, state, arena) {
 
 	drawBorder(ctx, state, arena);
 
-	let plySize = arena.cellSize*state.config.playerSize;
+	let plySize = arena.cellSize*state.game.get("playerSize");
 	let plySizeOffset = plySize / 2;
 
 	// Draw all our players.
-	for (let ply of state.game.players) {
+	state.players.forEach((ply, k) => {
 		let trailColor = ply.alive ? "#90C695" : "#C0392B";
 		let playerColor = ply.alive ? "#3FC380" : "#CF000F";
 
-		let x = arena.x + (ply.position[0] + arena.borderSize)*arena.cellSize;
-		let y = arena.y + (ply.position[1] + arena.borderSize)*arena.cellSize;
+		let x = arena.x + (ply.get("position").get(0) + arena.borderSize)*arena.cellSize;
+		let y = arena.y + (ply.get("position").get(1) + arena.borderSize)*arena.cellSize;
 
 		// Draw trail backwards from current position.
 		ctx.beginPath();
 		ctx.moveTo(x, y);
 		let xi, yi;
-		for (let i = ply.trail.length; i-- > 0; ) {
-			xi = arena.x + (ply.trail[i][0] + arena.borderSize)*arena.cellSize;
-			yi = arena.y + (ply.trail[i][1] + arena.borderSize)*arena.cellSize;
+		for (let i = ply.get("trail").size; i-- > 0; ) {
+			xi = arena.x + (ply.get("trail").get(i).get(0) + arena.borderSize)*arena.cellSize;
+			yi = arena.y + (ply.get("trail").get(i).get(1) + arena.borderSize)*arena.cellSize;
 
 			// Player position is the centre.
 			// So we need to make the first line a little longer.
 			if (i == 0) {
 				let lastX = x, lastY = y;
-				if (ply.trail.length >= 2) {
-					lastX = arena.x + (ply.trail[1][0] + arena.borderSize)*arena.cellSize;
-					lastY = arena.y + (ply.trail[1][1] + arena.borderSize)*arena.cellSize;
+				if (ply.get("trail").size >= 2) {
+					lastX = arena.x + (ply.get("trail").get(1).get(0) + arena.borderSize)*arena.cellSize;
+					lastY = arena.y + (ply.get("trail").get(1).get(1) + arena.borderSize)*arena.cellSize;
 				}
 				let xDir = xi - lastX, yDir = yi - lastY;
 				xi = xi + plySizeOffset*((xDir === 0) ? 0 : (xDir > 0 ? 1 : -1));
@@ -82,7 +82,7 @@ function drawArena(ctx, state, arena) {
 		ctx.fillStyle = playerColor;
 		ctx.fill();
 		ctx.closePath();
-	}
+	});
 }
 
 function drawMenu(canvas, state) {
@@ -96,7 +96,6 @@ function drawMenu(canvas, state) {
   	ctx.fillText("TRON", canvas.clientWidth/2, canvas.clientHeight/2);
 }
 
-// A object factory to initialise a game state.
 export default function draw(canvas, state) {
 	let ctx = canvas.getContext("2d");
 	let arena = getArenaObject(canvas, state);

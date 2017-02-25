@@ -1,15 +1,25 @@
 "use strict";
 
-function collideBorder(state, ply) {
-	let plySizeOffset = state.config.playerSize/2;
-	if (ply.position[0] - plySizeOffset < 0) {
-		return [plySizeOffset, ply.position[1]];
-	} else if (ply.position[0] + plySizeOffset > state.config.arenaSize) {
-		return [state.config.arenaSize - plySizeOffset, ply.position[1]];
-	} else if (ply.position[1] - plySizeOffset < 0) {
-		return [ply.position[0], plySizeOffset];
-	} else if (ply.position[1] + plySizeOffset > state.config.arenaSize) {
-		return [ply.position[0], state.config.arenaSize - plySizeOffset];
+import {killPlayer} from "../state/actions/players.js";
+
+
+function collideBorder(ply, plySize, arenaSize) {
+	const plyX = ply.get("position").get(0);
+	const plyY = ply.get("position").get(1);
+	const plySizeOffset = playerSize / 2;
+
+	if (plyX - plySizeOffset < 0) {
+		return [plySizeOffset, plyY];
+
+	} else if (plyX + plySizeOffset > arenaSize) {
+		return [arenaSize - plySizeOffset, plyY];
+
+	} else if (plyY - plySizeOffset < 0) {
+		return [plyX, plySizeOffset];
+
+	} else if (plyY + plySizeOffset > arenaSize) {
+		return [plyX, arenaSize - plySizeOffset];
+
 	} else {
 		return undefined;
 	}
@@ -24,33 +34,31 @@ function lineToRect(x0, y0, x1, y1, expand) {
 	};
 }
 
-function collideTrail(state, ply) {
-	let plySize = state.config.playerSize;
-
+function collideTrail(ply, players, plySize) {
 	// Convert ply's line-segment from this tick into a rectangle.
-	let plyX0 = ply.position[0];
-	let plyY0 = ply.position[1];
-	let plyX1 = ply.trail[ply.trail.length-1][0];
-	let plyY1 = ply.trail[ply.trail.length-1][1];
+	let plyX0 = ply.get("position").get(0);
+	let plyY0 = ply.get("position").get(1);
+	let plyX1 = ply.get("trail").get(ply.trail.length-1).get(0);
+	let plyY1 = ply.get("trail").get(ply.trail.length-1).get(1);
 
 	let plyRect = lineToRect(plyX0, plyY0, plyX1, plyY1, plySize);
 
 	// For now, we check for collisions against every trail in the arena.
 	// There may be room for optimisation here...
-	for (let ply2 of state.game.players) {
+	players.forEach(ply2 => {
 		// Check backwards from each players' current position.
 		// But ignore plys most recent trail progress.
-		let ply2X0 = ply2.position[0];
-		let ply2Y0 = ply2.position[1];
+		let ply2X0 = ply2.get("position").get(0);
+		let ply2Y0 = ply2.get("position").get(1);
 
 		// As the last element in the trail array is not the consequence of a direction change,
 		// we can simply ignore it to form a larger rectangle.
-		for (let i = ply2.trail.length - 2; i >= 0; i--) {
-			let ply2X1 = ply2.trail[i][0];
-			let ply2Y1 = ply2.trail[i][1];
+		for (let i = ply2.get("trail").size - 2; i >= 0; i--) {
+			let ply2X1 = ply2.get("trail").get(i).get(0);
+			let ply2Y1 = ply2.get("trail").get(i).get(1);
 
 			// Ignore ply's two most-recent trail line-segments.
-			if (ply !== ply2 || i < ply.trail.length - 3) {
+			if (ply !== ply2 || i < ply.get("trail").size - 3) {
 				let ply2Rect = lineToRect(ply2X0, ply2Y0, ply2X1, ply2Y1, plySize);
 
 				if (plyRect.x < ply2Rect.x + ply2Rect.w &&
@@ -99,28 +107,35 @@ function collideTrail(state, ply) {
 			ply2X0 = ply2X1;
 			ply2Y0 = ply2Y1;
 		}
-	}
+	});
+
 	return undefined;
 }
 
 // Check to see if a collision has occured.
-export default function updateCollision(state, progress) {
-	let newPositions = [];
-	for (let ply of state.game.players.filter((p) => p.alive)) {
-		let intersectPoint = collideTrail(state, ply);
-		if (intersectPoint === undefined) {
-			intersectPoint = collideBorder(state, ply);
-		}
+export default function updateCollision(store, progress) {
+	const state = store.getState();
 
-		if (intersectPoint !== undefined) {
-			newPositions.push([ply, intersectPoint]);
-		};
-	}
+	const players = state.players;
+	const plySize = state.game.get("playerSize");
+	const arenaSize = state.game.get("arenaSize");
+
+	let newPositions = [];
+	state.players.map((ply, k) => {
+		if (ply.get("alive")) {
+			let intersectPoint = collideTrail(ply, players, plySize);
+			if (intersectPoint === undefined) {
+				intersectPoint = collideBorder(ply, plySize, arenaSize);
+			}
+
+			if (intersectPoint !== undefined) {
+				newPositions.push([ply, intersectPoint]);
+			};
+		}
+	});
 
 	// Only update players after we have checked all collisions.
 	for (let p of newPositions) {
-		p[0].alive = false;
-		p[0].position = p[1];
-		p[0].trail[p[0].trail.length-1] = p[1];
+		store.dispatch(killPlayer(p[1]));
 	}
 }
