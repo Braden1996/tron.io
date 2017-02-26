@@ -2,9 +2,9 @@
 
 import { combineReducers } from "redux";
 
-import gameReducer from "./game.js";
 import inputReducer from "./input.js";
-import playersReducer from "./players.js";
+import gameReducer from "Shared/state/reducers/game.js";
+import playersReducer from "Shared/state/reducers/players.js";
 
 export default function tronReducer(state = {}, action) {
 	let newState = {

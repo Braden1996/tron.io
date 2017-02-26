@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config ./webpack.config.js",
-    "watch": "webpack-dev-server -d"
+    "watch": "webpack-dev-server -d",
+    "start": "node ./src/server/app.js"
   },
   "repository": {
     "type": "git",
@@ -31,10 +32,12 @@
     "webpack-dev-server": "^2.4.1"
   },
   "dependencies": {
+    "express": "^4.14.1",
     "immutable": "^3.8.1",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-redux": "^5.0.3",
-    "redux": "^3.6.0"
+    "redux": "^3.6.0",
+    "socket.io": "^1.7.3"
   }
 }

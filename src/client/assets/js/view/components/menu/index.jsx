@@ -4,16 +4,15 @@ import { connect } from "react-redux";
 import MenuLobby from "./lobby.jsx";
 import MenuPreLobby from "./prelobby.jsx";
 
-
 import {
 	updateStartGame,
 	updateFinishGame,
 	updateSpeed
-} from "../../../game/state/actions/game.js";
+} from "Shared/state/actions/game.js";
 import {
 	addPlayer,
 	resetPlayers
-} from "../../../game/state/actions/players.js";
+} from "Shared/state/actions/players.js";
 
 
 class Menu extends React.Component {

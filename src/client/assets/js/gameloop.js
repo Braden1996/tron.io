@@ -3,9 +3,12 @@
 import { createStore } from "redux";
 
 import draw from "./draw.js";
-import update from "./update/index.js";
+import update from "Shared/update/index.js";
 import tronReducer from "./state/reducers/index.js";
-import { updateKeyDown, updateKeyUp } from "./state/actions/input.js";
+import {
+	updateKeyDown,
+	updateKeyUp
+} from "./state/actions/input.js";
 
 
 let lastTick = 0;

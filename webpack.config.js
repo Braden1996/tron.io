@@ -4,12 +4,16 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
-	entry: "./src/site/assets/js/entry.js",
+	entry: "./src/client/assets/js/entry.js",
 	output: {
 		path: path.join(__dirname, "/dist/"),
 		filename: "bundle.js"
 	},
-	devtool: "cheap-module-eval-source-map",
+	resolve: {
+		alias: {
+  			Shared: path.resolve(__dirname, "src/shared/")
+		}
+	},
 	module: {
 		rules: [
 			{
@@ -43,7 +47,8 @@ module.exports = {
 		new ExtractTextPlugin("styles.css"),
 		new HtmlWebpackPlugin({
 			filename:"./index.html",
-			template: "./src/site/index.html"
+			template: "./src/client/index.html"
 		})
-	]
+	],
+	devtool: "cheap-module-eval-source-map"
 };
