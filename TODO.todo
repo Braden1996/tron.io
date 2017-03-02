@@ -24,7 +24,9 @@ Tron Game:
    ☐ Prepare for network functionality by adding a lobby into the menu. @started
    ☐ Send client player's position data to server.
    ☐ Ability to receive player data from server and then sync up.
-   ☐ Cleaner way to initially position players.
+   ☐ Cleaner way to initially position players. @started
+   ☐ Divide arena space up into some data-structure (such as a uniform grid or quad-tree) to improve collision detection efficiency.
+   ☐ Fix conceptual bug where only the first collision point is found, as opposed to the closest/first-hit.
 
   Server-side:
    ✔ Research and prepare a basic server technology. @done (17-02-28 11:21)
