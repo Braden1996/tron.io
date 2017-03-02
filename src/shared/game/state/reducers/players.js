@@ -59,8 +59,8 @@ function resetPlayers(state, action, gameState) {
 function updatePlayerDirection(state, action) {
 	return state.update(state.findIndex(ply => ply.get("id") === action.id), ply => {
 		const pos = Immutable.List([
-			Math.round(ply.get("position").get(0)),
-			Math.round(ply.get("position").get(1))
+      Math.round(ply.get("position").get(0)),
+      Math.round(ply.get("position").get(1))
 		]);
 		return ply
 			.set("direction", action.value)

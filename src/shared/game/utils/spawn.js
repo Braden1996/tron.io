@@ -11,8 +11,8 @@ export default function getSpawn(k, totalPlayers, plySize, arenaSize) {
 	const plySizeOffset = plySize / 2;
   const side = k % (4);
   const sidePos = Math.floor(k / 4);
-  const sidePlayers = totalPlayers / 4;
-  const sideStart = (1+sidePos)*arenaSize/(sidePlayers+1);
+  const sidePlayers = Math.ceil(totalPlayers / 4);
+  const sideStart = Math.round((1+sidePos)*arenaSize/(sidePlayers+1));
 
 	switch (side) {
 		case 0:
