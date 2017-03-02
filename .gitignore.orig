@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 # Editor stuff
 tronio.sublime-workspace
 tronio.sublime-project
-
-# Below is React-Universally
-
+# Node modules
+node_modules/
+# Transipiled JavaScript
+src/site/static/js/main.js
+# Transipiled CSS
+src/site/static/css/main.css
+=======
 # Environment Configuration
 .env
 
@@ -47,4 +52,4 @@ flow-coverage/
 
 # Happypack
 .happypack
-
+>>>>>>> 22e695872e99ca440e8e774dd99d2e4a2763da53

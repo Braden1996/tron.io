@@ -1,8 +1,50 @@
 {
+<<<<<<< HEAD
   "name": "tron.io",
   "version": "1.0.0",
   "description": "A multiplayer browser implementation of the game tron including an AI computer player.",
   "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config ./webpack.config.js",
+    "watch": "webpack-dev-server -d",
+    "start": "node ./src/server/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Braden1996/tron.io.git"
+  },
+  "author": "Braden Marshall",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Braden1996/tron.io/issues"
+  },
+  "homepage": "https://github.com/Braden1996/tron.io#readme",
+  "devDependencies": {
+    "babel-core": "^6.23.1",
+    "babel-loader": "^6.3.2",
+    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-react": "^6.23.0",
+    "css-loader": "^0.26.1",
+    "extract-text-webpack-plugin": "^2.0.0-rc.3",
+    "html-loader": "^0.4.4",
+    "html-webpack-plugin": "^2.28.0",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.4.1"
+  },
+  "dependencies": {
+    "express": "^4.14.1",
+    "immutable": "^3.8.1",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "react-redux": "^5.0.3",
+    "redux": "^3.6.0",
+    "socket.io": "^1.7.3"
+=======
+  "name": "react-universally",
+  "version": "12.0.0",
+  "description": "A starter kit giving you the minimum requirements for a modern universal react application.",
+  "main": "build/server/index.js",
   "engines": {
     "node": ">=6"
   },
@@ -20,14 +62,36 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Braden1996/tron.io.git"
+    "url": "git+https://github.com/ctrlplusb/react-universally.git"
   },
-  "author": "Braden Marshall <braden1996@hotmail.co.uk>",
-  "license": "GPL-3.0",
+  "keywords": [
+    "react",
+    "boilerplate",
+    "starter kit",
+    "universal",
+    "javascript",
+    "express",
+    "webpack"
+  ],
+  "contributors": [
+    "Alin Porumb",
+    "Benjamin Kniffler <bkniffler@me.com>",
+    "Carson Perrotti <carsonperrotti@gmail.com>",
+    "Christian Glombek <christian.glombek@rwth-aachen.de>",
+    "Christoph Werner",
+    "David Edmondson",
+    "Evgeny Boxer",
+    "Joe Kohlmann <kohlmannj@mac.com>",
+    "Lucian Lature <lucian.lature@gmail.com>",
+    "Steven Enten <steven@enten.fr>",
+    "Sean Matheson <sean@ctrlplusb.com>",
+    "Steven Truesdell <steven@strues.io>"
+  ],
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Braden1996/tron.io/issues"
+    "url": "https://github.com/ctrlplusb/react-universally/issues"
   },
-  "homepage": "https://github.com/Braden1996/tron.io#readme",
+  "homepage": "https://github.com/ctrlplusb/react-universally#readme",
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.{js,jsx}"
@@ -48,20 +112,13 @@
     "express": "4.14.0",
     "helmet": "3.3.0",
     "hpp": "0.2.1",
-    "immutable": "^3.8.1",
     "normalize.css": "5.0.0",
     "offline-plugin": "4.5.4",
     "react": "15.4.2",
     "react-dom": "15.4.2",
     "react-helmet": "3.3.0",
-    "react-redux": "^5.0.3",
     "react-router": "4.0.0-alpha.6",
-    "redux": "^3.6.0",
     "serialize-javascript": "1.3.0",
-    "socket.io": "1.7.3",
-    "socket.io-client": "1.7.3",
-    "transit-immutable-js": "^0.7.0",
-    "transit-js": "^0.8.846",
     "user-home": "2.0.0",
     "uuid": "3.0.1"
   },
@@ -112,6 +169,6 @@
     "webpack-hot-middleware": "2.15.0",
     "webpack-md5-hash": "0.0.5",
     "webpack-node-externals": "1.5.4"
+>>>>>>> 22e695872e99ca440e8e774dd99d2e4a2763da53
   }
 }
-
