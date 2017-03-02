@@ -25,13 +25,27 @@ function collideBorder(ply, plySize, arenaSize) {
 	}
 }
 
-function lineToRect(x0, y0, x1, y1, expand) {
-	return {
-		x: Math.min(x0, x1) - expand/2,
-		y: Math.min(y0, y1) - expand/2,
-		w: Math.abs(x0 - x1) + expand,
-		h: Math.abs(y0 - y1) + expand
+function lineToRect(x0, y0, x1, y1, stroke) {
+  const halfStroke = stroke;
+	let rect = {
+		x0: Math.min(x0, x1) - halfStroke,
+		y0: Math.min(y0, y1) - halfStroke,
+		w: Math.abs(x0 - x1) + stroke,
+		h: Math.abs(y0 - y1) + stroke
 	};
+  return {
+    ...rect,
+    x1: rect.x0 + rect.w,
+    y1: rect.y0 + rect.h,
+  }
+}
+
+function getOverlap1D(x0, x1, x2, x3) {
+  return Math.max(0, Math.min(x1, x3) - Math.max(x0, x2));
+}
+
+function getOvershoot1D(x0, x1, x2, x3) {
+  return Math.max(0, x0 - x2, x1 - x3);
 }
 
 function collideTrail(ply, players, plySize) {
@@ -61,77 +75,67 @@ function collideTrail(ply, players, plySize) {
 
 			// Ignore ply's two most-recent trail line-segments.
 			if (ply !== ply2 || i < ply.get("trail").size - 3) {
-				let ply2Rect = lineToRect(ply2X0, ply2Y0, ply2X1, ply2Y1, plySize);
+				const ply2Rect = lineToRect(ply2X0, ply2Y0, ply2X1, ply2Y1, plySize);
 
-				if (plyRect.x < ply2Rect.x + ply2Rect.w &&
-			        plyRect.x + plyRect.w > ply2Rect.x &&
-			        plyRect.y < ply2Rect.y + ply2Rect.h &&
-			        plyRect.h + plyRect.y > ply2Rect.y) {
+        // Check if there was collision.
+				if (plyRect.x0 < ply2Rect.x1 &&
+	        plyRect.x1 > ply2Rect.x0 &&
+	        plyRect.y0 < ply2Rect.y1 &&
+	        plyRect.y1 > ply2Rect.y0) {
 
-					// Idea is to position ply using where they came from, not
-					// where they've ended up. In the case of a head-on collision (e.g. | | or _ _),
-					// we effectively move the colliding players back by half the overlapping distance.
+          // Now we need calculate ply's position at the moment of impact.
+          // In the case of a mutual head-on collision, we simply move both
+          // players back by half the overlap + overshoot distance.
 					if (plyRect.w === plySize) {
+            let newY;
 						if (ply2Rect.w === plySize) {
-							const overlapPart = Math.min(plyRect.y + plyRect.h, ply2Rect.y + ply2Rect.h);
-            				const overlap = Math.max(0, overlapPart - Math.max(plyRect.y, ply2Rect.y));
+      				const overlap = getOverlap1D(
+                plyRect.y0, plyRect.y1,
+                ply2Rect.y0, ply2Rect.y1,
+              );
 
-            				// In the case when ply 'overshoots' ply2, add dy to overlap.
-            				let overshoot = 0;
-							if (plyY0 > plyY1) {
-            					overshoot = Math.max(
-            						(plyRect.y+plyRect.h) - (ply2Rect.y+ply2Rect.h),
-            						plyRect.y - ply2Rect.y,
-            						0
-            					);
-							} else {
-								overshoot = Math.max(
-									ply2Rect.y - plyRect.y,
-									(ply2Rect.y+ply2Rect.h) - (plyRect.y+plyRect.h),
-									0
-								);
-							}
+      				// For the case when plyRect 'overshoots' ply2Rect.
+      				const overshoot = plyY0 > plyY1 ?
+                getOvershoot1D(plyRect.y0, plyRect.y1, ply2Rect.y0, ply2Rect.y1) :
+                getOvershoot1D(ply2Rect.y0, ply2Rect.y1, plyRect.y0, plyRect.y1);
 
-							const fixOffset = (plyY0 > plyY1 ? -1 : 1)*((overlap+overshoot)/2);
-
-							insectionPoint = [plyX0, plyY0 + fixOffset];
-							return false;
+							const direction = plyY0 > plyY1 ? -1 : 1;
+              const fixOffset = direction*((overlap+overshoot)/2);
+							newY = plyY0 + fixOffset;
 
 						} else if (ply2Rect.h === plySize) {
-							insectionPoint = [plyX0, ply2Y0 - (plySize+ply2Rect.h)*0.5*Math.sign(ply2Y0 - plyY1)];
-							return false;
-
+              const direction = Math.sign(ply2Y0 - plyY1);
+							newY = ply2Y0 - (plySize+ply2Rect.h)*0.5*direction;
 						}
+
+            insectionPoint = [plyX0, newY];
+            return false;
+
 					} else if (plyRect.h === plySize) {
+            let newX;
 						if (ply2Rect.w === plySize) {
-							insectionPoint = [ply2X0 - (plySize+ply2Rect.w)*0.5*Math.sign(ply2X0 - plyX1), plyY0];
-							return false;
+              const direction = Math.sign(ply2X0 - plyX1);
+							newX = ply2X0 - (plySize+ply2Rect.w)*0.5*direction;
 
 						} else if (ply2Rect.h === plySize) {
-							let overlapPart = Math.min(plyRect.x + plyRect.w, ply2Rect.x + ply2Rect.w)
-							let overlap = Math.max(0, overlapPart - Math.max(plyRect.x, ply2Rect.x));
+							const overlap = getOverlap1D(
+                plyRect.x, plyRect.x1,
+                ply2Rect.x, ply2Rect.x1,
+              );
 
-							let overshoot = 0;
-							if (plyX0 > plyX1) {
-            					overshoot = Math.max(
-            						(plyRect.x+plyRect.w) - (ply2Rect.x+ply2Rect.w),
-            						plyRect.x - ply2Rect.x,
-            						0
-            					);
-							} else {
-								overshoot = Math.max(
-									ply2Rect.x - plyRect.x,
-									(ply2Rect.x+ply2Rect.w) - (plyRect.x+plyRect.w),
-									0
-								);
-							}
+              const overshoot = plyX0 > plyX1 ?
+                getOvershoot1D(plyRect.x0, plyRect.x1, ply2Rect.x0, ply2Rect.x1) :
+                getOvershoot1D(ply2Rect.x0, ply2Rect.x1, plyRect.x0, plyRect.x1);
 
-							const fixOffset = (plyX0 > plyX1 ? -1 : 1)*((overlap+overshoot)/2);
-
-							insectionPoint = [plyX0 + fixOffset, plyY0];
-							return false;
+              const direction = plyX0 > plyX1 ? -1 : 1;
+							const fixOffset = direction*((overlap+overshoot)/2);
+							newX = plyX0 + fixOffset;
 						}
+
+            insectionPoint = [newX, plyY0];
 					}
+
+          return false;
 				}
 			}
 
