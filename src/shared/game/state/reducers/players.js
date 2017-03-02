@@ -44,7 +44,7 @@ function resetPlayers(state, action, gameState) {
 	const arenaSize = gameState.get("arenaSize");
 
 	return state.map((ply, k) => {
-		const spawn = getSpawn(ply, k, plySize, arenaSize);
+		const spawn = getSpawn(k, state.size, plySize, arenaSize);
 		if (!Immutable.List.isList(spawn.position)) {
 			spawn.position = Immutable.List(spawn.position);
 		}
