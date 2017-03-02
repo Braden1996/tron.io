@@ -2,10 +2,13 @@
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { ServerRouter, createServerRenderContext } from 'react-router';
+import { Provider as ReduxProvider } from 'react-redux';
+import transit from 'transit-immutable-js';
 import { CodeSplitProvider, createRenderContext } from 'code-split-component';
 import Helmet from 'react-helmet';
 import generateHTML from './generateHTML';
-import DemoApp from '../../../shared/components/DemoApp';
+import App from '../../../shared/components/App';
+import configureStore from '../../../shared/redux/configureStore';
 import config from '../../../../config';
 
 /**
@@ -37,6 +40,10 @@ function reactApplicationMiddleware(request, response) {
     return;
   }
 
+  // Create the redux store.
+  const store = configureStore();
+  const { getState } = store;
+
   // First create a context for <ServerRouter>, which will allow us to
   // query for the results of the render.
   const reactRouterContext = createServerRenderContext();
@@ -49,9 +56,11 @@ function reactApplicationMiddleware(request, response) {
   const reactAppString = renderToString(
     <CodeSplitProvider context={codeSplitContext}>
       <ServerRouter location={request.url} context={reactRouterContext}>
-        <DemoApp />
+        <ReduxProvider store={store}>
+          <App />
+        </ReduxProvider>
       </ServerRouter>
-    </CodeSplitProvider>,
+    </CodeSplitProvider>
   );
 
   // Generate the html response.
@@ -68,6 +77,9 @@ function reactApplicationMiddleware(request, response) {
     // html, and then the client bundle can use this data to know which chunks/
     // modules need to be rehydrated prior to the application being rendered.
     codeSplitState: codeSplitContext.getState(),
+    // Provide the redux store state, this will be bound to the window.__APP_STATE__
+    // so that we can rehydrate the state on the client.
+    initialState: transit.toJSON(getState())
   });
 
   // Get the render result from the server render context.

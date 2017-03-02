@@ -27,7 +27,7 @@ Tron Game:
    ☐ Cleaner way to initially position players.
 
   Server-side:
-   ☐ Research and prepare a basic server technology.
+   ✔ Research and prepare a basic server technology. @done (17-02-28 11:21)
    ☐ Player can setup a lobby, existing on the server, that other players are then able to join.
    ☐ Able to broadcast data sent between lobby players.
 

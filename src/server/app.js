@@ -1,20 +1,53 @@
-var express = require("express");
-var socketio = require("socket.io");
-var http = require("http.io");
+import path from "path";
+import express from "express";
+import socketio from "socket.io";
+import http from "http";
+import webpack from "webpack";
+import webpackMiddleware from "webpack-dev-middleware";
+import webpackConfig from "../../webpack.config.js";
 
-var app = express();
+// Use 'express.static' for production!
 
-app.get("/", function (req, res) {
-  res.send("Hello World!");
+const app = express();
+
+const compiler = webpack(webpackConfig);
+app.use(webpackMiddleware(compiler, {
+	publicPath: webpackConfig.output.publicPath,
+	stats: {colors: true}
+}));
+
+const router = express.Router();
+
+router.get("/", (req, res) => {
+	const filename = path.join(compiler.outputPath, "index.html");
+	compiler.outputFileSystem.readFile(filename, (err, result) => {
+		res.set("content-type", "text/html");
+		res.send(result);
+		res.end();
+	});
 });
 
-app.listen(3000, function () {
-  console.log("Example app listening on port 3000!");
-});
+app.use(router);
 
-var server = http.createServer(app);
-var io = socketio(server);
-io.on("connection", function() {
+const server = http.createServer(app);
+const io = socketio(server);
+io.on("connection", client => {
 	console.log("Connected")
+
+	client.on("disconnect", () => {
+		console.log('A user disconnected');
+	});
+
+	client.on("input", (data) => {
+		client.emit("input", data);
+	});
+
+	client.on("inputoff", (data) => {
+		console.log(data);
+		client.emit("inputoff", data);
+	});
 });
-server.listen(3000);
+
+server.listen(3000, () => {
+	console.log('listening on *:3000');
+});

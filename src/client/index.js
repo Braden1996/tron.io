@@ -4,11 +4,32 @@ import React from 'react';
 import { render } from 'react-dom';
 import { BrowserRouter } from 'react-router';
 import { CodeSplitProvider, rehydrateState } from 'code-split-component';
+import { Provider as ReduxProvider } from 'react-redux';
+import transit from 'transit-immutable-js';
+import Immutable from 'immutable';
+import configureStore from '../shared/redux/configureStore';
 import ReactHotLoader from './components/ReactHotLoader';
-import DemoApp from '../shared/components/DemoApp';
+import gameDraw from './game/draw';
+import gameAttachInput from './game/input';
+import gameUpdate from '../shared/game/update';
+import GameLoop from '../shared/game/gameloop';
+import App from '../shared/components/App';
 
 // Get the DOM Element that will host our React application.
 const container = document.querySelector('#app');
+
+// Create our Redux store.
+const store = configureStore(
+  // Server side rendering would have mounted our state on this global.
+  transit.fromJSON(window.__APP_STATE__), // eslint-disable-line no-underscore-dangle
+);
+
+gameAttachInput(store);
+
+const mainLoop = new GameLoop();
+mainLoop.setArgument("store", store);
+mainLoop.subscribe(gameUpdate, ["store", "progress"]);
+mainLoop.subscribe(gameDraw, ["store", "canvas"], "draw");
 
 function renderApp(TheApp) {
   // We use the code-split-component library to provide us with code splitting
@@ -24,9 +45,11 @@ function renderApp(TheApp) {
     render(
       <ReactHotLoader>
         <CodeSplitProvider state={codeSplitState}>
-          <BrowserRouter>
-            <TheApp />
-          </BrowserRouter>
+          <ReduxProvider store={store}>
+            <BrowserRouter>
+              <TheApp gameloop={mainLoop} />
+            </BrowserRouter>
+          </ReduxProvider>
         </CodeSplitProvider>
       </ReactHotLoader>,
       container,
@@ -40,13 +63,13 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
   module.hot.accept('./index.js');
   // Any changes to our App will cause a hotload re-render.
   module.hot.accept(
-    '../shared/components/DemoApp',
-    () => renderApp(require('../shared/components/DemoApp').default),
+    '../shared/components/App',
+    () => renderApp(require('../shared/components/App').default),
   );
 }
 
 // Execute the first render of our app.
-renderApp(DemoApp);
+renderApp(App);
 
 // This registers our service worker for asset caching and offline support.
 // Keep this as the last item, just in case the code execution failed (thanks
