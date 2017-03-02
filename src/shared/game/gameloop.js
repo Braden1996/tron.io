@@ -1,5 +1,3 @@
-"use strict";
-
 export default class GameLoop {
   constructor() {
     this.subscribers = [];
@@ -13,17 +11,17 @@ export default class GameLoop {
   internalCallByIdx(idx) {
     const callback = this.subscribers[idx];
     const iwant = this.subscriberArguments[idx];
-    let iget = [];
-    for (let j = 0; j < iwant.length; j++) {
+    const iget = [];
+    for (let j = 0; j < iwant.length; j += 1) {
       iget.push(this.arguments[iwant[j]]);
     }
     callback(...iget);
   }
 
   internalLoop(curtick) {
-    this.arguments["progress"] = curtick - this.lastTick;
+    this.arguments.progress = curtick - this.lastTick;
 
-    for (let i = 0; i < this.subscribers.length; i++) {
+    for (let i = 0; i < this.subscribers.length; i += 1) {
       this.internalCallByIdx(i);
     }
 
@@ -43,8 +41,8 @@ export default class GameLoop {
     window.cancelAnimationFrame(this.loopID);
   }
 
-  subscribe(callback, iwantArgs=[], key) {
-    if (typeof key !== undefined) {
+  subscribe(callback, iwantArgs = [], key) {
+    if (key !== undefined) {
       this.subscriberKeys[key] = callback;
     }
 

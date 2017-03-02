@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 
 class GameCanvas extends React.Component {
@@ -19,28 +19,26 @@ class GameCanvas extends React.Component {
     }
 
     // Redraw
-    this.props.gameloop.call("draw");
+    this.props.gameloop.call('draw');
   }
 
   componentDidMount() {
     const canvas = this.refs.canvas;
-    this.props.gameloop.setArgument("canvas", canvas);
+    this.props.gameloop.setArgument('canvas', canvas);
 
-    window.addEventListener("resize", this.fixSize, false);
+    window.addEventListener('resize', this.fixSize, false);
     this.fixSize();
 
     this.props.gameloop.start();
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.fixSize, false);
+    window.removeEventListener('resize', this.fixSize, false);
     this.props.gameloop.stop();
   }
 
   render() {
-    return (
-      <canvas ref="canvas" id="game__canvas" width="480" height="320"></canvas>
-    );
+    return <canvas ref="canvas" id="game__canvas" width="480" height="320" />;
   }
 }
 

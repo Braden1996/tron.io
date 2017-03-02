@@ -1,11 +1,8 @@
-import React from 'react';
-import { Match, Miss } from 'react-router';
-import Helmet from 'react-helmet';
-import { CodeSplit } from 'code-split-component';
-import { safeConfigGet } from '../../utils/config';
 import 'normalize.css/normalize.css';
+import React from 'react';
+import Helmet from 'react-helmet';
+import { safeConfigGet } from '../../utils/config';
 import './globals.css';
-import Error404 from './Error404';
 import GameCanvas from './GameCanvas';
 import Menu from './Menu';
 
@@ -26,7 +23,7 @@ function App(props) {
         script={safeConfigGet(['htmlPage', 'scripts'])}
       />
 
-      <GameCanvas gameloop={gameloop}></GameCanvas>
+      <GameCanvas gameloop={gameloop} />
       <section id="game__menu" className="menu">
         <h1>Tron</h1>
         <article className="menu__section" id="menuSection">

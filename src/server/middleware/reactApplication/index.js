@@ -60,7 +60,7 @@ function reactApplicationMiddleware(request, response) {
           <App />
         </ReduxProvider>
       </ServerRouter>
-    </CodeSplitProvider>
+    </CodeSplitProvider>,
   );
 
   // Generate the html response.
@@ -79,7 +79,7 @@ function reactApplicationMiddleware(request, response) {
     codeSplitState: codeSplitContext.getState(),
     // Provide the redux store state, this will be bound to the window.__APP_STATE__
     // so that we can rehydrate the state on the client.
-    initialState: transit.toJSON(getState())
+    initialState: transit.toJSON(getState()),
   });
 
   // Get the render result from the server render context.

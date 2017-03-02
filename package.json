@@ -15,6 +15,7 @@
     "start": "cross-env NODE_ENV=production node build/server",
     "deploy": "babel-node tools/scripts/deploy",
     "lint": "eslint src",
+    "lintfix": "eslint src --fix",
     "test": "jest",
     "test:coverage": "jest --coverage"
   },

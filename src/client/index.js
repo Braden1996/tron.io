@@ -6,7 +6,6 @@ import { BrowserRouter } from 'react-router';
 import { CodeSplitProvider, rehydrateState } from 'code-split-component';
 import { Provider as ReduxProvider } from 'react-redux';
 import transit from 'transit-immutable-js';
-import Immutable from 'immutable';
 import configureStore from '../shared/redux/configureStore';
 import ReactHotLoader from './components/ReactHotLoader';
 import gameDraw from './game/draw';
@@ -27,9 +26,9 @@ const store = configureStore(
 gameAttachInput(store);
 
 const mainLoop = new GameLoop();
-mainLoop.setArgument("store", store);
-mainLoop.subscribe(gameUpdate, ["store", "progress"]);
-mainLoop.subscribe(gameDraw, ["store", "canvas"], "draw");
+mainLoop.setArgument('store', store);
+mainLoop.subscribe(gameUpdate, ['store', 'progress']);
+mainLoop.subscribe(gameDraw, ['store', 'canvas'], 'draw');
 
 function renderApp(TheApp) {
   // We use the code-split-component library to provide us with code splitting

@@ -2,8 +2,8 @@
 // https://github.com/ctrlplusb/react-universally/blob/feature/redux-opinionated/src/shared/redux/configureStore.js
 
 import { createStore, compose } from 'redux';
-//import thunk from 'redux-thunk';
-//import axios from 'axios';
+// import thunk from 'redux-thunk';
+// import axios from 'axios';
 import reducer from '../reducers';
 
 function configureStore(initialState) {
