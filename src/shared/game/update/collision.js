@@ -192,20 +192,18 @@ export default function updateCollision(store) {
 
   const quadtree = setupQuadtree(players, plySize, arenaSize);
 
-  const newPositions = [];
+  const killed = [];
   players.forEach((ply) => {
     if (ply.get('alive')) {
-      const intersectPoint = collideTrail(ply, plySize, quadtree) ||
+      const point = collideTrail(ply, plySize, quadtree) ||
         collideBorder(ply, plySize, arenaSize);
 
-      if (intersectPoint !== undefined) {
-        newPositions.push({ ply, intersectPoint });
+      if (point !== undefined) {
+        killed.push({ ply, point });
       }
     }
   });
 
   // Only update players after we have checked all collisions.
-  for (const p of newPositions) {
-    store.dispatch(killPlayer(p.ply.get('id'), p.intersectPoint));
-  }
+  killed.forEach(p => {store.dispatch(killPlayer(p.ply.get('id'), p.point))});
 }

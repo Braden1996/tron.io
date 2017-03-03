@@ -31,7 +31,7 @@ export default class Quadtree {
   // Clear the quadtree by recursively clearing all objects from all nodes.
   clear() {
     this.objects.clear();
-    for (let i = 0; i < this.nodes.length; i++) {
+    for (let i = 0; i < this.nodes.length; i += 1) {
       if (this.nodes[i] !== undefined) {
         this.nodes[i].clear();
         delete this.nodes[i];
@@ -60,8 +60,8 @@ export default class Quadtree {
   // to indicate that it is part of the parent node.
   getIndex(objRect) {
     let index = -1;
-    const quadXMid = this.bounds.x + this.bounds.w / 2;
-    const quadYMid = this.bounds.y + this.bounds.h / 2;
+    const quadXMid = this.bounds.x + (this.bounds.w / 2);
+    const quadYMid = this.bounds.y + (this.bounds.h / 2);
 
     // objRect can completely fit within the top quadrants.
     const topQuadrant = (objRect.y < quadYMid) && ((objRect.y + objRect.h) < quadYMid);
@@ -114,23 +114,25 @@ export default class Quadtree {
         const idx = this.getIndex(object);
         if (idx === -1) {
           return true;
-        } else {
-          this.nodes[idx].insert(object);
-          return false;
         }
+
+        this.nodes[idx].insert(object);
+        return false;
       });
     }
   }
 
   // Return all objects that could collide with the given object.
-  retrieve(objRect, returnObjects = []) {
+  retrieve(objRect) {
+    let outObjects = this.objects;
     if (this.nodes[0] !== undefined) {
       const idx = this.getIndex(objRect);
       if (idx !== -1) {
-        returnObjects = this.nodes[idx].retrieve(objRect, returnObjects);
+        const getObjects = this.nodes[idx].retrieve(objRect);
+        outObjects = getObjects.concat(outObjects);
       }
     }
 
-    return returnObjects.concat(this.objects);
+    return outObjects;
   }
 }

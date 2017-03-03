@@ -1,4 +1,5 @@
-function drawBorder(ctx, arena) {
+function drawBorder(canvas, arena) {
+  const ctx = canvas.getContext('2d');
   ctx.beginPath();
   ctx.moveTo(arena.x, arena.y);
   ctx.lineTo(arena.x + arena.w, arena.y);
@@ -13,10 +14,9 @@ function drawBorder(ctx, arena) {
 
 function drawArena(canvas, state, arena) {
   const ctx = canvas.getContext('2d');
-
   ctx.clearRect(arena.x, arena.y, arena.w, arena.h);
 
-  drawBorder(ctx, arena);
+  drawBorder(canvas, arena);
 
   const plySize = arena.cellSize * state.game.get('playerSize');
   const plySizeOffset = plySize / 2;
@@ -72,8 +72,9 @@ function drawArena(canvas, state, arena) {
 }
 
 function drawMenu(canvas, arena) {
+  drawBorder(canvas, arena);
+
   const ctx = canvas.getContext('2d');
-  drawBorder(ctx, arena);
   ctx.font = '48px "Lucida Sans Unicode"';
   ctx.fillStyle = '#3FC380';
   ctx.textAlign = 'center';
