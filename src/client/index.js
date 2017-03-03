@@ -25,10 +25,16 @@ const store = configureStore(
 
 gameAttachInput(store);
 
+let gameDrawFunc = gameDraw;
+if (process.env.NODE_ENV === 'development') {
+  const gameDrawDebug = require('./game/drawdebug').default;
+  gameDrawFunc = (s, c) => {gameDraw(s, c); gameDrawDebug(s, c)};
+}
+
 const mainLoop = new GameLoop();
 mainLoop.setArgument('store', store);
 mainLoop.subscribe(gameUpdate, ['store', 'progress']);
-mainLoop.subscribe(gameDraw, ['store', 'canvas'], 'draw');
+mainLoop.subscribe(gameDrawFunc, ['store', 'canvas'], 'draw');
 
 function renderApp(TheApp) {
   // We use the code-split-component library to provide us with code splitting

@@ -1,0 +1,40 @@
+import { getArenaObject } from './draw';
+import { setupQuadtree } from '../../shared/game/update/collision';
+
+function drawQuadtreeOverlay(canvas, state, arena) {
+  const ctx = canvas.getContext('2d');
+
+  const players = state.players;
+  const plySize = state.game.get('playerSize');
+  const arenaSize = state.game.get('arenaSize');
+  const fakeQuadtree = setupQuadtree(players, plySize, arenaSize);
+
+  let nodeQueue = [fakeQuadtree];
+  while (nodeQueue.length > 0) {
+    const curNode = nodeQueue.shift();
+    const x = (curNode.bounds.x + arena.borderSize) * arena.cellSize;
+    const y = (curNode.bounds.y + arena.borderSize) * arena.cellSize;
+    const w = curNode.bounds.w * arena.cellSize;
+    const h = curNode.bounds.h * arena.cellSize;
+    ctx.beginPath();
+    ctx.moveTo(x + (w / 2), y);
+    ctx.lineTo(x + (w / 2), y + h);
+    ctx.moveTo(x, y + (h / 2));
+    ctx.lineTo(x + w, y + (h / 2));
+    ctx.lineWidth = (fakeQuadtree.MAX_LEVELS - curNode.level) + 1;
+    ctx.strokeStyle = "#00f";
+    ctx.stroke();
+    ctx.closePath();
+    nodeQueue = nodeQueue.concat(curNode.nodes);
+  }
+}
+
+export default function drawDebug(store, canvas) {
+  const state = store.getState();
+
+  const arena = getArenaObject(canvas, state);
+
+  if (state.players.size !== 0) {
+    drawQuadtreeOverlay(canvas, state, arena);
+  }
+}

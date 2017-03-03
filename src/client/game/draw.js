@@ -1,22 +1,4 @@
-export function getArenaObject(canvas, state) {
-  const arenaPadding = 4;
-  const arena = {
-    padding: arenaPadding,
-    x: arenaPadding,
-    y: arenaPadding,
-    w: canvas.clientWidth - (2 * arenaPadding),
-    h: canvas.clientHeight - (2 * arenaPadding),
-    borderSize: 1,
-  };
-
-  // Calculate arena cell-size.
-  const refSize = arena.w > arena.h ? arena.h : arena.w;
-  arena.cellSize = refSize / (state.game.get('arenaSize') + (2 * arena.borderSize));
-
-  return arena;
-}
-
-export function drawBorder(ctx, state, arena) {
+function drawBorder(ctx, arena) {
   ctx.beginPath();
   ctx.moveTo(arena.x, arena.y);
   ctx.lineTo(arena.x + arena.w, arena.y);
@@ -29,10 +11,12 @@ export function drawBorder(ctx, state, arena) {
   ctx.closePath();
 }
 
-function drawArena(ctx, state, arena) {
+function drawArena(canvas, state, arena) {
+  const ctx = canvas.getContext('2d');
+
   ctx.clearRect(arena.x, arena.y, arena.w, arena.h);
 
-  drawBorder(ctx, state, arena);
+  drawBorder(ctx, arena);
 
   const plySize = arena.cellSize * state.game.get('playerSize');
   const plySizeOffset = plySize / 2;
@@ -87,26 +71,41 @@ function drawArena(ctx, state, arena) {
   });
 }
 
-function drawMenu(canvas, state) {
+function drawMenu(canvas, arena) {
   const ctx = canvas.getContext('2d');
-  const arena = getArenaObject(canvas, state);
-
-  drawBorder(ctx, state, arena);
+  drawBorder(ctx, arena);
   ctx.font = '48px "Lucida Sans Unicode"';
   ctx.fillStyle = '#3FC380';
   ctx.textAlign = 'center';
   ctx.fillText('TRON', canvas.clientWidth / 2, canvas.clientHeight / 2);
 }
 
+export function getArenaObject(canvas, state) {
+  const arenaPadding = 4;
+  const arena = {
+    padding: arenaPadding,
+    x: arenaPadding,
+    y: arenaPadding,
+    w: canvas.clientWidth - (2 * arenaPadding),
+    h: canvas.clientHeight - (2 * arenaPadding),
+    borderSize: 1,
+  };
+
+  // Calculate arena cell-size.
+  const refSize = arena.w > arena.h ? arena.h : arena.w;
+  arena.cellSize = refSize / (state.game.get('arenaSize') + (2 * arena.borderSize));
+
+  return arena;
+}
+
 export default function draw(store, canvas) {
   const state = store.getState();
 
-  const ctx = canvas.getContext('2d');
   const arena = getArenaObject(canvas, state);
 
-  if (state.game === undefined) {
-    drawMenu(canvas, state);
+  if (state.players.size === 0) {
+    drawMenu(canvas, arena);
   } else {
-    drawArena(ctx, state, arena);
+    drawArena(canvas, state, arena);
   }
 }
