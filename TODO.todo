@@ -25,7 +25,9 @@ Tron Game:
    ☐ Send client player's position data to server.
    ☐ Ability to receive player data from server and then sync up.
    ✔ Cleaner way to initially position players. @started @done (17-03-02 20:19)
-   ☐ Divide arena space up into some data-structure (such as a uniform grid or quad-tree) to improve collision detection efficiency.
+   ✔ Divide arena space up into some data-structure (such as a uniform grid or quad-tree) to improve collision detection efficiency. @started @done (17-03-03 16:27)
+     Quad tree research - https://gamedevelopment.tutsplus.com/tutorials/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space--gamedev-374
+     Note - currently, the tree is recreated every tick. This isn't strickly necessary as existing trails wont ever move. Although, it would be difficult to change.
    ☐ Fix conceptual bug where only the first collision point is found, as opposed to the closest/first-hit.
 
   Server-side:
