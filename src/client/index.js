@@ -13,6 +13,7 @@ import gameAttachInput from './game/input';
 import gameUpdate from '../shared/game/update';
 import GameLoop from '../shared/game/gameloop';
 import App from '../shared/components/App';
+import socketsInit from './sockets';
 
 // Get the DOM Element that will host our React application.
 const container = document.querySelector('#app');
@@ -24,6 +25,7 @@ const store = configureStore(
 );
 
 gameAttachInput(store);
+const socket = socketsInit(store);
 
 let gameDrawFunc = gameDraw;
 if (process.env.NODE_ENV === 'development') {
