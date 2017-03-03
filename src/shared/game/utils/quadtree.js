@@ -41,15 +41,15 @@ export default class Quadtree {
   split() {
     const x = this.bounds.x;
     const y = this.bounds.y;
-    const subW = this.bounds.w / 2;
-    const subH = this.bounds.h / 2;
+    const w = this.bounds.w / 2;
+    const h = this.bounds.h / 2;
 
     const nextLevel = this.level + 1;
 
-    this.nodes[0] = new Quadtree({x: x + subW, y, subW, subH}, nextLevel);
-    this.nodes[1] = new Quadtree({x, y, subW, subH}, nextLevel);
-    this.nodes[2] = new Quadtree({x, y: y + subH, subW, subH}, nextLevel);
-    this.nodes[3] = new Quadtree({x: x + subW, y: y + subH, subW, subH}, nextLevel);
+    this.nodes[0] = new Quadtree({x: x + w, y, w, h}, nextLevel);
+    this.nodes[1] = new Quadtree({x, y, w, h}, nextLevel);
+    this.nodes[2] = new Quadtree({x, y: y + h, w, h}, nextLevel);
+    this.nodes[3] = new Quadtree({x: x + w, y: y + h, w, h}, nextLevel);
   }
 
   // Determine where an object belongs in the quadtree by determining

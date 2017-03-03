@@ -57,8 +57,11 @@ function plyToObjRects(ply, stroke) {
 
 // Create, populate and return a quadtree for the given state of players.
 // This will be later used for efficient collision detection.
-function setupQuadtree(players, plySize, arenaSize) {
+// Exported so we can draw it in debug mode.
+export function setupQuadtree(players, plySize, arenaSize) {
   const quadtree = new Quadtree({x: 0, y: 0, w: arenaSize, h: arenaSize});
+  quadtree.MAX_OBJECTS = 4;  // Not sure what would be ideal.
+  quadtree.MAX_LEVELS = Math.log2(arenaSize/4);
   players.map(ply => plyToObjRects(ply, plySize))
     .forEach(objRects => objRects.forEach(oRect => quadtree.insert(oRect)));
   return quadtree;
