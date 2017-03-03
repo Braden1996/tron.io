@@ -31,12 +31,12 @@ if (process.env.NODE_ENV === 'development') {
   gameDrawFunc = (s, c) => {gameDraw(s, c); gameDrawDebug(s, c)};
 }
 
-const mainLoop = new GameLoop();
-mainLoop.setArgument('store', store);
-mainLoop.subscribe(gameUpdate, ['store', 'progress']);
-mainLoop.subscribe(gameDrawFunc, ['store', 'canvas'], 'draw');
-
 function renderApp(TheApp) {
+  const mainLoop = new GameLoop();
+  mainLoop.setArgument('store', store);
+  mainLoop.subscribe(gameUpdate, ['store', 'progress']);
+  mainLoop.subscribe(gameDrawFunc, ['store', 'canvas'], 'draw');
+
   // We use the code-split-component library to provide us with code splitting
   // within our application.  This library supports server rendered applications,
   // but for server rendered applications it requires that we rehydrate any

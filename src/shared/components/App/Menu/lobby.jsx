@@ -35,7 +35,7 @@ export default class MenuLobby extends React.Component {
           <figcaption>Players:</figcaption>
           <ol>{plyList}</ol>
         </figure>
-        {this.props.players.size < 16 &&
+        {!this.props.started && this.props.players.size < 16 &&
           <button onClick={this.props.onAddComputer}>Add computer player</button>
         }
         {beginButton}
