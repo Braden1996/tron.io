@@ -50,7 +50,7 @@ function drawArena(ctx, state, arena) {
     ctx.moveTo(x, y);
     let xi;
     let yi;
-    for (let i = ply.get('trail').size; i > 0; i -= 1) {
+    for (let i = ply.get('trail').size - 1; i >= 0; i -= 1) {
       xi = arena.x + ((ply.get('trail').get(i).get(0) + arena.borderSize) * arena.cellSize);
       yi = arena.y + ((ply.get('trail').get(i).get(1) + arena.borderSize) * arena.cellSize);
 

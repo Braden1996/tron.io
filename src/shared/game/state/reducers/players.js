@@ -46,7 +46,7 @@ function killPlayer(state, action) {
   return state.update(state.findIndex(ply => ply.get('id') === action.id), (ply) => {
     let newPly = ply.set('alive', false);
     if (!action.position.isEmpty()) {
-      newPly = ply.set('position', action.position)
+      newPly = newPly.set('position', action.position)
         .update('trail', t => t.set(t.size - 1, action.position));
     }
     return newPly;
