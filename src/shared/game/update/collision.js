@@ -27,7 +27,7 @@ function lineToRect(x0, y0, x1, y1, stroke) {
 
 // Return a QuadtreeObjRect representing a trail line-segment for some player.
 function rectToObjRect(rect, ply, trailIdx) {
-  return new QuadtreeObjRect(rect.x, rect.y, rect.w, rect.h, {ply, trailIdx});
+  return new QuadtreeObjRect(rect.x, rect.y, rect.w, rect.h, { ply, trailIdx });
 }
 
 // Return an array of rectangle objects representing the trail of the
@@ -59,9 +59,9 @@ function plyToObjRects(ply, stroke) {
 // This will be later used for efficient collision detection.
 // Exported so we can draw it in debug mode.
 export function setupQuadtree(players, plySize, arenaSize) {
-  const quadtree = new Quadtree({x: 0, y: 0, w: arenaSize, h: arenaSize});
+  const quadtree = new Quadtree({ x: 0, y: 0, w: arenaSize, h: arenaSize });
   quadtree.MAX_OBJECTS = 4;  // Not sure what would be ideal.
-  quadtree.MAX_LEVELS = Math.ceil(Math.log2(arenaSize/4));
+  quadtree.MAX_LEVELS = Math.ceil(Math.log2(arenaSize / 4));
   players.map(ply => plyToObjRects(ply, plySize))
     .forEach(objRects => objRects.forEach(oRect => quadtree.insert(oRect)));
   return quadtree;
@@ -136,7 +136,7 @@ function collideTrail(ply, plySize, quadtree) {
           if (objRect.h === plySize) {
             const objRectCentreY = objRect.y + (objRect.h / 2);
             const direction = Math.sign(plyY0 - plyY1);
-            newY = objRectCentreY - (direction*(0.5*(objRect.h+plySize)));
+            newY = objRectCentreY - (direction * (0.5 * (objRect.h + plySize)));
           } else if (objRect.w === plySize) {
             const overlap = getOverlap1D(
               plyObjRectY0, plyObjRectY1,
@@ -153,14 +153,12 @@ function collideTrail(ply, plySize, quadtree) {
             newY = plyY0 + fixOffset;
           }
           insectionPoint = [plyX0, newY];
-
         } else if (plyObjRect.h === plySize) {
           let newX;
           if (objRect.w === plySize) {
             const objRectCentreX = objRect.x + (objRect.w / 2);
             const direction = Math.sign(plyX0 - plyX1);
-            newX = objRectCentreX - (direction*(0.5*(objRect.w+plySize)));
-
+            newX = objRectCentreX - (direction * (0.5 * (objRect.w + plySize)));
           } else if (objRect.h === plySize) {
             const overlap = getOverlap1D(
               plyObjRectX0, plyObjRectX1,

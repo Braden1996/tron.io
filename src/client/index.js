@@ -28,7 +28,7 @@ gameAttachInput(store);
 let gameDrawFunc = gameDraw;
 if (process.env.NODE_ENV === 'development') {
   const gameDrawDebug = require('./game/drawdebug').default;
-  gameDrawFunc = (s, c) => {gameDraw(s, c); gameDrawDebug(s, c)};
+  gameDrawFunc = (s, c) => { gameDraw(s, c); gameDrawDebug(s, c); };
 }
 
 function renderApp(TheApp) {

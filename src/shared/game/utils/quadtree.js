@@ -13,7 +13,7 @@ export class QuadtreeObjRect {
 }
 
 export default class Quadtree {
-  constructor(bounds, level=0) {
+  constructor(bounds, level = 0) {
     this.MAX_OBJECTS = 10;
     this.MAX_LEVELS = 5;
 
@@ -21,9 +21,11 @@ export default class Quadtree {
     this.nodes = [];
     this.objects = [];
     this.bounds = {
-      "x": bounds.x, "w": bounds.w,
-      "y": bounds.y, "h": bounds.h,
-    }
+      x: bounds.x,
+      w: bounds.w,
+      y: bounds.y,
+      h: bounds.h,
+    };
   }
 
   // Clear the quadtree by recursively clearing all objects from all nodes.
@@ -46,10 +48,10 @@ export default class Quadtree {
 
     const nextLevel = this.level + 1;
 
-    this.nodes[0] = new Quadtree({x: x + w, y, w, h}, nextLevel);
-    this.nodes[1] = new Quadtree({x, y, w, h}, nextLevel);
-    this.nodes[2] = new Quadtree({x, y: y + h, w, h}, nextLevel);
-    this.nodes[3] = new Quadtree({x: x + w, y: y + h, w, h}, nextLevel);
+    this.nodes[0] = new Quadtree({ x: x + w, y, w, h }, nextLevel);
+    this.nodes[1] = new Quadtree({ x, y, w, h }, nextLevel);
+    this.nodes[2] = new Quadtree({ x, y: y + h, w, h }, nextLevel);
+    this.nodes[3] = new Quadtree({ x: x + w, y: y + h, w, h }, nextLevel);
   }
 
   // Determine where an object belongs in the quadtree by determining
@@ -130,5 +132,5 @@ export default class Quadtree {
     }
 
     return returnObjects.concat(this.objects);
- }
+  }
 }
