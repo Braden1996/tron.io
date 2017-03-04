@@ -1,21 +1,15 @@
-// From:
-// https://github.com/ctrlplusb/react-universally/blob/feature/redux-opinionated/src/shared/redux/configureStore.js
-
-import { createStore, compose } from 'redux';
-// import thunk from 'redux-thunk';
-// import axios from 'axios';
+import { createStore, applyMiddleware, compose } from 'redux';
+import createSagaMiddleware from 'redux-saga';
 import reducer from '../reducers';
 
-function configureStore(initialState) {
+function configureStore(rootSaga, initialState) {
+  const sagaMiddleware = createSagaMiddleware();
+
   const enhancers = compose(
     // Middleware store enhancer.
-    // applyMiddleware(
-    //   // Initialising redux-thunk with extra arguments will pass the below
-    //   // arguments to all the redux-thunk actions. Below we are passing a
-    //   // preconfigured axios instance which can be used to fetch data with.
-    //   // @see https://github.com/gaearon/redux-thunk
-    //   thunk.withExtraArgument({ axios }),
-    // ),
+    applyMiddleware(
+      sagaMiddleware
+    ),
     // Redux Dev Tools store enhancer.
     // @see https://github.com/zalmoxisus/redux-devtools-extension
     // We only want this enhancer enabled for development and when in a browser
@@ -32,6 +26,10 @@ function configureStore(initialState) {
   const store = initialState
     ? createStore(reducer, initialState, enhancers)
     : createStore(reducer, enhancers);
+
+  if (rootSaga) {
+    sagaMiddleware.run(rootSaga);
+  }
 
   if (process.env.NODE_ENV === 'development' && module.hot) {
     // Enable Webpack hot module replacement for reducers. This is so that we

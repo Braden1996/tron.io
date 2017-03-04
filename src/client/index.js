@@ -13,19 +13,19 @@ import gameAttachInput from './game/input';
 import gameUpdate from '../shared/game/update';
 import GameLoop from '../shared/game/gameloop';
 import App from '../shared/components/App';
-import socketsInit from './sockets';
+import rootSaga from './sagas';
 
 // Get the DOM Element that will host our React application.
 const container = document.querySelector('#app');
 
 // Create our Redux store.
 const store = configureStore(
+  rootSaga,
   // Server side rendering would have mounted our state on this global.
   transit.fromJSON(window.__APP_STATE__), // eslint-disable-line no-underscore-dangle
 );
 
 gameAttachInput(store);
-const socket = socketsInit(store);
 
 let gameDrawFunc = gameDraw;
 if (process.env.NODE_ENV === 'development') {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { ServerRouter, createServerRenderContext } from 'react-router';
@@ -83,7 +82,7 @@ function reactApplicationMiddleware(request, response) {
   });
 
   // Get the render result from the server render context.
-  const renderResult = reactRouterContext.getResult();
+  const renderResult = reactRouterContext;
 
   // Check if the render result contains a redirect, if so we need to set
   // the specific status and redirect header and end the response.

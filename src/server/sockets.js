@@ -20,6 +20,10 @@ export default function socketsInit(app) {
     //   // console.log(data);
     //   socket.emit('inputoff', data);
     // });
+
+    socket.on('lobbyconnect', (data) => {
+      socket.emit('lobbyconnected', data);
+    });
   });
 
   return server;
