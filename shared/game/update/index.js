@@ -8,13 +8,14 @@ import { updateFinishGame } from '../state/actions/game';
 export default function update(store, progress) {
   const state = store.getState();
 
-  if (state.game.get('started') && !state.game.get('finished')) {
+  if (state.get('game').get('started') && !state.get('game').get('finished')) {
     updateControl(store, progress);
     updateMove(store, progress);
     updateCollision(store, progress);
 
-    if ((state.players.size === 1 && !state.players.get(0).get('alive')) ||
-      (state.players.size !== 1 && state.players.count(p => p.get('alive')) <= 1)) {
+    const players = state.get('players');
+    if ((players.size === 1 && !players.get(0).get('alive')) ||
+      (players.size !== 1 && players.count(p => p.get('alive')) <= 1)) {
       store.dispatch(updateFinishGame(true));
     }
   }

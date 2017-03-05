@@ -4,9 +4,9 @@ import { setupQuadtree } from '../../shared/game/update/collision';
 function drawQuadtreeOverlay(canvas, state, arena) {
   const ctx = canvas.getContext('2d');
 
-  const players = state.players;
-  const plySize = state.game.get('playerSize');
-  const arenaSize = state.game.get('arenaSize');
+  const players = state.get('players');
+  const plySize = state.get('game').get('playerSize');
+  const arenaSize = state.get('game').get('arenaSize');
   const fakeQuadtree = setupQuadtree(players, plySize, arenaSize);
 
   let nodeQueue = [fakeQuadtree];
@@ -36,7 +36,7 @@ export default function drawDebug(store, canvas) {
 
   const arena = getArenaObject(canvas, state);
 
-  if (state.players.size !== 0) {
+  if (state.get('game').size !== 0) {
     drawQuadtreeOverlay(canvas, state, arena);
   }
 }

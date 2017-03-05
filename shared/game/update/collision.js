@@ -186,9 +186,9 @@ function collideTrail(ply, plySize, quadtree) {
 export default function updateCollision(store) {
   const state = store.getState();
 
-  const players = state.players;
-  const plySize = state.game.get('playerSize');
-  const arenaSize = state.game.get('arenaSize');
+  const players = state.get('players');
+  const plySize = state.get('game').get('playerSize');
+  const arenaSize = state.get('game').get('arenaSize');
 
   const quadtree = setupQuadtree(players, plySize, arenaSize);
 

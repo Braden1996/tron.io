@@ -18,11 +18,11 @@ function drawArena(canvas, state, arena) {
 
   drawBorder(canvas, arena);
 
-  const plySize = arena.cellSize * state.game.get('playerSize');
+  const plySize = arena.cellSize * state.get('game').get('playerSize');
   const plySizeOffset = plySize / 2;
 
   // Draw all our players.
-  state.players.forEach((ply) => {
+  state.get('players').forEach((ply) => {
     const trailColor = ply.get('alive') ? '#90C695' : '#C0392B';
     const playerColor = ply.get('alive') ? '#3FC380' : '#CF000F';
 
@@ -94,7 +94,7 @@ export function getArenaObject(canvas, state) {
 
   // Calculate arena cell-size.
   const refSize = arena.w > arena.h ? arena.h : arena.w;
-  arena.cellSize = refSize / (state.game.get('arenaSize') + (2 * arena.borderSize));
+  arena.cellSize = refSize / (state.get('game').get('arenaSize') + (2 * arena.borderSize));
 
   return arena;
 }
@@ -104,7 +104,7 @@ export default function draw(store, canvas) {
 
   const arena = getArenaObject(canvas, state);
 
-  if (state.players.size === 0) {
+  if (state.get('players').size === 0) {
     drawMenu(canvas, arena);
   } else {
     drawArena(canvas, state, arena);

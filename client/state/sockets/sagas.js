@@ -1,11 +1,16 @@
-import { takeEvery } from 'redux-saga/effects';
-
 import io from 'socket.io-client';
 import { eventChannel } from 'redux-saga';
 import { fork, take, call, put } from 'redux-saga/effects';
+
 import {
-  LOBBY_CONNECT
-} from '../../shared/actions/gamelobby';
+  socketsReadReady,
+  socketsWriteReady
+} from './actions';
+
+import {
+  LOBBY_CONNECT,
+  lobbyConnectSuccess
+} from '../../../shared/state/lobby/actions';
 
 function connect() {
   const socket = io('http://localhost:3000');
@@ -22,14 +27,15 @@ function connect() {
 
 function subscribe(socket) {
   return eventChannel(emit => {
-    socket.on('lobbyconnected', e => {
-      console.log(`Connected to lobby: ${e}`);
+    socket.on('lobbyconnected', lobbyKey => {
+      emit(lobbyConnectSuccess(lobbyKey));
     });
     return () => {};
   });
 }
 
 function* read(socket) {
+  yield put(socketsReadReady());
   const channel = yield call(subscribe, socket);
   while (true) {
     let action = yield take(channel);
@@ -38,8 +44,8 @@ function* read(socket) {
 }
 
 function* write(socket) {
+  yield put(socketsWriteReady());
   while (true) {
-    console.log(`Waiting to write: ${LOBBY_CONNECT}`);
     const { value } = yield take(LOBBY_CONNECT);
     socket.emit('lobbyconnect', value);
   }
@@ -55,6 +61,6 @@ function* flow() {
   const task = yield fork(handleIO, socket);
 }
 
-export default function* rootSaga() {
+export default function* socketSaga() {
   yield fork(flow);
 }

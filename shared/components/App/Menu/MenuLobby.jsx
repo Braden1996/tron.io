@@ -4,8 +4,8 @@ import { connect } from "react-redux";
 import Link from 'react-router-dom/Link';
 
 import {
-  updateLobbyConnect
-} from "../../../actions/gamelobby.js";
+  lobbyConnect
+} from "../../../state/lobby/actions";
 
 
 class MenuLobby extends React.Component {
@@ -15,16 +15,20 @@ class MenuLobby extends React.Component {
 
   componentDidMount() {
     const lobbyKey = this.props.match.params.lobbykey;
-    console.log(`Component mount init Lobby connect: ${lobbyKey}`);
-    this.props.updateLobbyConnect(lobbyKey);
+    this.props.lobbyConnect(lobbyKey);
   }
 
   componentWillReceiveProps(nextProps) {
+    // In the case where this component is mounted before our socket saga is
+    // ready, our lobbyConnect dispatch will not be received.
+    // We thus check to see if the socket saga 'ready' state has been enabled,
+    // then dispatch a new lobbyConnect dispatch.
+    const tryLobbyConnectAgain = !this.props.ready && nextProps.ready;
+
     const lobbyKey = this.props.match.params.lobbykey;
     const nextLobbyKey = nextProps.match.params.lobbykey;
-    if (lobbyKey !== nextLobbyKey) {
-      console.log(`Component lobby key changed: ${nextLobbyKey}`);
-      this.props.updateLobbyConnect(nextLobbyKey);
+    if (tryLobbyConnectAgain || lobbyKey !== nextLobbyKey) {
+      this.props.lobbyConnect(nextLobbyKey);
     }
   }
 
@@ -53,6 +57,7 @@ class MenuLobby extends React.Component {
     return (
       <div>
         <h2>{this.props.lobbyKey}</h2>
+        { this.props.lobbyConnected ? "Connected" : "Connecting" }
         <figure>
           <figcaption>Players:</figcaption>
           <ol>{plyList}</ol>
@@ -68,14 +73,17 @@ class MenuLobby extends React.Component {
 }
 
 const mapStateToProps = (state) => {
+  const sockets = state.get('sockets');
   return {
-    players: state.players
+    players: state.get('players'),
+    lobbyConnected: state.get('lobby').get('connected'),
+    ready: sockets && sockets.get('readReady') && sockets.get('writeReady'),
   };
 }
 
 const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
-    updateLobbyConnect: updateLobbyConnect
+    lobbyConnect: lobbyConnect
   }, dispatch);
 }
 

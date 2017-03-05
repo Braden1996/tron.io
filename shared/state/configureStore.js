@@ -1,8 +1,7 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import createSagaMiddleware from 'redux-saga';
-import reducer from '../reducers';
 
-function configureStore(rootSaga, initialState) {
+function configureStore(reducer, rootSaga, initialState) {
   const sagaMiddleware = createSagaMiddleware();
 
   const enhancers = compose(
@@ -32,12 +31,14 @@ function configureStore(rootSaga, initialState) {
   }
 
   if (process.env.BUILD_FLAG_IS_DEV && module.hot) {
-    // Enable Webpack hot module replacement for reducers. This is so that we
-    // don't lose all of our current application state during hot reloading.
-    module.hot.accept('../reducers', () => {
-      const nextRootReducer = require('../reducers').default; // eslint-disable-line global-require
-
+    // Enable Webpack hot module replacement for reducers and sagas.T
+    // his is so that we don't lose all of our current application state
+    // during hot reloading.
+    module.hot.accept('../state', () => {
+      const nextRootReducer = require('../state').rootReducer; // eslint-disable-line global-require
+      const nextRootSaga = require('../state').rootSaga; // eslint-disable-line global-require
       store.replaceReducer(nextRootReducer);
+      sagaMiddleware.run(nextRootSaga);
     });
   }
 

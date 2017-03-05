@@ -68,10 +68,8 @@ export default function socketsInit(app) {
     });
 
     socket.on('lobbyconnect', (data) => {
-      console.log(`Socket ${socket.id} tried to join lobby ${data}!`);
       const lobbyRoomKey = data;
       const joinRoomCallback = (err) => {
-        console.log(`Lobby '${data}' has '${lobbyPlayers[data].length}' players!`);
         socket.emit('lobbyconnected', lobbyRoomKey);
       };
 

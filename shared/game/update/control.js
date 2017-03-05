@@ -7,9 +7,9 @@ const MOVE_DIRECTIONS = ['MOVE_NORTH', 'MOVE_SOUTH', 'MOVE_EAST', 'MOVE_WEST'];
 export default function updateControl(store) {
   const state = store.getState();
 
-  const inputAction = state.input.findLast(v => MOVE_DIRECTIONS.includes(v));
+  const inputAction = state.get('input').findLast(v => MOVE_DIRECTIONS.includes(v));
   if (inputAction !== undefined) {
-    const ply = state.players.find(pl => pl.get('id') === 0);
+    const ply = state.get('players').find(pl => pl.get('id') === 0);
 
     if (ply.get('alive')) {
       let newDirection;
@@ -42,7 +42,7 @@ export default function updateControl(store) {
         const yDiff = lastPoint.get(1) - curPoint.get(1);
         const curDistance = Math.abs(xDiff + yDiff);
 
-        if (curDistance >= state.game.get('playerSize')) {
+        if (curDistance >= state.get('game').get('playerSize')) {
           const oldDirection = ply.get('direction');
 
           if (newDirection !== oldDirection &&

@@ -8,20 +8,20 @@ import { withAsyncComponents } from 'react-async-component';
 import transit from 'transit-immutable-js';
 
 import './polyfills';
-import rootSaga from './sagas';
+import { rootReducer, rootSaga } from './state';
 import gameDraw from './game/draw';
 import gameAttachInput from './game/input';
 import gameUpdate from '../shared/game/update';
 import GameLoop from '../shared/game/gameloop';
 
 import App from '../shared/components/App';
-import configureStore from '../shared/redux/configureStore';
+import configureStore from '../shared/state/configureStore';
 
 // Create our Redux store.
 // Server side rendering would have mounted our state on this global.
 const appState = window.__APP_STATE__; // eslint-disable-line no-underscore-dangle
 const initialState = appState ? transit.fromJSON(appState) : undefined;
-const store = configureStore(rootSaga, initialState);
+const store = configureStore(rootReducer, rootSaga, initialState);
 
 // Attach window input events to our game.
 // Should probably find a more elegant way of doing this...

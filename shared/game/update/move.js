@@ -5,8 +5,8 @@ import { updatePlayerPosition } from '../state/actions/players';
 export default function updateMove(store, progress) {
   const state = store.getState();
 
-  const distance = progress * state.game.get('speed');
-  state.players.forEach((ply) => {
+  const distance = progress * state.get('game').get('speed');
+  state.get('players').forEach((ply) => {
     if (ply.get('alive')) {
       let posX = ply.get('position').get(0);
       let posY = ply.get('position').get(1);

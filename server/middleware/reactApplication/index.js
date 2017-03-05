@@ -7,7 +7,8 @@ import { Provider as ReduxProvider } from 'react-redux';
 import transit from 'transit-immutable-js';
 
 import config from '../../../config';
-import configureStore from '../../../shared/redux/configureStore';
+import { rootReducer, rootSaga } from '../../../shared/state';
+import configureStore from '../../../shared/state/configureStore';
 
 import ServerHTML from './ServerHTML';
 import App from '../../../shared/components/App';
@@ -42,7 +43,7 @@ export default function reactApplicationMiddleware(request, response) {
   const reactRouterContext = {};
 
   // Create the redux store.
-  const store = configureStore();
+  const store = configureStore(rootReducer, rootSaga);
   const { getState } = store;
 
   // Declare our React application.

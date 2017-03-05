@@ -2,7 +2,6 @@ import React from 'react';
 import Switch from 'react-router-dom/Switch';
 import Route from 'react-router-dom/Route';
 
-// import Error404 from './Error404';
 import MenuLobby from './MenuLobby';
 import MenuPreLobby from './MenuPreLobby';
 
@@ -15,10 +14,10 @@ class Menu extends React.Component {
     return (
       <div>
         <h1>Lobby</h1>
+        {/* I cannot figure out how to use a JS condition inside a Switch. */}
         <Switch>
-          <Route exact path="/" component={MenuPreLobby}/>
-          <Route exactly path="/:lobbykey" component={MenuLobby}/>
-          {/*<Route component={Error404} />*/}
+          <Route exact path="/:lobbykey" component={MenuLobby} />
+          <Route path="/" component={MenuPreLobby}/>
         </Switch>
       </div>
     );
