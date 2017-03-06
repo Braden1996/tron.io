@@ -1,19 +1,20 @@
 import io from 'socket.io-client';
+import socketioWildcard from 'socketio-wildcard';
 import { eventChannel } from 'redux-saga';
 import { fork, take, call, put } from 'redux-saga/effects';
 
 import {
-  socketsReadReady,
-  socketsWriteReady
+  socketsReceiveReady,
+  socketsSendReady,
+  socketsReceive,
+  SOCKETS_SEND
 } from './actions';
 
-import {
-  LOBBY_CONNECT,
-  lobbyConnectSuccess
-} from '../../../shared/state/lobby/actions';
+const patch = socketioWildcard(io.Manager);
 
 function connect() {
   const socket = io('http://localhost:3000');
+  patch(socket);
   return new Promise(resolve => {
     if (socket.connected) {
       resolve(socket);
@@ -27,15 +28,18 @@ function connect() {
 
 function subscribe(socket) {
   return eventChannel(emit => {
-    socket.on('lobbyconnected', lobbyKey => {
-      emit(lobbyConnectSuccess(lobbyKey));
+    socket.on('*', packet => {
+      const eventName = packet.data[0];
+      const data = packet.data[1];
+      const ackFn = packet.data[2];
+      emit(socketsReceive(eventName, data, ackFn));
     });
     return () => {};
   });
 }
 
 function* read(socket) {
-  yield put(socketsReadReady());
+  yield put(socketsReceiveReady());
   const channel = yield call(subscribe, socket);
   while (true) {
     let action = yield take(channel);
@@ -44,10 +48,19 @@ function* read(socket) {
 }
 
 function* write(socket) {
-  yield put(socketsWriteReady());
+  yield put(socketsSendReady());
   while (true) {
-    const { value } = yield take(LOBBY_CONNECT);
-    socket.emit('lobbyconnect', value);
+    const { eventName, data, ackFn } = yield take(SOCKETS_SEND);
+    let realAckFn;
+    if (ackFn) {
+      const internalAckFn = () => new Promise(resolve => {
+        socket.emit(eventName, data, resolve);
+      });
+      const ackData = yield call(internalAckFn);
+      yield call(ackFn, ackData);
+    } else {
+      socket.emit(eventName, data);
+    }
   }
 }
 

@@ -29,7 +29,7 @@ function leaveRoomDataStructures(socket, oldLobbyKey = undefined) {
 function leaveRoom(socket, callback) {
   const oldLobbyKey = playerLobby[socket];
   if (oldLobbyKey === undefined) {
-    throw new Error(`Player '${socket}' is not current in a lobby, so cannot leave.`);
+    throw new Error(`Player '${socket}' is not currently in a lobby, so cannot leave.`);
   } else {
     socket.leave(oldLobbyKey, (err) => {
       leaveRoomDataStructures(socket, oldLobbyKey);
@@ -67,10 +67,11 @@ export default function socketsInit(app) {
       leaveRoomDataStructures(socket);
     });
 
-    socket.on('lobbyconnect', (data) => {
+    socket.on('lobbyconnect', (data, ackFn) => {
       const lobbyRoomKey = data;
       const joinRoomCallback = (err) => {
-        socket.emit('lobbyconnected', lobbyRoomKey);
+        ackFn(true);
+        socket.to(data).emit('playerconnected', "Player name");
       };
 
       if (playerLobby[socket.id] !== undefined) {

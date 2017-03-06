@@ -77,7 +77,7 @@ const mapStateToProps = (state) => {
   return {
     players: state.get('players'),
     lobbyConnected: state.get('lobby').get('connected'),
-    ready: sockets && sockets.get('readReady') && sockets.get('writeReady'),
+    ready: sockets && sockets.get('receiveReady') && sockets.get('sendReady'),
   };
 }
 
