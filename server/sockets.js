@@ -72,8 +72,8 @@ export default function socketsInit(app) {
     socket.on('lobbyconnect', (data, ackFn) => {
       const lobbyRoomKey = data;
       const joinRoomCallback = (err) => {
-        ackFn(true);
-        socket.to(data).emit('playerconnected', "Player name");
+        ackFn({ success: true, name: 'Player name' });
+        socket.to(data).emit('playerconnected', 'Player name');
       };
 
       if (playerLobby[socket.id] !== undefined) {
