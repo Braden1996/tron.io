@@ -64,7 +64,9 @@ export default function socketsInit(app) {
   io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
-      leaveRoomDataStructures(socket);
+      if (playerLobby[socket.id] !== undefined) {
+        leaveRoomDataStructures(socket);
+      }
     });
 
     socket.on('lobbyconnect', (data, ackFn) => {
