@@ -10,7 +10,7 @@ import transit from 'transit-immutable-js';
 import './polyfills';
 import { rootReducer, rootSaga } from './state';
 import gameDraw from './game/draw';
-import gameAttachInput from './game/input';
+// import gameAttachInput from './game/input';
 import gameUpdate from '../shared/game/update';
 import GameLoop from '../shared/game/gameloop';
 
@@ -25,14 +25,15 @@ const store = configureStore(rootReducer, rootSaga, initialState);
 
 // Attach window input events to our game.
 // Should probably find a more elegant way of doing this...
-gameAttachInput(store);
+// gameAttachInput(store);
 
 // Setup the draw function for our game.
 // Enable 'debug' features if the dev build flag is set.
 let gameDrawFunc = gameDraw;
 if (process.env.BUILD_FLAG_IS_DEV) {
   const gameDrawDebug = require('./game/drawdebug').default;
-  gameDrawFunc = (s, c) => { gameDraw(s, c); gameDrawDebug(s, c); };
+  //gameDrawFunc = (s, c) => { gameDraw(s, c); gameDrawDebug(s, c); };
+  gameDrawFunc = (s, c) => { /* Working on fixing this... */ };
 }
 
 // Get the DOM Element that will host our React application.
@@ -48,7 +49,7 @@ function renderApp(TheApp) {
   // Create and configure our game loop object.
   const mainLoop = new GameLoop();
   mainLoop.setArgument('store', store);
-  mainLoop.subscribe(gameUpdate, ['store', 'progress']);
+  // mainLoop.subscribe(gameUpdate, ['store', 'progress']);
   mainLoop.subscribe(gameDrawFunc, ['store', 'canvas'], 'draw');
 
   // Firstly, define our full application component, wrapping the given

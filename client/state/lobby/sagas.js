@@ -11,15 +11,14 @@ import {
   lobbyConnectSuccess
 } from '../../../shared/state/lobby/actions';
 
-import {
-  addPlayer
-} from '../../../shared/game/state/actions/players';
+import { addPlayer } from '../../../shared/game/operations';
 
 function* playerConnected(action) {
   switch (action.eventName) {
     case 'playerconnected':
-      const name = action.data;
-      yield put(addPlayer(name));
+      const { name, color } = action.data;
+      console.log('Connected:', name, color);
+      // yield put(addPlayer(name, color));
       break;
   }
 }
@@ -27,16 +26,17 @@ function* playerConnected(action) {
 function* lobbyConnectAck(data) {
   const { success } = data;
   if (success) {
-    const { name } = data;
-    yield put(addPlayer(name));
-    yield put(lobbyConnectSuccess('RandomLobbyString'));
+    const { lobbyKey, state } = data;
+    console.log('GAME STATE:', state);
+    yield put(lobbyConnectSuccess(lobbyKey));
   }
 }
 
 function* lobbyConnect(action) {
   const eventName = 'lobbyconnect';
-  const lobbyKey = action.value;
-  yield put(socketsSend(eventName, lobbyKey, lobbyConnectAck));
+  const { lobbyKey, name, color } = action
+  const connectData = { lobbyKey, name, color };
+  yield put(socketsSend(eventName, connectData, lobbyConnectAck));
 }
 
 export default function* lobbySaga() {

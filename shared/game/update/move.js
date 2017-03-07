@@ -1,17 +1,14 @@
-import { updatePlayerPosition } from '../state/actions/players';
-
+import { updatePlayerPosition } from '../operations';
 
 // Move all by some distance at each update tick.
-export default function updateMove(store, progress) {
-  const state = store.getState();
+export default function updateMove(state, progress) {
+  const distance = progress * state.game.speed;
+  state.players.forEach((ply) => {
+    if (ply.alive) {
+      let posX = ply.position[0];
+      let posY = ply.position[1];
 
-  const distance = progress * state.get('game').get('speed');
-  state.get('players').forEach((ply) => {
-    if (ply.get('alive')) {
-      let posX = ply.get('position').get(0);
-      let posY = ply.get('position').get(1);
-
-      switch (ply.get('direction')) {
+      switch (ply.direction) {
         case 'north':
           posY -= distance;
           break;
@@ -26,7 +23,7 @@ export default function updateMove(store, progress) {
           break;
       }
 
-      store.dispatch(updatePlayerPosition(ply.get('id'), [posX, posY]));
+      updatePlayerPosition(ply, [posX, posY]);
     }
   });
 }

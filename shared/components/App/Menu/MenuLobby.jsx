@@ -15,7 +15,7 @@ class MenuLobby extends React.Component {
 
   componentDidMount() {
     const lobbyKey = this.props.match.params.lobbykey;
-    this.props.lobbyConnect(lobbyKey);
+    this.props.lobbyConnect(lobbyKey, 'Player Name', '#0f0');
   }
 
   componentWillReceiveProps(nextProps) {
@@ -28,14 +28,14 @@ class MenuLobby extends React.Component {
     const lobbyKey = this.props.match.params.lobbykey;
     const nextLobbyKey = nextProps.match.params.lobbykey;
     if (tryLobbyConnectAgain || lobbyKey !== nextLobbyKey) {
-      this.props.lobbyConnect(nextLobbyKey);
+      this.props.lobbyConnect(nextLobbyKey, 'Player Name', '#0f0');
     }
   }
 
   render() {
     const plyList = this.props.players.map((ply, idx) =>
-      <li key={ply.get("id")}>
-        {ply.get("name")}
+      <li key={ply.id}>
+        {ply.name}
       </li>
     );
 
@@ -63,7 +63,7 @@ class MenuLobby extends React.Component {
           <ol>{plyList}</ol>
           <p>To invite a friend, send them a copy of your url.</p>
         </figure>
-        {!this.props.started && this.props.players.size < 16 &&
+        {!this.props.started && this.props.players.length < 16 &&
           <button onClick={this.props.onAddComputer}>Add computer player</button>
         }
         {beginButton}
@@ -75,7 +75,7 @@ class MenuLobby extends React.Component {
 const mapStateToProps = (state) => {
   const sockets = state.get('sockets');
   return {
-    players: state.get('players'),
+    players: [{ id: 0, name: 'Player Temp' }], // state.get('players'),
     lobbyConnected: state.get('lobby').get('connected'),
     ready: sockets && sockets.get('receiveReady') && sockets.get('sendReady'),
   };

@@ -1,4 +1,4 @@
-import { killPlayer } from '../state/actions/players';
+import { updatePlayerPosition } from '../operations';
 import Quadtree, { QuadtreeObjRect } from '../utils/quadtree';
 
 // Return the amount of overlap between two lines along a single dimension.
@@ -33,16 +33,16 @@ function rectToObjRect(rect, ply, trailIdx) {
 // Return an array of rectangle objects representing the trail of the
 // given player at some stroke width.
 function plyToObjRects(ply, stroke) {
-  let plyX0 = ply.get('position').get(0);
-  let plyY0 = ply.get('position').get(1);
+  let plyX0 = ply.position[0];
+  let plyY0 = ply.position[1];
 
   const objRects = [];
 
   // As the last element in the trail array is not the consequence of a
   // direction change, we can simply ignore it to form a larger rectangle.
-  for (let i = ply.get('trail').size - 2; i >= 0; i -= 1) {
-    const plyX1 = ply.get('trail').get(i).get(0);
-    const plyY1 = ply.get('trail').get(i).get(1);
+  for (let i = ply.trail.length - 2; i >= 0; i -= 1) {
+    const plyX1 = ply.trail[i][0];
+    const plyY1 = ply.trail[i][1];
 
     const rect = lineToRect(plyX0, plyY0, plyX1, plyY1, stroke);
     const objRect = rectToObjRect(rect, ply, i);
@@ -62,6 +62,7 @@ export function setupQuadtree(players, plySize, arenaSize) {
   const quadtree = new Quadtree({ x: 0, y: 0, w: arenaSize, h: arenaSize });
   quadtree.MAX_OBJECTS = 4;  // Not sure what would be ideal.
   quadtree.MAX_LEVELS = Math.ceil(Math.log2(arenaSize / 4));
+
   players.map(ply => plyToObjRects(ply, plySize))
     .forEach(objRects => objRects.forEach(oRect => quadtree.insert(oRect)));
   return quadtree;
@@ -70,8 +71,8 @@ export function setupQuadtree(players, plySize, arenaSize) {
 // Check if the given player has escaped the bounds of the arena.
 // If so, return their position at the point of impact.
 function collideBorder(ply, plySize, arenaSize) {
-  const plyX = ply.get('position').get(0);
-  const plyY = ply.get('position').get(1);
+  const plyX = ply.position[0];
+  const plyY = ply.position[1];
   const plySizeOffset = plySize / 2;
 
   if (plyX - plySizeOffset < 0) {
@@ -92,11 +93,12 @@ function collideBorder(ply, plySize, arenaSize) {
 function collideTrail(ply, plySize, quadtree) {
   // Calculate a rectangle representing the path from ply's
   // position in the previous tick to where they are now.
-  const plyX0 = ply.get('position').get(0);
-  const plyY0 = ply.get('position').get(1);
-  const plyX1 = ply.get('trail').last().get(0);
-  const plyY1 = ply.get('trail').last().get(1);
-  const lineIdx = ply.get('trail').size - 1;
+  const lineIdx = ply.trail.length - 1;
+
+  const plyX0 = ply.position[0];
+  const plyY0 = ply.position[1];
+  const plyX1 = ply.trail[lineIdx][0];
+  const plyY1 = ply.trail[lineIdx][1];
   const plyRect = lineToRect(plyX0, plyY0, plyX1, plyY1, plySize);
   const plyObjRect = rectToObjRect(plyRect, ply, lineIdx);
 
@@ -183,18 +185,16 @@ function collideTrail(ply, plySize, quadtree) {
 }
 
 // Check to see if a collision has occured.
-export default function updateCollision(store) {
-  const state = store.getState();
-
-  const players = state.get('players');
-  const plySize = state.get('game').get('playerSize');
-  const arenaSize = state.get('game').get('arenaSize');
+export default function updateCollision(state) {
+  const players = state.players;
+  const plySize = state.game.playerSize;
+  const arenaSize = state.game.arenaSize;
 
   const quadtree = setupQuadtree(players, plySize, arenaSize);
 
   const killed = [];
   players.forEach((ply) => {
-    if (ply.get('alive')) {
+    if (ply.alive) {
       const point = collideTrail(ply, plySize, quadtree) ||
         collideBorder(ply, plySize, arenaSize);
 
@@ -205,5 +205,9 @@ export default function updateCollision(store) {
   });
 
   // Only update players after we have checked all collisions.
-  killed.forEach(p => {store.dispatch(killPlayer(p.ply.get('id'), p.point))});
+  killed.forEach((death) => {
+    const { ply, deathPosition } = death;
+    ply.alive = false;
+    updatePlayerPosition(ply, deathPosition, true);
+  });
 }

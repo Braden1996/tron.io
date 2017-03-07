@@ -1,22 +1,18 @@
 import updateCollision from './collision';
-import updateControl from './control';
+//import updateControl from './control';
 import updateMove from './move';
 
-import { updateFinishGame } from '../state/actions/game';
+export default function update(state, progress) {
+  if (state.game.started && !state.game.finished) {
+    // updateControl(state, progress);
+    updateMove(state, progress);
+    updateCollision(state, progress);
 
-
-export default function update(store, progress) {
-  const state = store.getState();
-
-  if (state.get('game').get('started') && !state.get('game').get('finished')) {
-    updateControl(store, progress);
-    updateMove(store, progress);
-    updateCollision(store, progress);
-
-    const players = state.get('players');
-    if ((players.size === 1 && !players.get(0).get('alive')) ||
-      (players.size !== 1 && players.count(p => p.get('alive')) <= 1)) {
-      store.dispatch(updateFinishGame(true));
+    // Check if the game has now finished.
+    const numAlive = state.players.reduce((t, p) => t + (p.alive ? 1 : 0), 0);
+    if ((state.players.length === 1 && !state.players[0].alive) ||
+      (state.players.size !== 1 && numAlive <= 1)) {
+      state.finished = true;
     }
   }
 }
