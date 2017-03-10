@@ -33,7 +33,9 @@ Tron Game:
   Server Functionality:
    ✔ Research and prepare a basic server technology. @done (17-02-28 11:21)
    ✔ Player can setup a lobby, existing on the server, that other players are then able to join. @done (17-03-05 22:39)
-   ☐ Game state snapshots are sent to all clients of a lobby at some rate.
+   ✔ Game server (Node JS) compatible game-loop. Timer technique inspired by: @done (17-03-09 13:41)
+   http://timetocode.tumblr.com/post/71512510386/an-accurate-nodejs-game-loop-inbetween-settimeout
+   ✔ Game state snapshots are sent to all clients of a lobby at some rate. @done (17-03-09 13:41)
    ☐ The host of the lobby is able to add computer players into the game.
 
  Shared Functionality:

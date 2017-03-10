@@ -12,7 +12,7 @@ import { rootReducer, rootSaga } from './state';
 import gameDraw from './game/draw';
 // import gameAttachInput from './game/input';
 import gameUpdate from '../shared/game/update';
-import GameLoop from '../shared/game/gameloop';
+import ClientGameLoop from './game/gameloop';
 
 import App from '../shared/components/App';
 import configureStore from '../shared/state/configureStore';
@@ -47,7 +47,7 @@ const supportsHistory = 'pushState' in window.history;
  */
 function renderApp(TheApp) {
   // Create and configure our game loop object.
-  const mainLoop = new GameLoop();
+  const mainLoop = new ClientGameLoop();
   mainLoop.setArgument('store', store);
   // mainLoop.subscribe(gameUpdate, ['store', 'progress']);
   mainLoop.subscribe(gameDrawFunc, ['store', 'canvas'], 'draw');

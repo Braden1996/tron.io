@@ -2,7 +2,7 @@ import { updatePlayerPosition } from '../operations';
 
 // Move all by some distance at each update tick.
 export default function updateMove(state, progress) {
-  const distance = progress * state.game.speed;
+  const distance = progress * state.speed;
   state.players.forEach((ply) => {
     if (ply.alive) {
       let posX = ply.position[0];

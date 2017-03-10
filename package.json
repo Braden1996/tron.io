@@ -47,6 +47,7 @@
     "compression": "1.6.2",
     "dotenv": "4.0.0",
     "express": "4.15.0",
+    "fast-json-patch": "^1.1.8",
     "helmet": "3.4.1",
     "hpp": "0.2.1",
     "immutable": "^3.8.1",

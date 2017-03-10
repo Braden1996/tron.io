@@ -1,5 +1,8 @@
+import getSpawn from './utils/spawn';
+
 export function getInitialState() {
   return {
+    tick: 0,
     started: false,
     finished: undefined,
     arenaSize: 128,
@@ -9,9 +12,11 @@ export function getInitialState() {
   }
 }
 
-export function resetPlayers(players, getSpawn) {
+export function resetPlayers(state) {
+  const { players, playerSize, arenaSize } = state;
+
   players.forEach((ply, k) => {
-    const spawn = getSpawn(ply, k);
+    const spawn = getSpawn(k, players.length, playerSize, arenaSize);
     ply.alive = true;
     ply.direction = spawn.direction;
     ply.position = spawn.position;
@@ -19,8 +24,8 @@ export function resetPlayers(players, getSpawn) {
   });
 }
 
-export function addPlayer(players, id, name, color) {
-  const ply = {
+export function addPlayer(state, id, name, color) {
+  state.players.push({
     id,
     name,
     color,
@@ -28,9 +33,8 @@ export function addPlayer(players, id, name, color) {
     direction: null,
     position: null,
     trail: [],
-  };
-
-  players.push(ply);
+  });
+  resetPlayers(state);
 }
 
 export function updatePlayerPosition(ply, newPos, ignoreOldPos = false) {

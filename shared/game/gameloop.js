@@ -1,12 +1,23 @@
-export default class GameLoop {
-  constructor() {
+export default class AbstractGameLoop {
+  constructor(tickLength = 15) {
     this.subscribers = [];
     this.subscriberArguments = [];
     this.subscriberKeys = {};
     this.arguments = {};
-    this.loopID = null;
+    this.started = false;
+
     this.lastTick = null;
+    this.tickLength = tickLength;  // 15 = 66.666 tick-rate
   }
+
+  // Abstract
+  // internalGetStartTick() { ... }
+
+  // Abstract
+  // internalQueueLoop(callback) { ... }
+
+  // Abstract
+  // internalCancelQueueLoop() { ... }
 
   internalCallByIdx(idx) {
     const callback = this.subscribers[idx];
@@ -25,20 +36,22 @@ export default class GameLoop {
       this.internalCallByIdx(i);
     }
 
-    this.loopID = window.requestAnimationFrame(this.internalLoop.bind(this));
+    this.internalQueueLoop(this.internalLoop.bind(this));
 
     this.lastTick = curtick;
   }
 
   start() {
-    if (!this.loopID) {
-      const tick = performance.now();
+    if (!this.started) {
+      this.started = true;
+      const tick = this.internalGetStartTick();
       this.internalLoop(tick);
     }
   }
 
   stop() {
-    window.cancelAnimationFrame(this.loopID);
+    this.internalCancelQueueLoop();
+    this.started = false;
   }
 
   subscribe(callback, iwantArgs = [], key) {

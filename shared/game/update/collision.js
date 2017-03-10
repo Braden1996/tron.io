@@ -187,8 +187,8 @@ function collideTrail(ply, plySize, quadtree) {
 // Check to see if a collision has occured.
 export default function updateCollision(state) {
   const players = state.players;
-  const plySize = state.game.playerSize;
-  const arenaSize = state.game.arenaSize;
+  const plySize = state.playerSize;
+  const arenaSize = state.arenaSize;
 
   const quadtree = setupQuadtree(players, plySize, arenaSize);
 

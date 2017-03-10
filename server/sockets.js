@@ -2,84 +2,98 @@ import express from 'express';
 import socketio from 'socket.io';
 import http from 'http';
 
+import gameUpdate from '../shared/game/update';
 import {
-  getInitialState,
-  resetPlayers,
-  addPlayer,
+  getInitialState as gameGetInitialState,
+  addPlayer as gameAddPlayer,
 } from '../shared/game/operations';
+import gameLobby from '../shared/game/network/server';
 
-import getSpawn from '../shared/game/utils/spawn';
-
-
-function leaveLobbyDataStructures(socket, oldLobbyKey = undefined) {
-  const io = socket.server;
-  const { lobbyPlayers, playerLobby } = io.tronGame;
-
-  if (oldLobbyKey === undefined) {
-    oldLobbyKey = playerLobby[socket.id];
-  }
-
-  if (oldLobbyKey !== undefined) {
-    if (lobbyPlayers[oldLobbyKey].length === 1) {
-      delete lobbyPlayers[oldLobbyKey];
-    } else {
-      const idx = lobbyPlayers[oldLobbyKey].indexOf(socket);
-      if (idx !== -1) {
-        lobbyPlayers[oldLobbyKey].splice(idx, 1);
-      }
-    }
-    delete playerLobby[socket.id];
-  }
-}
+import NodeGameLoop from './game/gameloop';
 
 function leaveLobby(socket, callback) {
   const io = socket.server;
-  const { playerLobby } = io.tronGame;
+  const { lobbies, playerLobby } = io.tronGame;
 
-  const oldLobbyKey = playerLobby[socket];
-  if (oldLobbyKey === undefined) {
-    throw new Error(`Player '${socket}' is not currently in a lobby, so cannot leave.`);
-  } else {
-    socket.leave(oldLobbyKey, (err) => {
-      leaveLobbyDataStructures(socket, oldLobbyKey);
-      callback(err);
-    });
+  const plyId = socket.id;
+
+  const lobbyKey = playerLobby[plyId];
+  if (lobbyKey !== undefined) {
+    const lobby = lobbies[lobbyKey];
+    const leaveDataStructures = () => {
+      if (lobby.size() === 1) {
+        lobby.kill();
+        delete lobbies[lobbyKey];
+      } else {
+        lobby.leave(plyId);
+      }
+      delete playerLobby[plyId];
+    }
+
+    if (socket.connected) {
+      socket.leave(oldLobbyKey, (err) => { leaveDataStructures(); });
+    } else {
+      leaveDataStructures();
+    }
   }
 }
 
-function joinLobby(socket, lobbyKey, playerData, ackFn) {
+function joinLobby(socket, lobbyKey, playerData) {
   const io = socket.server;
-  const { lobbyPlayers, lobbyStates, playerLobby } = io.tronGame;
+  const { lobbies, playerLobby, playerSocket } = io.tronGame;
 
-  const curLobby = playerLobby[socket.id];
+  const plyId = socket.id;
+
+  const curLobby = playerLobby[plyId];
   if (curLobby !== undefined) {
-    throw new Error(`Player '${socket}' trying to join lobby '${lobbyKey}', but is already in lobby '${curLobby}'.`);
+    throw new Error(`Player '${plyId}' trying to join lobby '${lobbyKey}', but is already in lobby '${curLobby}'.`);
   } else {
     socket.join(lobbyKey, (err) => {
-      if (lobbyPlayers[lobbyKey] === undefined) {
-        lobbyPlayers[lobbyKey] = [];
-        lobbyStates[lobbyKey] = getInitialState();
-      } else if (lobbyPlayers[lobbyKey].indexOf(socket.id) !== -1) {
-        throw new Error(`Player '${socket}' trying to join lobby '${lobbyKey}', but is already a member.`);
+      let lobby = lobbies[lobbyKey];
+      // Check if we need to create a new lobby.
+      if (lobby === undefined) {
+        const state = gameGetInitialState();
+        const gameLoop = new NodeGameLoop(15);
+        gameLoop.setArgument('state', state);
+        gameLoop.subscribe(gameUpdate, ['state', 'progress']);
+
+        const sendFcn = (plyId, eventName, payload) => {
+          io.to(plyId).emit(eventName, payload);
+        }
+        lobby = new gameLobby(state);
+        lobby.sendFullState = (plyId, state, bindedAckCallback) => {
+          const socket = playerSocket[plyId];
+          socket.emit('fullstate', state, bindedAckCallback);
+        }
+        lobby.sendSnapshot = (plyId, snapshot, bindedAckCallback) => {
+          const socket = playerSocket[plyId];
+          socket.emit('snapshot', snapshot, bindedAckCallback);
+        }
+        const oldKill = lobby.kill;
+        lobby.kill = () => {
+          oldKill.bind(this);
+          gameLoop.stop();
+        }
+        lobby.kill = lobby.kill.bind(lobby);
+        lobby.sendFullState.bind(lobby);
+        lobby.sendSnapshot.bind(lobby);
+        lobbies[lobbyKey] = lobby;
+
+        // Attach our lobby to the gameloop, so it can make use of the ticks.
+        gameLoop.subscribe(lobby.onTick.bind(lobby));
+        gameLoop.start();  // Kick-off our game loop!
+
+      } else if (lobby.isMember(plyId)) {
+        throw new Error(`Player '${plyId}' trying to join lobby '${lobbyKey}', but is already a member.`);
       }
 
-      lobbyPlayers[lobbyKey].push(socket);
-      playerLobby[socket.id] = lobbyKey;
-
-      const state = lobbyStates[lobbyKey];
+      // Add player to game state data-structures.
       const { name, color } = playerData;
-      addPlayer(state.players, 0, name, color);
+      gameAddPlayer(lobby.state, plyId, name, color);
 
-      const getSpawnFn = (ply, k) => {
-        const { players, plySize, arenaSize } = state;
-        const totalPlayers = players.length;
-        return getSpawn(k, totalPlayers, plySize, arenaSize);
-      };
-      resetPlayers(state.players, getSpawnFn);
-
-      const success = err === null;
-      ackFn({ success, lobbyKey, state });
-      io.to(lobbyKey).emit('playerconnected', playerData);
+      // Add player to lobby data-structures.
+      lobby.join(plyId);
+      playerLobby[plyId] = lobbyKey;
     });
   }
 }
@@ -89,31 +103,33 @@ export default function socketsInit(app) {
   const io = socketio(server);
 
   // Maintain two data-structures for speed.
-  // Also, the socket API is kind of awkward to work with, and seems to change
-  // quite a lot. So this is easier.
   io.tronGame = {
-    lobbyPlayers: {},  // Map: lobbyKey -> [sockets]
-    lobbyStates: {},  // Map: lobbyKey -> gameState
-    playerLobby: {},  // Map: socket -> lobbyKey
+    lobbies: {},  // Map: lobbyKey -> [Lobby]
+    playerLobby: {},  // Map: plyId -> lobbyKey
+    playerSocket: {},  // Map: plyId -> socket
   };
 
   io.on('connection', (socket) => {
+    const plyId = socket.id;
+    io.tronGame.playerSocket[plyId] = socket;
+
     socket.on('disconnect', () => {
-      if (io.tronGame.playerLobby[socket.id] !== undefined) {
-        leaveLobbyDataStructures(socket);
-      }
+      leaveLobby(socket);
+      delete io.tronGame.playerSocket[plyId];
     });
 
     socket.on('lobbyconnect', (data, ackFn) => {
       const { lobbyKey, name, color } = data;
       const playerData = { name, color };
 
-      if (io.tronGame.playerLobby[socket.id] !== undefined) {
+      const lobby = io.tronGame.playerLobby[plyId];
+
+      if (lobby !== undefined) {
         leaveLobby(socket, () => {
-          joinLobby(socket, lobbyKey, playerData, ackFn);
+          joinLobby(socket, lobbyKey, playerData);
         });
       } else {
-        joinLobby(socket, lobbyKey, playerData, ackFn);
+        joinLobby(socket, lobbyKey, playerData);
       }
     });
   });

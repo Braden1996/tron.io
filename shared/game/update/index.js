@@ -3,7 +3,9 @@ import updateCollision from './collision';
 import updateMove from './move';
 
 export default function update(state, progress) {
-  if (state.game.started && !state.game.finished) {
+  state.tick = state.tick + 1;
+
+  if (state.started && !state.finished) {
     // updateControl(state, progress);
     updateMove(state, progress);
     updateCollision(state, progress);
