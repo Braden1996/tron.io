@@ -52,6 +52,7 @@ export default class GameServer {
 
   // Abstract
   // This function should be overridden to allow for a platform dependent loop.
+  // I attach some functions to help decouple game specifics from the lobby.
   createGame() {
     const state = getInitialState();
     const game = {
