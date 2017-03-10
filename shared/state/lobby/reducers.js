@@ -5,12 +5,13 @@ import {
   LOBBY_APPLY_SNAPSHOT,
 } from './actions';
 
+import { getInitialState } from '../../game/operations';
 import { applySnapshot } from '../../game/network/snapshot';
 
 export const INITIAL_LOBBY_STATE = Immutable.Map({
   key: null,
   connected: false,
-  gameState: null,
+  gameState: getInitialState(),
 });
 
 export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {

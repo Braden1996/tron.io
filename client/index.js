@@ -31,8 +31,8 @@ const store = configureStore(rootReducer, rootSaga, initialState);
 let gameDrawFunc = gameDraw;
 if (process.env.BUILD_FLAG_IS_DEV) {
   const gameDrawDebug = require('./game/drawdebug').default;
-  //gameDrawFunc = (s, c) => { gameDraw(s, c); gameDrawDebug(s, c); };
-  gameDrawFunc = (s, c) => { /* Working on fixing this... */ };
+  gameDrawFunc = (s, c) => { gameDraw(s, c); gameDrawDebug(s, c); };
+  //gameDrawFunc = (s, c) => { /* Working on fixing this... */ };
 }
 
 // Get the DOM Element that will host our React application.
