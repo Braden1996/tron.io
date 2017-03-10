@@ -3,12 +3,13 @@ import { takeEvery, put } from 'redux-saga/effects';
 
 import {
   SOCKETS_RECEIVE,
-  socketsSend
+  socketsSend,
 } from '../sockets/actions';
 
 import {
   LOBBY_CONNECT,
-  lobbyConnectSuccess
+  lobbyConnectSuccess,
+  lobbyApplySnapshot,
 } from '../../../shared/state/lobby/actions';
 
 import { addPlayer } from '../../../shared/game/operations';
@@ -16,16 +17,14 @@ import { addPlayer } from '../../../shared/game/operations';
 function* playerConnected(action) {
   switch (action.eventName) {
     case 'fullstate':
-      const { fullState } = action.data;
-      console.log('fullstate:', action);
+      const { lobbyKey, fullState } = action.data;
       action.ackFn();
-      // yield put(addPlayer(name, color));
+      yield put(lobbyConnectSuccess(lobbyKey, fullState));
       break;
     case 'snapshot':
-      //const { name, color } = action.data;
-      console.log('snapshot:', action);
+      const snapshot = action.data;
       action.ackFn();
-      // yield put(addPlayer(name, color));
+      yield put(lobbyApplySnapshot(snapshot));
       break;
   }
 }

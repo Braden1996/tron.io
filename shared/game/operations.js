@@ -37,6 +37,14 @@ export function addPlayer(state, id, name, color) {
   resetPlayers(state);
 }
 
+export function removePlayer(state, id) {
+  const idx = state.players.findIndex(ply => ply.id === id);
+  if (idx !== -1) {
+    state.players.splice(idx, 1);
+    resetPlayers(state);
+  }
+}
+
 export function updatePlayerPosition(ply, newPos, ignoreOldPos = false) {
   if (!ignoreOldPos) {
     const oldPos = ply.position;

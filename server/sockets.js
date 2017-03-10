@@ -6,6 +6,7 @@ import gameUpdate from '../shared/game/update';
 import {
   getInitialState as gameGetInitialState,
   addPlayer as gameAddPlayer,
+  removePlayer as gameRemovePlayer,
 } from '../shared/game/operations';
 import gameLobby from '../shared/game/network/server';
 
@@ -57,26 +58,28 @@ function joinLobby(socket, lobbyKey, playerData) {
         gameLoop.setArgument('state', state);
         gameLoop.subscribe(gameUpdate, ['state', 'progress']);
 
-        const sendFcn = (plyId, eventName, payload) => {
-          io.to(plyId).emit(eventName, payload);
-        }
         lobby = new gameLobby(state);
-        lobby.sendFullState = (plyId, state, bindedAckCallback) => {
+
+        lobby.sendFullState = function(plyId, fullState, bindedAckCallback) {
           const socket = playerSocket[plyId];
-          socket.emit('fullstate', state, bindedAckCallback);
+          socket.emit('fullstate', { lobbyKey, fullState }, bindedAckCallback);
         }
-        lobby.sendSnapshot = (plyId, snapshot, bindedAckCallback) => {
+
+        lobby.sendSnapshot = function(plyId, snapshot, bindedAckCallback) {
           const socket = playerSocket[plyId];
           socket.emit('snapshot', snapshot, bindedAckCallback);
         }
-        const oldKill = lobby.kill;
-        lobby.kill = () => {
-          oldKill.bind(this);
-          gameLoop.stop();
-        }
-        lobby.kill = lobby.kill.bind(lobby);
-        lobby.sendFullState.bind(lobby);
-        lobby.sendSnapshot.bind(lobby);
+
+        const oldKill = lobby.kill.bind(lobby);
+        lobby.kill = function() { oldKill(); gameLoop.stop(); };
+
+        const oldLeave = lobby.leave.bind(lobby);
+        lobby.leave = function(plyId) {
+          oldLeave(plyId);
+          gameRemovePlayer(this.state, plyId);
+        };
+        lobby.leave.bind(lobby);
+
         lobbies[lobbyKey] = lobby;
 
         // Attach our lobby to the gameloop, so it can make use of the ticks.

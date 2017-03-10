@@ -4,6 +4,11 @@ export function lobbyConnect(lobbyKey, name, color) {
 }
 
 export const LOBBY_CONNECT_SUCCESS = 'LOBBY_CONNECT_SUCCESS';
-export function lobbyConnectSuccess(lobbyKey) {
-  return { type: LOBBY_CONNECT_SUCCESS, value: lobbyKey };
+export function lobbyConnectSuccess(lobbyKey, gameState) {
+  return { type: LOBBY_CONNECT_SUCCESS, lobbyKey, gameState };
+}
+
+export const LOBBY_APPLY_SNAPSHOT = 'LOBBY_APPLY_SNAPSHOT';
+export function lobbyApplySnapshot(snapshot) {
+  return { type: LOBBY_APPLY_SNAPSHOT, value: snapshot };
 }

@@ -11,7 +11,6 @@ import './polyfills';
 import { rootReducer, rootSaga } from './state';
 import gameDraw from './game/draw';
 // import gameAttachInput from './game/input';
-import gameUpdate from '../shared/game/update';
 import ClientGameLoop from './game/gameloop';
 
 import App from '../shared/components/App';
@@ -49,7 +48,6 @@ function renderApp(TheApp) {
   // Create and configure our game loop object.
   const mainLoop = new ClientGameLoop();
   mainLoop.setArgument('store', store);
-  // mainLoop.subscribe(gameUpdate, ['store', 'progress']);
   mainLoop.subscribe(gameDrawFunc, ['store', 'canvas'], 'draw');
 
   // Firstly, define our full application component, wrapping the given

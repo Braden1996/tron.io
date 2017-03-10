@@ -74,8 +74,9 @@ class MenuLobby extends React.Component {
 
 const mapStateToProps = (state) => {
   const sockets = state.get('sockets');
+  const gameState = state.get('lobby').get('gameState');
   return {
-    players: [{ id: 0, name: 'Player Temp' }], // state.get('players'),
+    players: gameState ? gameState.players : [],
     lobbyConnected: state.get('lobby').get('connected'),
     ready: sockets && sockets.get('receiveReady') && sockets.get('sendReady'),
   };
