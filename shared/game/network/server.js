@@ -1,106 +1,148 @@
-import { getSnapshot } from './snapshot';
+import gameLobby from './lobby';
 
-function snapshotAck(plyId) {
-  // Check if we should kick this player.
-  if (this.kickPlayers.indexOf(plyId) !== -1) {
-    delete this.kickPlayers[plyId]; // Has effectively now been kicked.
-  } else {
-    const privateProcessSnapshot = processSnapshot.bind(this);
-    privateProcessSnapshot(plyId);
+import {
+  getInitialState,
+  copyState,
+  addPlayer,
+  removePlayer,
+} from '../operations';
+
+export default class GameServer {
+  constructor() {
+    this.players = {};
+    this.lobbies = {};
   }
-}
 
-function processSnapshot(plyId) {
-  const lastTick = this.playersLastTick[plyId];
-  const curState = this.state;
-  const bindedAck = snapshotAck.bind(this);
-  const bindedAckCallback = () => { bindedAck(plyId); };
-
-  if (lastTick === null) {
-    this.sendFullState(plyId, curState, bindedAckCallback);
-  } else {
-    const lastState = this.pastStates[lastTick];
-    const difference = getSnapshot(lastState, curState);
-
-    // Check if the state has actually changed. If so, send the snapshot and
-    // repeat this process as an acknowledgment. Otherwise, if there is no
-    // difference, delay this snapshot until the next tick.
-    if (difference && difference.length >= 1) {
-      this.sendSnapshot(plyId, difference, bindedAckCallback);
-    } else {
-      this.nextTickTasks.push(bindedAckCallback);
+  onConnect(plyId, socket) {
+    this.players[plyId] = {
+      id: plyId,
+      socket: socket,
+      lobby: null,
     }
-  }
 
-  // Recognise this new snapshot as being the new last.
-  const curTick = curState.tick;
-  this.playersLastTick[plyId] = curTick;
-  if (this.pastStates[curTick] === undefined) {
-    const curStateCopy = JSON.parse(JSON.stringify(curState));
-    this.pastStates[curTick] = curStateCopy;
-  }
-  this.clearCache();
-}
+    socket.on('disconnect', () => {
+      this.onDisconnect(plyId);
+    });
 
-export default class Lobby {
-  constructor(initialState, sendFcn) {
-    this.state = initialState;
+    socket.on('lobbyconnect', (data, ackFn) => {
+      const { lobbyKey, name, color } = data;
+      const playerData = { name, color };
 
-    const stateCopy = JSON.parse(JSON.stringify(this.state));
-    this.pastStates = {};  // State, identified by its tick.
-    this.playersLastTick = {};  // Last tick (state id) sent to player.
-    this.nextTickTasks = [];
+      const ply = this.players[plyId];
+      const lobby = ply.lobby;
 
-    this.kickPlayers = [];
-  }
-
-  sendFullState(plyId, state, bindedAckCallback) {
-    console.log('No `sendFullState` function has been specified for Lobby!');
-  }
-
-  sendSnapshot(plyId, snapshot, bindedAckCallback) {
-    console.log('No `sendSnapshot` function has been specified for Lobby!');
-  }
-
-  onTick() {
-    const curTasks = this.nextTickTasks;
-    this.nextTickTasks = []; // Clear to-be completed tasks.
-    curTasks.forEach((taskFn) => { taskFn(); });
-  }
-
-  clearCache() {
-    const playersArray = Object.keys(this.playersLastTick);
-    const keepTicks = playersArray.map(plyId => this.playersLastTick[plyId]);
-    Object.keys(this.pastStates).forEach((tick) => {
-      if (keepTicks.indexOf(parseInt(tick)) === -1) {
-        delete this.pastStates[tick];
+      if (lobby === null) {
+        this.joinLobby(plyId, lobbyKey, playerData);
+      } else {
+        this.leaveLobby(plyId, () => {
+          this.joinLobby(plyId, lobbyKey, playerData);
+        });
       }
     });
   }
 
-  size() {
-    return Object.keys(this.playersLastTick).length;
+  onDisconnect(plyId) {
+    const ply = this.players[plyId];
+    const lobby = ply.lobby;
+    if (lobby !== null) {
+      this.leaveLobby(plyId);
+    }
+    delete this.players[plyId];
   }
 
-  // Kill this lobby.
-  kill() {
-    const players = Object.keys(this.playersLastTick)
-    players.forEach(plyId => this.leave(plyId));
+  // Abstract
+  // This function should be overridden to allow for a platform dependent loop.
+  createGame() {
+    const state = getInitialState();
+    const game = {
+      loop: null,
+      state: state,
+      copyState: copyState,
+      addPlayer: (plyId, plyData) => {
+        addPlayer(state, plyId, plyData.name, plyData.color);
+      },
+      removePlayer: (plyId) => removePlayer(state, plyId),
+    }
+    return game;
   }
 
-  isMember(plyId) {
-    return this.playersLastTick[plyId] !== undefined;
+  createLobby(lobbyKey) {
+    const game = this.createGame();
+
+    const lobby = new gameLobby(lobbyKey, game);
+
+    lobby.sendFullState = (plyId, fullState, bindedAckCallback) => {
+      const ply = this.players[plyId];
+      const socket = ply.socket;
+      socket.emit('fullstate', { lobbyKey, fullState }, bindedAckCallback);
+    }
+
+    lobby.sendSnapshot = (plyId, snapshot, bindedAckCallback) => {
+      const ply = this.players[plyId];
+      const socket = ply.socket;
+      socket.emit('snapshot', snapshot, bindedAckCallback);
+    }
+
+    lobby.start();
+
+    return lobby;
   }
 
-  join(plyId) {
-    this.playersLastTick[plyId] = null;
+  leaveLobby(plyId, callback) {
+    const ply = this.players[plyId];
+    const lobby = ply.lobby;
+    if (lobby !== null) {
+      const onLobbyLeave = () => {
+        if (lobby.size() <= 1) {
+          lobby.kill();
+          delete this.lobbies[lobby.id];
+        } else if (lobby.isMember(plyId)) {
+          lobby.leave(plyId);
+        }
+        ply.lobby = null;
 
-    const privateProcessSnapshot = processSnapshot.bind(this);
-    privateProcessSnapshot(plyId);
+        if (typeof callback === 'function') {
+          callback(true);
+        }
+      }
+
+      const socket = ply.socket;
+      if (socket.connected) {
+        socket.leave(lobbyKey, (err) => { onLobbyLeave(); });
+      } else {
+        onLobbyLeave();
+      }
+    } else {
+      callback(false);
+    }
   }
 
-  leave(plyId) {
-    this.kickPlayers.push(plyId);
-    delete this.playersLastTick[plyId];
+  joinLobby(plyId, lobbyKey, playerData, callback) {
+    const ply = this.players[plyId];
+    const curLobby = ply.lobby;
+    if (curLobby !== null) {
+      throw new Error(`Player '${plyId}' trying to join lobby '${lobbyKey}', but is already in lobby '${curLobby.id}'.`);
+    } else {
+      const socket = ply.socket;
+      socket.join(lobbyKey, (err) => {
+        let lobby = this.lobbies[lobbyKey];
+        // Check if we need to create a new lobby.
+        if (lobby === undefined) {
+          lobby = this.createLobby(lobbyKey);
+        } else if (lobby.isMember(plyId)) {
+          throw new Error(`Player '${plyId}' trying to join lobby '${lobbyKey}', but is already a member.`);
+        }
+
+        this.lobbies[lobbyKey] = lobby;
+
+        // Add player to lobby data-structures.
+        ply.lobby = lobby;
+        lobby.join(plyId, playerData);
+
+        if (typeof callback === 'function') {
+          callback();
+        }
+      });
+    }
   }
 }

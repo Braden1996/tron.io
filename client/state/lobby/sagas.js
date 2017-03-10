@@ -1,4 +1,3 @@
-import { eventChannel } from 'redux-saga';
 import { takeEvery, put } from 'redux-saga/effects';
 
 import {
@@ -8,14 +7,13 @@ import {
 
 import {
   LOBBY_CONNECT,
-  LOBBY_ADD_COMPUTER,
   lobbyConnectSuccess,
   lobbyApplySnapshot,
 } from '../../../shared/state/lobby/actions';
 
 import { addPlayer } from '../../../shared/game/operations';
 
-function* playerConnected(action) {
+function* lobbySocketReceive(action) {
   switch (action.eventName) {
     case 'fullstate':
       const { lobbyKey, fullState } = action.data;
@@ -37,13 +35,7 @@ function* lobbyConnect(action) {
   yield put(socketsSend(eventName, connectData));
 }
 
-function* addComputerPlayer(action) {
-  const eventName = 'addcomputer';
-  yield put(socketsSend(eventName));
-}
-
 export default function* lobbySaga() {
-  yield takeEvery(SOCKETS_RECEIVE, playerConnected);
+  yield takeEvery(SOCKETS_RECEIVE, lobbySocketReceive);
   yield takeEvery(LOBBY_CONNECT, lobbyConnect);
-  yield takeEvery(LOBBY_ADD_COMPUTER, addComputerPlayer);
 }

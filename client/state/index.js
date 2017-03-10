@@ -1,5 +1,6 @@
 import Immutable from 'immutable';
 
+import inputSaga from './input/sagas';
 import lobbySaga from './lobby/sagas';
 
 import socketSaga from './sockets/sagas';
@@ -17,6 +18,7 @@ export function rootReducer(state = Immutable.Map(), action) {
 
 export function* rootSaga() {
   yield [
+    inputSaga(),
     lobbySaga(),
     socketSaga(),
     sharedRootSaga()

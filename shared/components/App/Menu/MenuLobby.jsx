@@ -3,10 +3,8 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import Link from 'react-router-dom/Link';
 
-import {
-  lobbyConnect,
-  lobbyAddComputer,
-} from "../../../state/lobby/actions";
+import { lobbyConnect } from "../../../state/lobby/actions";
+import { addComputer } from "../../../state/input/actions";
 
 
 class MenuLobby extends React.Component {
@@ -86,7 +84,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
     lobbyConnect: lobbyConnect,
-    addComputer: lobbyAddComputer,
+    addComputer: addComputer,
   }, dispatch);
 }
 

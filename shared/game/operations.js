@@ -12,6 +12,10 @@ export function getInitialState() {
   }
 }
 
+export function copyState(state) {
+  return JSON.parse(JSON.stringify(state));
+}
+
 export function resetPlayers(state) {
   const { players, playerSize, arenaSize } = state;
 
