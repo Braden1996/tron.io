@@ -4,7 +4,8 @@ import { connect } from "react-redux";
 import Link from 'react-router-dom/Link';
 
 import {
-  lobbyConnect
+  lobbyConnect,
+  lobbyAddComputer,
 } from "../../../state/lobby/actions";
 
 
@@ -64,7 +65,7 @@ class MenuLobby extends React.Component {
           <p>To invite a friend, send them a copy of your url.</p>
         </figure>
         {!this.props.started && this.props.players.length < 16 &&
-          <button onClick={this.props.onAddComputer}>Add computer player</button>
+          <button onClick={this.props.addComputer}>Add computer player</button>
         }
         {beginButton}
       </div>
@@ -84,7 +85,8 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
-    lobbyConnect: lobbyConnect
+    lobbyConnect: lobbyConnect,
+    addComputer: lobbyAddComputer,
   }, dispatch);
 }
 

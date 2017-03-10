@@ -32,7 +32,7 @@ function leaveLobby(socket, callback) {
     }
 
     if (socket.connected) {
-      socket.leave(oldLobbyKey, (err) => { leaveDataStructures(); });
+      socket.leave(lobbyKey, (err) => { leaveDataStructures(); });
     } else {
       leaveDataStructures();
     }
@@ -133,6 +133,14 @@ export default function socketsInit(app) {
         });
       } else {
         joinLobby(socket, lobbyKey, playerData);
+      }
+    });
+
+    socket.on('addcomputer', (data, ackFn) => {
+      const lobbyKey = io.tronGame.playerLobby[plyId];
+      if (lobbyKey !== undefined) {
+        const lobby = io.tronGame.lobbies[lobbyKey];
+        gameAddPlayer(lobby.state, 'aUniqueID', 'Computer Player', '#0f0');
       }
     });
   });

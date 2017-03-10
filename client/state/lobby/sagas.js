@@ -8,6 +8,7 @@ import {
 
 import {
   LOBBY_CONNECT,
+  LOBBY_ADD_COMPUTER,
   lobbyConnectSuccess,
   lobbyApplySnapshot,
 } from '../../../shared/state/lobby/actions';
@@ -36,7 +37,13 @@ function* lobbyConnect(action) {
   yield put(socketsSend(eventName, connectData));
 }
 
+function* addComputerPlayer(action) {
+  const eventName = 'addcomputer';
+  yield put(socketsSend(eventName));
+}
+
 export default function* lobbySaga() {
-  yield takeEvery(LOBBY_CONNECT, lobbyConnect);
   yield takeEvery(SOCKETS_RECEIVE, playerConnected);
+  yield takeEvery(LOBBY_CONNECT, lobbyConnect);
+  yield takeEvery(LOBBY_ADD_COMPUTER, addComputerPlayer);
 }
