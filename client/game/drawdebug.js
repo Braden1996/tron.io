@@ -24,7 +24,7 @@ function drawQuadtreeOverlay(canvas, state, arena) {
     ctx.moveTo(x, y + (h / 2));
     ctx.lineTo(x + w, y + (h / 2));
     ctx.lineWidth = stroke;
-    ctx.strokeStyle = '#00f';
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
     ctx.stroke();
     ctx.closePath();
     nodeQueue = nodeQueue.concat(curNode.nodes);
