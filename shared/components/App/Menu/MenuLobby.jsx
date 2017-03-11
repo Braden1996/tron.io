@@ -4,7 +4,10 @@ import { connect } from "react-redux";
 import Link from 'react-router-dom/Link';
 
 import { lobbyConnect } from "../../../state/lobby/actions";
-import { addComputer } from "../../../state/input/actions";
+import {
+  addComputer,
+  beginGame,
+} from "../../../state/input/host/actions";
 
 
 class MenuLobby extends React.Component {
@@ -47,7 +50,7 @@ class MenuLobby extends React.Component {
       )
     } else {
       beginButton = (
-        <button onClick={this.props.onStartGame}>
+        <button onClick={this.props.beginGame}>
           {"Begin"} Game
         </button>
       )
@@ -85,6 +88,7 @@ const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
     lobbyConnect: lobbyConnect,
     addComputer: addComputer,
+    beginGame: beginGame,
   }, dispatch);
 }
 

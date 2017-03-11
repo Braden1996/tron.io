@@ -1,4 +1,12 @@
 import { getSnapshot } from './snapshot';
+import { detachPlayer, attachPlayer } from './input';
+import gameUpdate from '../update';
+import {
+  getInitialState,
+  copyState,
+  addPlayer,
+  removePlayer,
+} from '../operations';
 
 function snapshotAck(ply) {
   const kickIdx = this.kickPlayers.findIndex(plyId => ply.id === plyId);
@@ -18,7 +26,7 @@ function processSnapshot(ply) {
   const bindedAckCallback = () => { bindedAck(ply); };
 
   if (ply.lastTick === null) {
-    this.sendFullState(ply.id, curState, bindedAckCallback);
+    this.sendFullState(ply, curState, bindedAckCallback);
   } else {
     const lastState = this.pastStates[ply.lastTick];
     const difference = getSnapshot(lastState, curState);
@@ -27,7 +35,7 @@ function processSnapshot(ply) {
     // repeat this process as an acknowledgment. Otherwise, if there is no
     // difference, delay this snapshot until the next tick.
     if (difference && difference.length >= 1) {
-      this.sendSnapshot(ply.id, difference, bindedAckCallback);
+      this.sendSnapshot(ply, difference, bindedAckCallback);
     } else {
       this.snapshotNextTick.push(bindedAckCallback);
     }
@@ -37,19 +45,24 @@ function processSnapshot(ply) {
   const curTick = curState.tick;
   ply.lastTick = curTick;
   if (this.pastStates[curTick] === undefined) {
-    this.pastStates[curTick] = this.game.copyState(curState);
+    this.pastStates[curTick] = copyState(curState);
   }
   this.clearCache();
 }
 
 export default class Lobby {
-  constructor(id, game) {
+  constructor(id, game = {}) {
     this.id = id;
     this.game = game;
 
-    this.game.loop.subscribe(this.onTick.bind(this));
+    // Make sure our input game object is as expected!
+    this.game.state = this.game.state || getInitialState();
+    if (this.game.loop) {
+      this.game.loop.subscribe(this.onTick.bind(this));
+    }
+    this.game.loop.setArgument('state', this.game.state);
+    this.game.loop.subscribe(gameUpdate, ['state', 'progress']);
 
-    const stateCopy = this.game.copyState(this.game.state);
     this.pastStates = {};  // State, identified by its tick.
 
     // An array of functions which we be called after the next game.loop tick.
@@ -62,19 +75,20 @@ export default class Lobby {
     this.kickPlayers = [];
   }
 
-  // Abstract
-  sendFullState(plyId, state, bindedAckCallback) {
-    console.log('No `sendFullState` function has been specified for Lobby!');
+  sendFullState(ply, fullState, bindedAckCallback) {
+    const socket = ply.socket;
+
+    const lobbyKey = this.id;
+    socket.emit('fullstate', { lobbyKey, fullState }, bindedAckCallback);
   }
 
-  // Abstract
-  sendSnapshot(plyId, snapshot, bindedAckCallback) {
-    console.log('No `sendSnapshot` function has been specified for Lobby!');
+  sendSnapshot(ply, snapshot, bindedAckCallback) {
+    const socket = ply.socket;
+    socket.emit('snapshot', snapshot, bindedAckCallback);
   }
 
   start() {
-    // Kick-off our game-loop!
-    this.game.loop.start();
+    this.game.loop.start();  // Kick-off our game-loop!
   }
 
   onTick() {
@@ -105,26 +119,36 @@ export default class Lobby {
     return this.players.some(ply => ply.id === plyId);
   }
 
-  join(plyId, plyData) {
+  isHost(plyId) {
+    return plyId === this.players[0].id;
+  }
+
+  join(serverPly, plyData) {
     const ply = {
-      id: plyId,
-      lastTick: null
+      id: serverPly.id,
+      lastTick: null,
+      socket: serverPly.socket,
     };
 
     this.players.push(ply);
 
-    this.game.addPlayer(ply.id, plyData);
+    addPlayer(this.game.state, ply.id, plyData.name, plyData.color);
 
     const privateProcessSnapshot = processSnapshot.bind(this);
     privateProcessSnapshot(ply);
+
+    attachPlayer(this, ply);
   }
 
   leave(plyId) {
     const plyIdx = this.players.findIndex(ply => ply.id === plyId);
     if (plyIdx !== -1) {
       const ply = this.players[plyIdx];
+      detachPlayer(this, ply);
+
       this.players.splice(plyIdx, 1);
-      this.game.removePlayer(ply.id);
+
+      removePlayer(this.game.state, ply.id);
       this.kickPlayers.push(ply.id);
     }
   }

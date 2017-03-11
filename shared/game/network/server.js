@@ -1,12 +1,5 @@
 import gameLobby from './lobby';
 
-import {
-  getInitialState,
-  copyState,
-  addPlayer,
-  removePlayer,
-} from '../operations';
-
 export default class GameServer {
   constructor() {
     this.players = {};
@@ -52,40 +45,14 @@ export default class GameServer {
 
   // Abstract
   // This function should be overridden to allow for a platform dependent loop.
-  // I attach some functions to help decouple game specifics from the lobby.
   createGame() {
-    const state = getInitialState();
-    const game = {
-      loop: null,
-      state: state,
-      copyState: copyState,
-      addPlayer: (plyId, plyData) => {
-        addPlayer(state, plyId, plyData.name, plyData.color);
-      },
-      removePlayer: (plyId) => removePlayer(state, plyId),
-    }
-    return game;
+    return { loop: null };
   }
 
   createLobby(lobbyKey) {
     const game = this.createGame();
-
     const lobby = new gameLobby(lobbyKey, game);
-
-    lobby.sendFullState = (plyId, fullState, bindedAckCallback) => {
-      const ply = this.players[plyId];
-      const socket = ply.socket;
-      socket.emit('fullstate', { lobbyKey, fullState }, bindedAckCallback);
-    }
-
-    lobby.sendSnapshot = (plyId, snapshot, bindedAckCallback) => {
-      const ply = this.players[plyId];
-      const socket = ply.socket;
-      socket.emit('snapshot', snapshot, bindedAckCallback);
-    }
-
     lobby.start();
-
     return lobby;
   }
 
@@ -138,7 +105,7 @@ export default class GameServer {
 
         // Add player to lobby data-structures.
         ply.lobby = lobby;
-        lobby.join(plyId, playerData);
+        lobby.join(ply, playerData);
 
         if (typeof callback === 'function') {
           callback();
