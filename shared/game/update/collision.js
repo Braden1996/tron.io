@@ -195,11 +195,11 @@ export default function updateCollision(state) {
   const killed = [];
   players.forEach((ply) => {
     if (ply.alive) {
-      const point = collideTrail(ply, plySize, quadtree) ||
+      const deathPosition = collideTrail(ply, plySize, quadtree) ||
         collideBorder(ply, plySize, arenaSize);
 
-      if (point !== undefined) {
-        killed.push({ ply, point });
+      if (deathPosition !== undefined) {
+        killed.push({ ply, deathPosition });
       }
     }
   });

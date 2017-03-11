@@ -12,8 +12,8 @@ export default function update(state, progress) {
 
     // Check if the game has now finished.
     const numAlive = state.players.reduce((t, p) => t + (p.alive ? 1 : 0), 0);
-    if ((state.players.length === 1 && !state.players[0].alive) ||
-      (state.players.size !== 1 && numAlive <= 1)) {
+    if ((state.players.length === 1 && numAlive === 0) ||
+      (state.players.length !== 1 && numAlive <= 1)) {
       state.finished = true;
     }
   }
