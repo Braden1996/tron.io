@@ -28,7 +28,8 @@ Tron Game:
      Note - currently, the tree is recreated every tick. This isn't strickly necessary as existing trails wont ever move. Although, it would be difficult to change.
    ☐ Fix conceptual bug where only the first collision point is found, as opposed to the closest/first-hit.
    ☐ Make improvements to quadtree such that it is only rebalanced on updates, as opposed to being recreated.
-   ☐ Read game state snapshots, which are sent from the server, into the client's understanding of the game.
+   ✔ Read game state snapshots, which are sent from the server, into the client's understanding of the game. @done (17-03-11 16:26)
+   ☐ Send input actions to the server.
 
   Server Functionality:
    ✔ Research and prepare a basic server technology. @done (17-02-28 11:21)
@@ -36,7 +37,8 @@ Tron Game:
    ✔ Game server (Node JS) compatible game-loop. Timer technique inspired by: @done (17-03-09 13:41)
    http://timetocode.tumblr.com/post/71512510386/an-accurate-nodejs-game-loop-inbetween-settimeout
    ✔ Game state snapshots are sent to all clients of a lobby at some rate. @done (17-03-09 13:41)
-   ☐ The host of the lobby is able to add computer players into the game.
+   ☐ The host of the lobby is able to add computer players into the game. @started
+   ☐ Receive input actions from the client, which are then applied to the game state.
 
  Shared Functionality:
   ✔ Decouple our game files from the rest of the project. This will make it far easier for our game to be portable; so we can execute on either the client or server. This will entail removing Immutable.js from our core game files and perhaps creating some kind of interface instead. @done (17-03-07 19:32)
