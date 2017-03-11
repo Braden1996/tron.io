@@ -10,7 +10,6 @@ import transit from 'transit-immutable-js';
 import './polyfills';
 import { rootReducer, rootSaga } from './state';
 import gameDraw from './game/draw';
-// import gameAttachInput from './game/input';
 import ClientGameLoop from './game/gameloop';
 
 import App from '../shared/components/App';
@@ -22,17 +21,12 @@ const appState = window.__APP_STATE__; // eslint-disable-line no-underscore-dang
 const initialState = appState ? transit.fromJSON(appState) : undefined;
 const store = configureStore(rootReducer, rootSaga, initialState);
 
-// Attach window input events to our game.
-// Should probably find a more elegant way of doing this...
-// gameAttachInput(store);
-
 // Setup the draw function for our game.
 // Enable 'debug' features if the dev build flag is set.
 let gameDrawFunc = gameDraw;
 if (process.env.BUILD_FLAG_IS_DEV) {
   const gameDrawDebug = require('./game/drawdebug').default;
   gameDrawFunc = (s, c) => { gameDraw(s, c); gameDrawDebug(s, c); };
-  //gameDrawFunc = (s, c) => { /* Working on fixing this... */ };
 }
 
 // Get the DOM Element that will host our React application.
