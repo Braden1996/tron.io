@@ -7,19 +7,24 @@ import {
 
 import {
   LOBBY_CONNECT,
+  lobbySetHost,
   lobbyConnectSuccess,
   lobbyApplySnapshot,
 } from '../../../shared/state/lobby/actions';
 
-import { addPlayer } from '../../../shared/game/operations';
-
 function* lobbySocketReceive(action) {
   switch (action.eventName) {
-    case 'fullstate':
-      const { lobbyKey, fullState } = action.data;
-      action.ackFn();
-      yield put(lobbyConnectSuccess(lobbyKey, fullState));
+    case 'sethost':
+      const newHostId = action.data;
+      yield put(lobbySetHost(newHostId));
       break;
+
+    case 'fullstate':
+      const { lobbyKey, gameState, plyId, hostId } = action.data;
+      yield put(lobbyConnectSuccess(lobbyKey, gameState, plyId, hostId));
+      action.ackFn();
+      break;
+
     case 'snapshot':
       const snapshot = action.data;
       action.ackFn();

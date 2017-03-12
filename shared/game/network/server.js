@@ -60,25 +60,16 @@ export default class GameServer {
     const ply = this.players[plyId];
     const lobby = ply.lobby;
     if (lobby !== null) {
-      const onLobbyLeave = () => {
-        if (lobby.size() <= 1) {
-          lobby.kill();
-          delete this.lobbies[lobby.id];
-        } else if (lobby.isMember(plyId)) {
-          lobby.leave(plyId);
-        }
-        ply.lobby = null;
-
-        if (typeof callback === 'function') {
-          callback(true);
-        }
+      if (lobby.size() <= 1) {
+        lobby.kill();
+        delete this.lobbies[lobby.id];
+      } else if (lobby.isMember(plyId)) {
+        lobby.leave(plyId);
       }
+      ply.lobby = null;
 
-      const socket = ply.socket;
-      if (socket.connected) {
-        socket.leave(lobbyKey, (err) => { onLobbyLeave(); });
-      } else {
-        onLobbyLeave();
+      if (typeof callback === 'function') {
+        callback(true);
       }
     } else {
       callback(false);
@@ -92,25 +83,24 @@ export default class GameServer {
       throw new Error(`Player '${plyId}' trying to join lobby '${lobbyKey}', but is already in lobby '${curLobby.id}'.`);
     } else {
       const socket = ply.socket;
-      socket.join(lobbyKey, (err) => {
-        let lobby = this.lobbies[lobbyKey];
-        // Check if we need to create a new lobby.
-        if (lobby === undefined) {
-          lobby = this.createLobby(lobbyKey);
-        } else if (lobby.isMember(plyId)) {
-          throw new Error(`Player '${plyId}' trying to join lobby '${lobbyKey}', but is already a member.`);
-        }
 
-        this.lobbies[lobbyKey] = lobby;
+      let lobby = this.lobbies[lobbyKey];
+      // Check if we need to create a new lobby.
+      if (lobby === undefined) {
+        lobby = this.createLobby(lobbyKey);
+      } else if (lobby.isMember(plyId)) {
+        throw new Error(`Player '${plyId}' trying to join lobby '${lobbyKey}', but is already a member.`);
+      }
 
-        // Add player to lobby data-structures.
-        ply.lobby = lobby;
-        lobby.join(ply, playerData);
+      this.lobbies[lobbyKey] = lobby;
 
-        if (typeof callback === 'function') {
-          callback();
-        }
-      });
+      // Add player to lobby data-structures.
+      ply.lobby = lobby;
+      lobby.join(ply, playerData);
+
+      if (typeof callback === 'function') {
+        callback();
+      }
     }
   }
 }

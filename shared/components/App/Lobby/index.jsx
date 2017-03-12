@@ -1,17 +1,13 @@
-import React from "react";
-import { bindActionCreators } from "redux";
-import { connect } from "react-redux";
+import React from 'react';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import Link from 'react-router-dom/Link';
 
-import { lobbyConnect } from "../../../state/lobby/actions";
-import {
-  addComputer,
-  beginGame,
-  endGame,
-} from "../../../state/input/host/actions";
+import { lobbyConnect } from '../../../state/lobby/actions';
+import HostPanel from './host';
 
 
-class MenuLobby extends React.Component {
+class Lobby extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -36,40 +32,27 @@ class MenuLobby extends React.Component {
   }
 
   render() {
-    const plyList = this.props.players.map((ply, idx) =>
+    const { meId, hostId, lobbyKey, gameState, connected } = this.props;
+
+    const players = gameState.players;
+    const isHost = meId === hostId;
+
+    const plyList = players.map((ply, idx) =>
       <li key={ply.id}>
-        {ply.name} { ply.id === this.props.host && <b>[HOST]</b> }
+        {ply.name} { ply.id === hostId && <b>[HOST]</b> }
       </li>
     );
 
-    let beginButton;
-    if (this.props.started) {
-      beginButton = (
-        <button onClick={this.props.endGame}>
-          {"End"} Game
-        </button>
-      )
-    } else {
-      beginButton = (
-        <button onClick={this.props.beginGame}>
-          {"Begin"} Game
-        </button>
-      )
-    }
-
     return (
       <div>
-        <h2>{this.props.lobbyKey}</h2>
-        { this.props.lobbyConnected ? "Connected" : "Connecting" }
+        <h2>{lobbyKey}</h2>
+        { connected ? 'Connected' : 'Connecting' }
         <figure>
           <figcaption>Players:</figcaption>
           <ol>{plyList}</ol>
           <p>To invite a friend, send them a copy of your url.</p>
         </figure>
-        {!this.props.started && this.props.players.length < 16 &&
-          <button onClick={this.props.addComputer}>Add computer player</button>
-        }
-        {beginButton}
+        { isHost && <HostPanel gameState={gameState} /> }
       </div>
     )
   }
@@ -77,12 +60,16 @@ class MenuLobby extends React.Component {
 
 const mapStateToProps = (state) => {
   const sockets = state.get('sockets');
-  const gameState = state.get('lobby').get('gameState');
+  const lobby = state.get('lobby');
+  const me = lobby.get('me');
+  const hostPlyId = lobby.get('host');
+
   return {
-    players: gameState ? gameState.players : [],
-    host: gameState.host,
-    lobbyConnected: state.get('lobby').get('connected'),
-    started: gameState.started,
+    meId: me.get('id'),
+    hostId: hostPlyId,
+    lobbyKey: lobby.get('key'),
+    gameState: lobby.get('gameState'),
+    connected: lobby.get('connected'),
     ready: sockets && sockets.get('receiveReady') && sockets.get('sendReady'),
   };
 }
@@ -90,10 +77,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
     lobbyConnect: lobbyConnect,
-    addComputer: addComputer,
-    beginGame: beginGame,
-    endGame: endGame,
   }, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MenuLobby);
+export default connect(mapStateToProps, mapDispatchToProps)(Lobby);

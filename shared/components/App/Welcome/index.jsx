@@ -1,14 +1,14 @@
-import React from "react";
-import { bindActionCreators } from "redux";
-import { connect } from "react-redux";
-import Redirect from 'react-router-dom/Redirect';
+import React from 'react';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
 
 import {
   lobbySetName
-} from "../../../state/lobby/actions";
+} from '../../../state/lobby/actions';
 
 
-class MenuPreLobby extends React.Component {
+class Welcome extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -24,21 +24,17 @@ class MenuPreLobby extends React.Component {
   }
 
   createLobby(event) {
-    this.setState({connectRandomLobby: "RandomLobbyString"});
+    this.props.history.push('RandomLobbyString');
   }
 
   render() {
     return (
       <div>
-        {this.state.connectRandomLobby !== null &&
-          <Redirect to={{pathname: this.state.connectRandomLobby}} push />
-        }
-
         <h2>Welcome to Tron!</h2>
         <p>If you're looking to start a new game, just append a unique server name to the url - or click the button below!</p>
         <br />
         Name:
-        <input type="text" name="menu_myname" onChange={this.onNameChange} value={this.state.name} /><br />
+        <input type='text' name='menu_myname' onChange={this.onNameChange} value={this.props.name} /><br />
         <button onClick={this.createLobby}>Create Lobby</button><br />
       </div>
     )
@@ -57,4 +53,4 @@ const mapDispatchToProps = (dispatch) => {
   }, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MenuPreLobby);
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Welcome));

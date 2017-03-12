@@ -1,11 +1,15 @@
 import 'normalize.css/normalize.css';
 
 import React from 'react';
+import Route from 'react-router-dom/Route';
+import Switch from 'react-router-dom/Switch';
+
+import Lobby from './Lobby';
+import Welcome from './Welcome';
 
 import './globals.css';
 
 import GameCanvas from './GameCanvas';
-import Menu from './Menu';
 
 function App(props, context) {
   const gameloop = props.gameloop;
@@ -15,7 +19,10 @@ function App(props, context) {
       <section id="game__menu" className="menu">
         <h1>Tron</h1>
         <article className="menu__section" id="menuSection">
-          <Menu />
+          <Switch>
+            <Route exact path="/:lobbykey" component={Lobby} />
+            <Route path="/" component={Welcome}/>
+          </Switch>
         </article>
       </section>
     </div>

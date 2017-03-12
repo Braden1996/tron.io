@@ -69,6 +69,7 @@ export default class Lobby {
     this.snapshotNextTick = [];
 
     this.players = [];
+    this.host = null;  // Host's player.id
 
     // Keep track of players that have recently left the lobby.
     // This is done to allow us to stop sending them snapshot updates.
@@ -78,11 +79,14 @@ export default class Lobby {
     this.misc = {};
   }
 
-  sendFullState(ply, fullState, bindedAckCallback) {
+  sendFullState(ply, gameState, bindedAckCallback) {
     const socket = ply.socket;
 
     const lobbyKey = this.id;
-    socket.emit('fullstate', { lobbyKey, fullState }, bindedAckCallback);
+    const plyId = ply.id;
+    const hostId = this.host;
+    const payload = { lobbyKey, gameState, plyId, hostId };
+    socket.emit('fullstate', payload, bindedAckCallback);
   }
 
   sendSnapshot(ply, snapshot, bindedAckCallback) {
@@ -123,11 +127,12 @@ export default class Lobby {
   }
 
   isHost(plyId) {
-    return plyId === this.game.state.host;
+    return plyId === this.host;
   }
 
   setHost(ply) {
-    this.game.state.host = ply === null ? null : ply.id;
+    this.host = ply === null ? null : ply.id;
+    this.players.forEach(ply => ply.socket.emit('sethost', this.host));
   }
 
   join(serverPly, plyData) {

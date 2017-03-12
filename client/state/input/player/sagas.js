@@ -13,43 +13,56 @@ import {
   updatePlayerDirection
 } from '../../../../shared/game/operations';
 
-
 const getGameState = state => state.get('lobby').get('gameState');
+const getClientPlayer = (state) => {
+  const gameState = getGameState(state);
+  const clientId = state.get('lobby').get('me').get('id');
+  return players.find(ply => ply.id === clientId);
+}
 
 function* movePlayer(action) {
   const eventName = 'moveplayer';
   const direction = action.value;
-
-  // Try to predict the move now, instead of waiting for a snapshot.
   const gameState = yield select(getGameState);
-  const ply = gameState.players[0];
+  const clientPly = yield select(getClientPlayer);
   const plySize = gameState.playerSize;
-  updatePlayerDirection(ply, plySize, direction);
+
+  // Try to predict the move now whilst we wait for a snapshot.
+  updatePlayerDirection(clientPly, plySize, direction);
 
   yield put(socketsSend(eventName, direction));
 }
 
+
 function* controlsKeyDown(action) {
-  switch (action.value) {
-    case 87:
-      yield put(move("north"));
-      break;
-    case 83:
-      yield put(move("south"));
-      break;
-    case 68:
-      yield put(move("east"));
-      break;
-    case 65:
-      yield put(move("west"));
-      break;
+  const gameState = yield select(getGameState);
+
+  if (gameState.started && !gameState.finished) {
+    switch (action.value) {
+      case 87:
+        yield put(move("north"));
+        break;
+      case 83:
+        yield put(move("south"));
+        break;
+      case 68:
+        yield put(move("east"));
+        break;
+      case 65:
+        yield put(move("west"));
+        break;
+    }
   }
 }
 
 function* controlsKeyUp(action) {
-  switch (action.value) {
-    case 87:
-      break;
+  const gameState = yield select(getGameState);
+
+  if (gameState.started && !gameState.finished) {
+    switch (action.value) {
+      case 87:
+        break;
+    }
   }
 }
 

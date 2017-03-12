@@ -9,7 +9,6 @@ export function getInitialState() {
     playerSize: 1,
     speed: 0.01, //0.066,
     players: [],
-    host: null,
   }
 }
 
