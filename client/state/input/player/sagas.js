@@ -16,18 +16,17 @@ import {
 
 const getGameState = state => state.get('lobby').get('gameState');
 
-function* movePlayerAck(direction) {
+function* movePlayer(action) {
+  const eventName = 'moveplayer';
+  const direction = action.value;
+
   // Try to predict the move now, instead of waiting for a snapshot.
   const gameState = yield select(getGameState);
   const ply = gameState.players[0];
   const plySize = gameState.playerSize;
   updatePlayerDirection(ply, plySize, direction);
-}
 
-function* movePlayer(action) {
-  const eventName = 'moveplayer';
-
-  yield put(socketsSend(eventName, action.value, movePlayerAck));
+  yield put(socketsSend(eventName, direction));
 }
 
 function* controlsKeyDown(action) {

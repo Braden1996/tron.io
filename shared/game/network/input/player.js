@@ -21,5 +21,5 @@ export function playerAttachPlayer(lobby, ply) {
   const socket = ply.socket;
   const state = lobby.game.state;
 
-  socket.on('moveplayer', (d, ack) => { ack(d); movePlayer(lobby, ply, d); });
+  socket.on('moveplayer', (data, ack) => { movePlayer(lobby, ply, data); });
 }
