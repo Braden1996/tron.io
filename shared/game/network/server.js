@@ -21,6 +21,8 @@ export default class GameServer {
       const { lobbyKey, name, color } = data;
       const playerData = { name, color };
 
+      console.log("TESTING", data);
+
       const ply = this.players[plyId];
       const lobby = ply.lobby;
 

@@ -18,7 +18,7 @@ class MenuLobby extends React.Component {
 
   componentDidMount() {
     const lobbyKey = this.props.match.params.lobbykey;
-    this.props.lobbyConnect(lobbyKey, 'Player Name', '#0f0');
+    this.props.lobbyConnect(lobbyKey);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -31,7 +31,7 @@ class MenuLobby extends React.Component {
     const lobbyKey = this.props.match.params.lobbykey;
     const nextLobbyKey = nextProps.match.params.lobbykey;
     if (tryLobbyConnectAgain || lobbyKey !== nextLobbyKey) {
-      this.props.lobbyConnect(nextLobbyKey, 'Player Name', '#0f0');
+      this.props.lobbyConnect(nextLobbyKey);
     }
   }
 

@@ -3,6 +3,7 @@ import {
   LOBBY_CONNECT,
   LOBBY_CONNECT_SUCCESS,
   LOBBY_APPLY_SNAPSHOT,
+  LOBBY_SET_NAME,
 } from './actions';
 
 import { getInitialState, copyState } from '../../game/operations';
@@ -16,12 +17,13 @@ export const INITIAL_LOBBY_STATE = Immutable.Map({
   gameState: initState,  // Will be mutated!
   lastGameState: initState,  // Last verified state from server.,
   host: null,
+  me: Immutable.Map({ name: "Player", color: '#0f0' })
 });
 
 export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {
   switch (action.type) {
     case LOBBY_CONNECT:
-      return state.set('key', action.lobbyKey)
+      return state.set('key', action.value)
         .set('connected', false);
     case LOBBY_CONNECT_SUCCESS:
       // Make sure we've connected to the intended lobby.
@@ -41,6 +43,9 @@ export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {
 
       return state.set('gameState', lastStateNew)
         .set('lastGameState', lastState);
+    case LOBBY_SET_NAME:
+      const name = action.value;
+      return state.update('me', me => me.set('name', name));
     default:
       return state;
   }

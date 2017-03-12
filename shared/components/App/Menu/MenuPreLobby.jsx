@@ -1,12 +1,17 @@
 import React from "react";
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
 import Redirect from 'react-router-dom/Redirect';
 
+import {
+  lobbySetName
+} from "../../../state/lobby/actions";
 
-export default class MenuPreLobby extends React.Component {
+
+class MenuPreLobby extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: "Player",
       connectRandomLobby: null
     };
 
@@ -15,7 +20,7 @@ export default class MenuPreLobby extends React.Component {
   }
 
   onNameChange(event) {
-    this.setState({name: event.target.value});
+    this.props.setName(event.target.value);
   }
 
   createLobby(event) {
@@ -39,3 +44,17 @@ export default class MenuPreLobby extends React.Component {
     )
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    name: state.get('lobby').get('myName'),
+  };
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return bindActionCreators({
+    setName: lobbySetName,
+  }, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(MenuPreLobby);

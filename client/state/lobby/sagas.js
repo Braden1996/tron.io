@@ -1,4 +1,4 @@
-import { takeEvery, put } from 'redux-saga/effects';
+import { put, select, takeEvery } from 'redux-saga/effects';
 
 import {
   SOCKETS_RECEIVE,
@@ -28,9 +28,13 @@ function* lobbySocketReceive(action) {
   }
 }
 
+const getName = state => state.get('lobby').get('me').get('name');
+const getColor = state => state.get('lobby').get('me').get('color');
 function* lobbyConnect(action) {
   const eventName = 'lobbyconnect';
-  const { lobbyKey, name, color } = action
+  const lobbyKey = action.value;
+  const name = yield select(getName);
+  const color = yield select(getColor);
   const connectData = { lobbyKey, name, color };
   yield put(socketsSend(eventName, connectData));
 }
