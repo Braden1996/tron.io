@@ -7,6 +7,7 @@ import { lobbyConnect } from "../../../state/lobby/actions";
 import {
   addComputer,
   beginGame,
+  endGame,
 } from "../../../state/input/host/actions";
 
 
@@ -44,7 +45,7 @@ class MenuLobby extends React.Component {
     let beginButton;
     if (this.props.started) {
       beginButton = (
-        <button onClick={this.props.onEndGame}>
+        <button onClick={this.props.endGame}>
           {"End"} Game
         </button>
       )
@@ -80,6 +81,7 @@ const mapStateToProps = (state) => {
   return {
     players: gameState ? gameState.players : [],
     lobbyConnected: state.get('lobby').get('connected'),
+    started: gameState.started,
     ready: sockets && sockets.get('receiveReady') && sockets.get('sendReady'),
   };
 }
@@ -89,6 +91,7 @@ const mapDispatchToProps = (dispatch) => {
     lobbyConnect: lobbyConnect,
     addComputer: addComputer,
     beginGame: beginGame,
+    endGame: endGame,
   }, dispatch);
 }
 
