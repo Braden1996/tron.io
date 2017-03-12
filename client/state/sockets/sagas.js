@@ -48,17 +48,20 @@ function* read(socket) {
   }
 }
 
+function* writeAck(socket, eventName, data, ackFn) {
+  const internalAckFn = () => new Promise(resolve => {
+    socket.emit(eventName, data, resolve);
+  });
+  const ackData = yield call(internalAckFn);
+  yield call(ackFn, ackData);
+}
+
 function* write(socket) {
   yield put(socketsSendReady());
   while (true) {
     const { eventName, data, ackFn } = yield take(SOCKETS_SEND);
-    let realAckFn;
     if (ackFn) {
-      const internalAckFn = () => new Promise(resolve => {
-        socket.emit(eventName, data, resolve);
-      });
-      const ackData = yield call(internalAckFn);
-      yield call(ackFn, ackData);
+      yield fork(writeAck, socket, eventName, data, ackFn);
     } else {
       socket.emit(eventName, data);
     }
