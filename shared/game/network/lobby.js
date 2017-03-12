@@ -123,7 +123,11 @@ export default class Lobby {
   }
 
   isHost(plyId) {
-    return plyId === this.players[0].id;
+    return plyId === this.game.state.host;
+  }
+
+  setHost(ply) {
+    this.game.state.host = ply === null ? null : ply.id;
   }
 
   join(serverPly, plyData) {
@@ -134,6 +138,9 @@ export default class Lobby {
     };
 
     this.players.push(ply);
+    if (this.players.length === 1) {
+      this.setHost(ply);
+    }
 
     addPlayer(this.game.state, ply.id, plyData.name, plyData.color);
 
@@ -150,6 +157,15 @@ export default class Lobby {
       detachPlayer(this, ply);
 
       this.players.splice(plyIdx, 1);
+
+      // Check if we need to find a new host.
+      if (this.isHost(plyId)) {
+        if (this.players.length > 0) {
+          this.setHost(this.players[0]);
+        } else {
+          this.setHost(null);
+        }
+      }
 
       removePlayer(this.game.state, ply.id);
       this.kickPlayers.push(ply.id);

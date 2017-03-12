@@ -38,7 +38,7 @@ class MenuLobby extends React.Component {
   render() {
     const plyList = this.props.players.map((ply, idx) =>
       <li key={ply.id}>
-        {ply.name}
+        {ply.name} { ply.id === this.props.host && <b>[HOST]</b> }
       </li>
     );
 
@@ -80,6 +80,7 @@ const mapStateToProps = (state) => {
   const gameState = state.get('lobby').get('gameState');
   return {
     players: gameState ? gameState.players : [],
+    host: gameState.host,
     lobbyConnected: state.get('lobby').get('connected'),
     started: gameState.started,
     ready: sockets && sockets.get('receiveReady') && sockets.get('sendReady'),

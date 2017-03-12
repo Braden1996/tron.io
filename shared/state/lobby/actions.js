@@ -12,9 +12,3 @@ export const LOBBY_APPLY_SNAPSHOT = 'LOBBY_APPLY_SNAPSHOT';
 export function lobbyApplySnapshot(snapshot) {
   return { type: LOBBY_APPLY_SNAPSHOT, value: snapshot };
 }
-
-export const LOBBY_ADD_COMPUTER = 'LOBBY_ADD_COMPUTER';
-export function lobbyAddComputer() {
-  return { type: LOBBY_ADD_COMPUTER };
-}
-

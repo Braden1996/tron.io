@@ -14,7 +14,8 @@ export const INITIAL_LOBBY_STATE = Immutable.Map({
   key: null,
   connected: false,
   gameState: initState,  // Will be mutated!
-  lastGameState: initState,  // Last verified state from server.
+  lastGameState: initState,  // Last verified state from server.,
+  host: null,
 });
 
 export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {
