@@ -6,7 +6,12 @@ import {
 
 export function addComputer(lobby, ply, data, ackFn) {
   if (lobby.isHost(ply.id)) {
-    gameAddPlayer(lobby.game.state, 'aUniqueID', 'Computer Player', '#0f0');
+    lobby.misc.computerCount = (lobby.misc.computerCount || 0) + 1;
+
+    const compId = `computer${lobby.misc.computerCount}`;
+    const compName = `Computer ${lobby.misc.computerCount}`;
+    const compColor = '#0f0';
+    gameAddPlayer(lobby.game.state, compId, compName, compColor);
   }
 }
 

@@ -73,6 +73,9 @@ export default class Lobby {
     // Keep track of players that have recently left the lobby.
     // This is done to allow us to stop sending them snapshot updates.
     this.kickPlayers = [];
+
+    // A place to attach arbitrary data to a lobby.
+    this.misc = {};
   }
 
   sendFullState(ply, fullState, bindedAckCallback) {

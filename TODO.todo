@@ -37,7 +37,7 @@ Tron Game:
    ✔ Game server (Node JS) compatible game-loop. Timer technique inspired by: @done (17-03-09 13:41)
    http://timetocode.tumblr.com/post/71512510386/an-accurate-nodejs-game-loop-inbetween-settimeout
    ✔ Game state snapshots are sent to all clients of a lobby at some rate. @done (17-03-09 13:41)
-   ☐ The host of the lobby is able to add computer players into the game. @started
+   ✔ The host of the lobby is able to add computer players into the game. @started @done (17-03-12 00:30)
    ✔ Receive input actions from the client, which are then applied to the game state. @done (17-03-12 00:10)
 
  Shared Functionality:
