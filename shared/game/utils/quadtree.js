@@ -52,51 +52,38 @@ export default class Quadtree {
   }
 
   // Split the node into four subnodess.
-  split(idx) {
+  split() {
     const subLevel = this.level + 1;
     let { x, y, w, h } = this.bounds;
     w = w / 2;
     h = h / 2;
 
-    switch (idx) {
-      case 0:
-        this.nodes[idx] = new Quadtree({ x: x + w, y, w, h }, subLevel);
-        break;
-      case 1:
-        this.nodes[idx] = new Quadtree({ x, y, w, h }, subLevel);
-        break;
-      case 2:
-        this.nodes[idx] = new Quadtree({ x, y: y + h, w, h }, subLevel);
-        break;
-      case 3:
-        this.nodes[idx] = new Quadtree({ x: x + w, y: y + h, w, h }, subLevel);
-        break;
-    }
+    this.nodes[0] = new Quadtree({ x: x + w, y, w, h }, subLevel);
+    this.nodes[1] = new Quadtree({ x, y, w, h }, subLevel);
+    this.nodes[2] = new Quadtree({ x, y: y + h, w, h }, subLevel);
+    this.nodes[3] = new Quadtree({ x: x + w, y: y + h, w, h }, subLevel);
   }
 
   // Determine where an object belongs in the quadtree by determining
-  // which node the object can fit into.
-  // If the given object cannot fit within a child node, this will return -1
-  // to indicate that it is part of the parent node.
+  // which node does the object's centre reside in.
   getIndex(objRect) {
-    const quadXMid = this.bounds.x + (this.bounds.w / 2);
-    const quadYMid = this.bounds.y + (this.bounds.h / 2);
+    const { x, y, w, h } = this.bounds;
+    const quadXMid = x + (w / 2);
+    const quadYMid = y + (h / 2);
 
-    // objRect can completely fit within the top quadrants.
-    const topQuadrant = (objRect.y < quadYMid) && ((objRect.y + objRect.h) < quadYMid);
-    // objRect can completely fit within the bottom quadrants.
-    const bottomQuadrant = objRect.y > quadYMid;
+    const objX = objRect.x + (objRect.w / 2);
+    const objY = objRect.y + (objRect.h / 2);
 
+    const topQuadrant = (objY >= y) && (objY <= quadYMid);
+    const bottomQuadrant = (objY > quadYMid) && (objY <= y + h);
 
-    // objRect can completely fit within the left quadrants.
-    if (objRect.x < quadXMid && objRect.x + objRect.w < quadXMid) {
+    if ((objX >= x) && (objX <= quadXMid)) {
       if (topQuadrant) {
         return 1;
       } else if (bottomQuadrant) {
         return 2;
       }
-    // objRect can completely fit within the right quadrants.
-    } else if (objRect.x > quadXMid) {
+    } else if ((objX > quadXMid) && (objX <= x + w)) {
       if (topQuadrant) {
         return 0;
       } else if (bottomQuadrant) {
@@ -120,7 +107,7 @@ export default class Quadtree {
 
       // If needed, and allowed, create a new sub-node.
       if (this.objects.length > this.MAX_OBJECTS && this.level < this.MAX_LEVELS) {
-        this.split(idx);
+        this.split();
 
         // Filter out the objects which now belong in a subnode.
         this.objects = this.objects.filter((object) => {
