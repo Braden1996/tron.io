@@ -13,7 +13,8 @@ import {
 const patch = socketioWildcard(io.Manager);
 
 function connect() {
-  const socket = io('http://localhost:3000');
+  // Should find a better way of getting this address.
+  const socket = io('http://192.168.0.24:3000');
   patch(socket);
   return new Promise(resolve => {
     if (socket.connected) {

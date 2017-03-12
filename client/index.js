@@ -14,6 +14,7 @@ import ClientGameLoop from './game/gameloop';
 
 import App from '../shared/components/App';
 import configureStore from '../shared/state/configureStore';
+import gameUpdate from '../shared/game/update';
 
 // Create our Redux store.
 // Server side rendering would have mounted our state on this global.
@@ -29,6 +30,11 @@ if (process.env.BUILD_FLAG_IS_DEV) {
   gameDrawFunc = (s, c) => { gameDraw(s, c); gameDrawDebug(s, c); };
 }
 
+// Get game state directly from store at each tick.
+const getState = () => store.getState().get('lobby').get('gameState');
+const gameUpdateFunc = (p) => { gameUpdate(getState(), p); };
+const gameDrawFunc2 = (c) => { gameDrawFunc(getState(), c); };
+
 // Get the DOM Element that will host our React application.
 const container = document.querySelector('#app');
 
@@ -40,9 +46,9 @@ const supportsHistory = 'pushState' in window.history;
  */
 function renderApp(TheApp) {
   // Create and configure our game loop object.
-  const mainLoop = new ClientGameLoop();
-  mainLoop.setArgument('store', store);
-  mainLoop.subscribe(gameDrawFunc, ['store', 'canvas'], 'draw');
+  const mainLoop = new ClientGameLoop(15);
+  mainLoop.subscribe(gameUpdateFunc, ['progress']);
+  mainLoop.subscribe(gameDrawFunc2, ['canvas'], 'draw');
 
   // Firstly, define our full application component, wrapping the given
   // component app with a browser based version of react router.

@@ -30,15 +30,17 @@ export default class AbstractGameLoop {
   }
 
   internalLoop(curtick) {
-    this.arguments.progress = curtick - this.lastTick;
+    if (curtick - this.lastTick >= this.tickLength) {
+      this.arguments.progress = curtick - this.lastTick;
 
-    for (let i = 0; i < this.subscribers.length; i += 1) {
-      this.internalCallByIdx(i);
+      for (let i = 0; i < this.subscribers.length; i += 1) {
+        this.internalCallByIdx(i);
+      }
+
+      this.lastTick = curtick;
     }
 
     this.internalQueueLoop(this.internalLoop.bind(this));
-
-    this.lastTick = curtick;
   }
 
   start() {

@@ -1,10 +1,8 @@
 import updateCollision from './collision';
-//import updateControl from './control';
 import updateMove from './move';
 
 export default function update(state, progress) {
   state.tick = state.tick + 1;
-
   if (state.started && !state.finished) {
     // updateControl(state, progress);
     updateMove(state, progress);

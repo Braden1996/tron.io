@@ -1,4 +1,4 @@
-import { getSnapshot } from './snapshot';
+import { getSnapshot, shouldSendSnapshot } from './snapshot';
 import { detachPlayer, attachPlayer } from './input';
 import gameUpdate from '../update';
 import {
@@ -22,6 +22,7 @@ function snapshotAck(ply) {
 
 function processSnapshot(ply) {
   const curState = this.game.state;
+  const curTick = curState.tick;
   const bindedAck = snapshotAck.bind(this);
   const bindedAckCallback = () => { bindedAck(ply); };
 
@@ -34,7 +35,7 @@ function processSnapshot(ply) {
     // Check if the state has actually changed. If so, send the snapshot and
     // repeat this process as an acknowledgment. Otherwise, if there is no
     // difference, delay this snapshot until the next tick.
-    if (difference && difference.length >= 1) {
+    if (shouldSendSnapshot(difference)) {
       this.sendSnapshot(ply, difference, bindedAckCallback);
     } else {
       this.snapshotNextTick.push(bindedAckCallback);
@@ -42,7 +43,6 @@ function processSnapshot(ply) {
   }
 
   // Recognise this snapshot as being the new last.
-  const curTick = curState.tick;
   ply.lastTick = curTick;
   if (this.pastStates[curTick] === undefined) {
     this.pastStates[curTick] = copyState(curState);

@@ -3,7 +3,7 @@ import {
 } from '../../operations';
 
 
-export function movePlayer(lobby, ply, data, ackFn) {
+export function movePlayer(lobby, ply, data) {
   const inDirection = data;
   const gamePly = lobby.game.state.players.find(gPly => gPly.id === ply.id);
   const plySize = lobby.game.state.playerSize;
@@ -21,5 +21,5 @@ export function playerAttachPlayer(lobby, ply) {
   const socket = ply.socket;
   const state = lobby.game.state;
 
-  socket.on('moveplayer', (d, a) => movePlayer(lobby, ply, d, a));
+  socket.on('moveplayer', (d, ack) => { ack(d); movePlayer(lobby, ply, d); });
 }

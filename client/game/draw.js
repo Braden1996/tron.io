@@ -99,10 +99,7 @@ export function getArenaObject(canvas, state) {
   return arena;
 }
 
-export default function draw(store, canvas) {
-  const state = store.getState();
-  const gameState = state.get('lobby').get('gameState');
-
+export default function draw(gameState, canvas) {
   const arena = getArenaObject(canvas, gameState);
 
   if (gameState.players.length === 0) {

@@ -27,7 +27,7 @@ const values = {
   },
 
   // The host on which the server should run.
-  host: '127.0.0.1', // EnvVars.string('HOST', '0.0.0.0'),
+  host: EnvVars.string('HOST', '192.168.0.24'),
 
   // The port on which the server should run.
   port: EnvVars.number('PORT', 1337),

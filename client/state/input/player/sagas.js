@@ -1,4 +1,4 @@
-import { takeEvery, put } from 'redux-saga/effects';
+import { put, select, takeEvery } from 'redux-saga/effects';
 
 import { socketsSend } from '../../sockets/actions';
 import {
@@ -9,10 +9,25 @@ import {
   move,
   INPUT_PLAYER_MOVE,
 } from '../../../../shared/state/input/player/actions';
+import {
+  updatePlayerDirection
+} from '../../../../shared/game/operations';
+
+
+const getGameState = state => state.get('lobby').get('gameState');
+
+function* movePlayerAck(direction) {
+  // Try to predict the move now, instead of waiting for a snapshot.
+  const gameState = yield select(getGameState);
+  const ply = gameState.players[0];
+  const plySize = gameState.playerSize;
+  updatePlayerDirection(ply, plySize, direction);
+}
 
 function* movePlayer(action) {
   const eventName = 'moveplayer';
-  yield put(socketsSend(eventName, action.value));
+
+  yield put(socketsSend(eventName, action.value, movePlayerAck));
 }
 
 function* controlsKeyDown(action) {

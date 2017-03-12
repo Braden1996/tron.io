@@ -31,10 +31,7 @@ function drawQuadtreeOverlay(canvas, state, arena) {
   }
 }
 
-export default function drawDebug(store, canvas) {
-  const state = store.getState();
-  const gameState = state.get('lobby').get('gameState');
-
+export default function drawDebug(gameState, canvas) {
   if (gameState.players.length !== 0) {
     const arena = getArenaObject(canvas, gameState);
     drawQuadtreeOverlay(canvas, gameState, arena);

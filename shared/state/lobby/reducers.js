@@ -5,13 +5,16 @@ import {
   LOBBY_APPLY_SNAPSHOT,
 } from './actions';
 
-import { getInitialState } from '../../game/operations';
+import { getInitialState, copyState } from '../../game/operations';
 import { applySnapshot } from '../../game/network/snapshot';
 
+
+const initState = getInitialState();
 export const INITIAL_LOBBY_STATE = Immutable.Map({
   key: null,
   connected: false,
-  gameState: getInitialState(),
+  gameState: initState,  // Will be mutated!
+  lastGameState: initState,  // Last verified state from server.
 });
 
 export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {
@@ -23,14 +26,20 @@ export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {
       // Make sure we've connected to the intended lobby.
       const { lobbyKey, gameState } = action;
       if (lobbyKey === state.get('key')) {
+        const gameStateNew = copyState(gameState);
         return state.set('connected', true)
-          .set('gameState', gameState);
+          .set('gameState', gameStateNew)
+          .set('lastGameState', gameState);
       }
     case LOBBY_APPLY_SNAPSHOT:
-      const curState = state.get('gameState');
-      const curStateCopy = JSON.parse(JSON.stringify(curState));
-      applySnapshot(curStateCopy, action.value);
-      return state.set('gameState', curStateCopy);
+      const snapshot = action.value;
+      const lastState = state.get('lastGameState');
+      applySnapshot(lastState, snapshot);  // Apply updates to last state.
+
+      const lastStateNew = copyState(lastState);
+
+      return state.set('gameState', lastStateNew)
+        .set('lastGameState', lastState);
     default:
       return state;
   }
