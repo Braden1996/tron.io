@@ -17,7 +17,7 @@ const getGameState = state => state.get('lobby').get('gameState');
 const getClientPlayer = (state) => {
   const gameState = getGameState(state);
   const clientId = state.get('lobby').get('me').get('id');
-  return players.find(ply => ply.id === clientId);
+  return gameState.players.find(ply => ply.id === clientId);
 }
 
 function* movePlayer(action) {

@@ -54,4 +54,4 @@ const mapDispatchToProps = (dispatch) => {
   }, dispatch);
 }
 
-export default connect(mapDispatchToProps)(HostPanel);
+export default connect(undefined, mapDispatchToProps)(HostPanel);

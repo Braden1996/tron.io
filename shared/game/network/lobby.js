@@ -20,34 +20,44 @@ function snapshotAck(ply) {
   }
 }
 
+function updateLatencyPrivate(ply, pong) {
+  const curTick = this.game.state.tick;
+  const fullLatency = curTick - pong;
+  const halfLatency = fullLatency === 0 ? 0 : fullLatency / 2;
+  ply.latency = Math.max(0, Math.min(this.latencyMax, halfLatency));
+}
+
 function processSnapshot(ply) {
   const curState = this.game.state;
   const curTick = curState.tick;
   const bindedAck = snapshotAck.bind(this);
-  const bindedAckCallback = () => { bindedAck(ply); };
+  const updateLatency = updateLatencyPrivate.bind(this);
+  const bindedAckCallback = (pong) => {
+    updateLatency(ply, pong);
+    bindedAck(ply);
+  };
 
-  if (ply.lastTick === null) {
+  if (ply.lastState === null) {
     this.sendFullState(ply, curState, bindedAckCallback);
   } else {
-    const lastState = this.pastStates[ply.lastTick];
-    const difference = getSnapshot(lastState, curState);
+    const difference = getSnapshot(ply.lastState, curState);
 
     // Check if the state has actually changed. If so, send the snapshot and
     // repeat this process as an acknowledgment. Otherwise, if there is no
     // difference, delay this snapshot until the next tick.
     if (shouldSendSnapshot(difference)) {
+      // console.log("LAST:", ply.lastState, "\n\nCURR:", curState);
+      // console.log("Sending Snapshot:", difference);
       this.sendSnapshot(ply, difference, bindedAckCallback);
     } else {
-      this.snapshotNextTick.push(bindedAckCallback);
+      const checkLaterCallback = (pong) => { bindedAck(ply); };
+      this.snapshotNextTick.push(checkLaterCallback);
+      return;
     }
   }
 
-  // Recognise this snapshot as being the new last.
-  ply.lastTick = curTick;
-  if (this.pastStates[curTick] === undefined) {
-    this.pastStates[curTick] = copyState(curState);
-  }
-  this.clearCache();
+  // Recognise this state as being the last communicated to the player.
+  ply.lastState = copyState(curState);
 }
 
 export default class Lobby {
@@ -57,13 +67,17 @@ export default class Lobby {
 
     // Make sure our input game object is as expected!
     this.game.state = this.game.state || getInitialState();
+    this.game.loop.setArgument('state', this.game.state);
+    this.game.loop.subscribe(gameUpdate, ['state', 'progress']);
     if (this.game.loop) {
       this.game.loop.subscribe(this.onTick.bind(this));
     }
-    this.game.loop.setArgument('state', this.game.state);
-    this.game.loop.subscribe(gameUpdate, ['state', 'progress']);
 
-    this.pastStates = {};  // State, identified by its tick.
+    this.stateHistory = []; // Buffer of past states.
+
+    // How many ticks are we willing to compensate for?
+    this.latencyMax = 500 / this.game.loop.tickLength;
+    this.stateHistoryLimit = Math.ceil(this.latencyMax);
 
     // An array of functions which we be called after the next game.loop tick.
     this.snapshotNextTick = [];
@@ -85,13 +99,16 @@ export default class Lobby {
     const lobbyKey = this.id;
     const plyId = ply.id;
     const hostId = this.host;
-    const payload = { lobbyKey, gameState, plyId, hostId };
+    const ping = this.game.state.tick;
+    const payload = { lobbyKey, gameState, plyId, hostId, ping };
     socket.emit('fullstate', payload, bindedAckCallback);
   }
 
   sendSnapshot(ply, snapshot, bindedAckCallback) {
     const socket = ply.socket;
-    socket.emit('snapshot', snapshot, bindedAckCallback);
+    const ping = this.game.state.tick;
+    const payload = { snapshot, ping };
+    socket.emit('snapshot', payload, bindedAckCallback);
   }
 
   start() {
@@ -102,15 +119,12 @@ export default class Lobby {
     const curSnapshots = this.snapshotNextTick;
     this.snapshotNextTick = []; // Clear to-be completed tasks.
     curSnapshots.forEach((snapshotFn) => { snapshotFn(); });
-  }
 
-  clearCache() {
-    const keepTicks = this.players.map(ply => ply.lastTick);
-    Object.keys(this.pastStates).forEach((tick) => {
-      if (keepTicks.indexOf(parseInt(tick)) === -1) {
-        delete this.pastStates[tick];
-      }
-    });
+    // Cache past states, so we can rewind the game for lag compensation.
+    if (this.stateHistory.length >= this.stateHistoryLimit) {
+      const dequeueState = this.stateHistory.shift();
+    }
+    this.stateHistory.push(copyState(this.game.state));
   }
 
   size() {
@@ -138,8 +152,9 @@ export default class Lobby {
   join(serverPly, plyData) {
     const ply = {
       id: serverPly.id,
-      lastTick: null,
+      lastState: null,
       socket: serverPly.socket,
+      latency: null,
     };
 
     this.players.push(ply);
@@ -174,6 +189,46 @@ export default class Lobby {
 
       removePlayer(this.game.state, ply.id);
       this.kickPlayers.push(ply.id);
+    }
+  }
+
+  // Rewind the game, apply a function, then update the game till we're back at
+  // the expected tick. This is to compensate for player latency.
+  lagCompensation(ply, applyFn) {
+    const plyTick = Math.floor(this.game.state.tick - ply.latency);
+    const plyStateIdx = plyTick - this.stateHistory[0].tick;
+
+    // Check if we're out of our bounds.
+    if (plyStateIdx < 0 || plyStateIdx > this.stateHistoryLimit) {
+      return false;
+    } else {
+      const plyState = this.stateHistory[plyStateIdx];
+
+      applyFn(plyState);
+      this.stateHistory[plyStateIdx] = plyState;
+
+      // Simmulate our game-loop and update the states, ignoring the tick-rate,
+      // so we are able to catch back up to where we were.
+      if (plyState.tick === this.game.state.tick) {
+        this.game.state = copyState(plyState);
+      } else {
+        let lastState = copyState(plyState);
+        while (lastState.tick < this.game.state.tick) {
+          const lastIdx = lastState.tick - this.stateHistory[0].tick;
+          const newIdx = lastIdx + 1;
+          const newProgress = this.stateHistory[newIdx].progress;
+
+          gameUpdate(lastState, newProgress);
+
+          this.stateHistory[newIdx] = copyState(lastState);
+        }
+
+        this.game.state = lastState;
+      }
+
+      this.game.loop.setArgument('state', this.game.state);
+
+      return true;
     }
   }
 }

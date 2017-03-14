@@ -3,6 +3,7 @@ import getSpawn from './utils/spawn';
 export function getInitialState() {
   return {
     tick: 0,
+    progress: null,
     started: false,
     finished: undefined,
     arenaSize: 128,

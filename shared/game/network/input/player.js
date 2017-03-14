@@ -5,10 +5,14 @@ import {
 
 export function movePlayer(lobby, ply, data) {
   const inDirection = data;
-  const gamePly = lobby.game.state.players.find(gPly => gPly.id === ply.id);
-  const plySize = lobby.game.state.playerSize;
 
-  gameUpdatePlayerDirection(gamePly, plySize, inDirection);
+  const applyMoveFn = (state) => {
+    const gamePly = state.players.find(gPly => gPly.id === ply.id);
+    const plySize = state.playerSize;
+    gameUpdatePlayerDirection(gamePly, plySize, inDirection);
+  };
+
+  lobby.lagCompensation(ply, applyMoveFn);
 }
 
 export function playerDetachPlayer(lobby, ply) {

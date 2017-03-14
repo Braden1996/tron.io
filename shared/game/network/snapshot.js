@@ -11,7 +11,9 @@ export function getSnapshot(oldState, newState) {
 }
 
 export function shouldSendSnapshot(snapshot) {
-  // Ignore tick (state id).
-  const onlyTick = snapshot.length === 1 && snapshot[0].path === '/tick';
-  return snapshot && snapshot.length > 0 && !onlyTick;
+  const notImportant = snapshot.filter((diff) => {
+    return diff.path === '/tick' || diff.path === '/progress';
+  });
+  const allNotImportant = notImportant.length === snapshot.length;
+  return snapshot && snapshot.length > 0 && !allNotImportant;
 }

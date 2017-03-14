@@ -30,8 +30,6 @@ export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {
     case LOBBY_CONNECT_SUCCESS:
       const { lobbyKey, gameState, plyId, hostId } = action;
 
-      console.log(plyId);
-
       // Make sure we've connected to the intended lobby.
       if (lobbyKey === state.get('key')) {
         const gameStateNew = copyState(gameState);

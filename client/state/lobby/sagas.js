@@ -20,14 +20,14 @@ function* lobbySocketReceive(action) {
       break;
 
     case 'fullstate':
+      action.ackFn(action.data.ping);
       const { lobbyKey, gameState, plyId, hostId } = action.data;
       yield put(lobbyConnectSuccess(lobbyKey, gameState, plyId, hostId));
-      action.ackFn();
       break;
 
     case 'snapshot':
-      const snapshot = action.data;
-      action.ackFn();
+      action.ackFn(action.data.ping);
+      const { snapshot } = action.data;
       yield put(lobbyApplySnapshot(snapshot));
       break;
   }
