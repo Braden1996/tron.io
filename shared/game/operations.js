@@ -8,7 +8,7 @@ export function getInitialState() {
     finished: undefined,
     arenaSize: 128,
     playerSize: 1,
-    speed: 0.01, //0.066,
+    speed: 0.066,
     players: [],
   }
 }
