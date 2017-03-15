@@ -12,6 +12,10 @@ function getOvershoot1D(x0, x1, x2, x3) {
   return Math.max(0, x0 - x2, x1 - x3);
 }
 
+function getDistance(p0, p1) {
+  return Math.abs(Math.hypot(p0[0] - p1[0], p0[1] - p1[1]));
+}
+
 // Return a rectangle object calculated by the given two points and
 // a stroke width.
 function lineToRect(x0, y0, x1, y1, stroke) {
@@ -94,11 +98,12 @@ function collideTrail(ply, plySize, quadtree) {
   // Calculate a rectangle representing the path from ply's
   // position in the previous tick to where they are now.
   const lineIdx = ply.trail.length - 1;
+  const lastPlyPoint = ply.trail[lineIdx];
 
   const plyX0 = ply.position[0];
   const plyY0 = ply.position[1];
-  const plyX1 = ply.trail[lineIdx][0];
-  const plyY1 = ply.trail[lineIdx][1];
+  const plyX1 = lastPlyPoint[0];
+  const plyY1 = lastPlyPoint[1];
   const plyRect = lineToRect(plyX0, plyY0, plyX1, plyY1, plySize);
   const plyObjRect = rectToObjRect(plyRect, ply, lineIdx);
 
@@ -106,6 +111,7 @@ function collideTrail(ply, plySize, quadtree) {
 
   // The closest intersection point we've discovered.
   let insectionPoint;
+  let insectionDistance = Infinity; // Only want first collision.
 
   // Calculate this here for readability.
   const plyObjRectX0 = plyObjRect.x;
@@ -129,6 +135,7 @@ function collideTrail(ply, plySize, quadtree) {
       // If there was, we need calculate ply's position at the moment of
       // impact. In the case of a mutual head-on collision, we simply move
       // both players back by half the overlap + overshoot distance.
+      let collisionPoint;
       if (plyObjRectX0 < objRectX1 &&
         plyObjRectX1 > objRectX0 &&
         plyObjRectY0 < objRectY1 &&
@@ -154,7 +161,7 @@ function collideTrail(ply, plySize, quadtree) {
             const fixOffset = direction * ((overlap + overshoot) / 2);
             newY = plyY0 + fixOffset;
           }
-          insectionPoint = [plyX0, newY];
+          collisionPoint = [plyX0, newY];
         } else if (plyObjRect.h === plySize) {
           let newX;
           if (objRect.w === plySize) {
@@ -175,7 +182,15 @@ function collideTrail(ply, plySize, quadtree) {
             const fixOffset = direction * ((overlap + overshoot) / 2);
             newX = plyX0 + fixOffset;
           }
-          insectionPoint = [newX, plyY0];
+          collisionPoint = [newX, plyY0];
+        }
+
+        if (collisionPoint !== undefined) {
+          const collisionDistance = getDistance(collisionPoint, lastPlyPoint);
+          if (collisionDistance < insectionDistance) {
+            insectionPoint = collisionPoint;
+            insectionDistance = collisionDistance;
+          }
         }
       }
     }
