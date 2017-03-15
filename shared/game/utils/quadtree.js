@@ -110,7 +110,10 @@ export default class Quadtree {
 
       // If needed, and allowed, create a new sub-node.
       if (this.objects.length > this.MAX_OBJECTS && this.level < this.MAX_LEVELS) {
-        this.split();
+        // Check to make sure node hasn't already split.
+        if (this.nodes[0] === undefined) {
+          this.split();
+        }
 
         // Filter out the objects which now belong in a subnode.
         this.objects = this.objects.filter((object) => {
