@@ -30,6 +30,6 @@ export default function getSpawn(k, totalPlayers, plySize, arenaSize) {
         position: [arenaSize - plySizeOffset, sideStart],
       };
     default:
-
+      return null;
   }
 }

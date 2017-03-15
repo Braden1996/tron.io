@@ -21,7 +21,7 @@ function App(props, context) {
         <article className="menu__section" id="menuSection">
           <Switch>
             <Route exact path="/:lobbykey" component={Lobby} />
-            <Route path="/" component={Welcome}/>
+            <Route path="/" component={Welcome} />
           </Switch>
         </article>
       </section>

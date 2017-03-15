@@ -7,7 +7,7 @@ import {
   socketsReceiveReady,
   socketsSendReady,
   socketsReceive,
-  SOCKETS_SEND
+  SOCKETS_SEND,
 } from './actions';
 
 const patch = socketioWildcard(io.Manager);
@@ -16,7 +16,7 @@ function connect() {
   // Should find a better way of getting this address.
   const socket = io('http://192.168.0.24:3000');
   patch(socket);
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     if (socket.connected) {
       resolve(socket);
     } else {
@@ -28,8 +28,8 @@ function connect() {
 }
 
 function subscribe(socket) {
-  return eventChannel(emit => {
-    socket.on('*', packet => {
+  return eventChannel((emit) => {
+    socket.on('*', (packet) => {
       const eventName = packet.data[0];
       const data = packet.data[1];
       const ackFn = packet.data[2];
@@ -43,13 +43,13 @@ function* read(socket) {
   yield put(socketsReceiveReady());
   const channel = yield call(subscribe, socket);
   while (true) {
-    let action = yield take(channel);
+    const action = yield take(channel);
     yield put(action);
   }
 }
 
 function* writeAck(socket, eventName, data, ackFn) {
-  const internalAckFn = () => new Promise(resolve => {
+  const internalAckFn = () => new Promise((resolve) => {
     socket.emit(eventName, data, resolve);
   });
   const ackData = yield call(internalAckFn);
@@ -75,7 +75,7 @@ function* handleIO(socket) {
 
 function* flow() {
   const socket = yield call(connect);
-  const task = yield fork(handleIO, socket);
+  yield fork(handleIO, socket);
 }
 
 export default function* socketSaga() {

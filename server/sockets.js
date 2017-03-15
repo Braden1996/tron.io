@@ -1,4 +1,3 @@
-import express from 'express';
 import socketio from 'socket.io';
 import http from 'http';
 
@@ -14,11 +13,12 @@ export default function socketsInit(app) {
 
   // Attach our Node compatible game-loop.
   const oldCreateGame = gameServer.createGame.bind(gameServer);
-  gameServer.createGame = function() {
+  function nodeCreateGame() {
     const partGame = oldCreateGame();
     partGame.loop = new NodeGameLoop(15);
     return partGame;
-  };
+  }
+  gameServer.createGame = nodeCreateGame;
 
   io.on('connection', (socket) => {
     const plyId = socket.id;

@@ -6,7 +6,7 @@ import {
 
 export const INITIAL_SOCKETS_STATE = Immutable.Map({
   receiveReady: false,
-  sendReady: false
+  sendReady: false,
 });
 
 export default function socketsReducer(state = INITIAL_SOCKETS_STATE, action) {

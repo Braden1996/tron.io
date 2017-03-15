@@ -7,5 +7,5 @@ export default function* inputSaga() {
     inputKeyboardSaga(),
     inputHostSaga(),
     inputPlayerSaga(),
-  ]
+  ];
 }

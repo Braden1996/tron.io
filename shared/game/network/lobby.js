@@ -29,7 +29,6 @@ function updateLatencyPrivate(ply, pong) {
 
 function processSnapshot(ply) {
   const curState = this.game.state;
-  const curTick = curState.tick;
   const bindedAck = snapshotAck.bind(this);
   const updateLatency = updateLatencyPrivate.bind(this);
   const bindedAckCallback = (pong) => {
@@ -122,7 +121,7 @@ export default class Lobby {
 
     // Cache past states, so we can rewind the game for lag compensation.
     if (this.stateHistory.length >= this.stateHistoryLimit) {
-      const dequeueState = this.stateHistory.shift();
+      this.stateHistory.shift();
     }
     this.stateHistory.push(copyState(this.game.state));
   }
@@ -146,7 +145,7 @@ export default class Lobby {
 
   setHost(ply) {
     this.host = ply === null ? null : ply.id;
-    this.players.forEach(ply => ply.socket.emit('sethost', this.host));
+    this.players.forEach(pl => pl.socket.emit('sethost', this.host));
   }
 
   join(serverPly, plyData) {
@@ -201,34 +200,33 @@ export default class Lobby {
     // Check if we're out of our bounds.
     if (plyStateIdx < 0 || plyStateIdx > this.stateHistoryLimit) {
       return false;
-    } else {
-      const plyState = this.stateHistory[plyStateIdx];
+    }
+    const plyState = this.stateHistory[plyStateIdx];
 
-      applyFn(plyState);
-      this.stateHistory[plyStateIdx] = plyState;
+    applyFn(plyState);
+    this.stateHistory[plyStateIdx] = plyState;
 
       // Simmulate our game-loop and update the states, ignoring the tick-rate,
       // so we are able to catch back up to where we were.
-      if (plyState.tick === this.game.state.tick) {
-        this.game.state = copyState(plyState);
-      } else {
-        let lastState = copyState(plyState);
-        while (lastState.tick < this.game.state.tick) {
-          const lastIdx = lastState.tick - this.stateHistory[0].tick;
-          const newIdx = lastIdx + 1;
-          const newProgress = this.stateHistory[newIdx].progress;
+    if (plyState.tick === this.game.state.tick) {
+      this.game.state = copyState(plyState);
+    } else {
+      const lastState = copyState(plyState);
+      while (lastState.tick < this.game.state.tick) {
+        const lastIdx = lastState.tick - this.stateHistory[0].tick;
+        const newIdx = lastIdx + 1;
+        const newProgress = this.stateHistory[newIdx].progress;
 
-          gameUpdate(lastState, newProgress);
+        gameUpdate(lastState, newProgress);
 
-          this.stateHistory[newIdx] = copyState(lastState);
-        }
-
-        this.game.state = lastState;
+        this.stateHistory[newIdx] = copyState(lastState);
       }
 
-      this.game.loop.setArgument('state', this.game.state);
-
-      return true;
+      this.game.state = lastState;
     }
+
+    this.game.loop.setArgument('state', this.game.state);
+
+    return true;
   }
 }

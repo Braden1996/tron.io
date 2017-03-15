@@ -54,9 +54,10 @@ export default class Quadtree {
   // Split the node into four subnodess.
   split() {
     const subLevel = this.level + 1;
-    let { x, y, w, h } = this.bounds;
-    w = w / 2;
-    h = h / 2;
+    const { x, y } = this.bounds;
+    let { w, h } = this.bounds;
+    w /= 2;
+    h /= 2;
 
     this.nodes[0] = new Quadtree({ x: x + w, y, w, h }, subLevel);
     this.nodes[1] = new Quadtree({ x, y, w, h }, subLevel);
@@ -120,10 +121,9 @@ export default class Quadtree {
           const objIdx = this.getIndex(object);
           if (objIdx === -1) {
             return true;
-          } else {
-            this.nodes[objIdx].insert(object);
-            return false;
           }
+          this.nodes[objIdx].insert(object);
+          return false;
         });
       }
     }

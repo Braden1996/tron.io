@@ -6,7 +6,7 @@ export default class ClientGameLoop extends AbstractGameLoop {
   }
 
   internalQueueLoop(callback) {
-    this.loopId = window.requestAnimationFrame(this.internalLoop.bind(this));
+    this.loopId = window.requestAnimationFrame(callback);
   }
 
   internalCancelQueueLoop() {

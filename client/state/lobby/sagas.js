@@ -14,21 +14,27 @@ import {
 
 function* lobbySocketReceive(action) {
   switch (action.eventName) {
-    case 'sethost':
+    case 'sethost': {
       const newHostId = action.data;
       yield put(lobbySetHost(newHostId));
       break;
+    }
 
-    case 'fullstate':
+    case 'fullstate': {
       action.ackFn(action.data.ping);
       const { lobbyKey, gameState, plyId, hostId } = action.data;
       yield put(lobbyConnectSuccess(lobbyKey, gameState, plyId, hostId));
       break;
+    }
 
-    case 'snapshot':
+    case 'snapshot': {
       action.ackFn(action.data.ping);
       const { snapshot } = action.data;
       yield put(lobbyApplySnapshot(snapshot));
+      break;
+    }
+
+    default:
       break;
   }
 }

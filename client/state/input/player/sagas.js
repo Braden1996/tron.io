@@ -10,7 +10,7 @@ import {
   INPUT_PLAYER_MOVE,
 } from '../../../../shared/state/input/player/actions';
 import {
-  updatePlayerDirection
+  updatePlayerDirection,
 } from '../../../../shared/game/operations';
 
 const getGameState = state => state.get('lobby').get('gameState');
@@ -18,7 +18,7 @@ const getClientPlayer = (state) => {
   const gameState = getGameState(state);
   const clientId = state.get('lobby').get('me').get('id');
   return gameState.players.find(ply => ply.id === clientId);
-}
+};
 
 function* movePlayer(action) {
   const eventName = 'moveplayer';
@@ -40,16 +40,18 @@ function* controlsKeyDown(action) {
   if (gameState.started && !gameState.finished) {
     switch (action.value) {
       case 87:
-        yield put(move("north"));
+        yield put(move('north'));
         break;
       case 83:
-        yield put(move("south"));
+        yield put(move('south'));
         break;
       case 68:
-        yield put(move("east"));
+        yield put(move('east'));
         break;
       case 65:
-        yield put(move("west"));
+        yield put(move('west'));
+        break;
+      default:
         break;
     }
   }
@@ -61,6 +63,8 @@ function* controlsKeyUp(action) {
   if (gameState.started && !gameState.finished) {
     switch (action.value) {
       case 87:
+        break;
+      default:
         break;
     }
   }

@@ -49,7 +49,7 @@ function ServerHTML(props) {
     helmet,
     nonce,
     reactAppString,
-    initialState
+    initialState,
   } = props;
 
   // Creates an inline script definition that is protected by the nonce.
@@ -138,6 +138,7 @@ ServerHTML.propTypes = {
   helmet: PropTypes.object,
   nonce: PropTypes.string,
   reactAppString: PropTypes.string,
+  initialState: PropTypes.string,
 };
 
 // EXPORT

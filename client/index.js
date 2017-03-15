@@ -57,7 +57,7 @@ function renderApp(TheApp) {
     // will force full page refreshes on each page change.
     <ReduxProvider store={store}>
       <BrowserRouter forceRefresh={!supportsHistory}>
-          <TheApp gameloop={mainLoop} />
+        <TheApp gameloop={mainLoop} />
       </BrowserRouter>
     </ReduxProvider>
   );

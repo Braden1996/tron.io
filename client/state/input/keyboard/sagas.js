@@ -4,7 +4,7 @@ import { call, fork, put, take } from 'redux-saga/effects';
 import { keyDown, keyUp } from './actions';
 
 function keySubscribe() {
-  return eventChannel(emit => {
+  return eventChannel((emit) => {
     window.addEventListener('keydown', (evnt) => {
       emit(keyDown(evnt.keyCode));
     }, false);
@@ -18,7 +18,7 @@ function keySubscribe() {
 function* keyListen() {
   const channel = yield call(keySubscribe);
   while (true) {
-    let action = yield take(channel);
+    const action = yield take(channel);
     yield put(action);
   }
 }

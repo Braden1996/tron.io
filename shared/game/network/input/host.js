@@ -6,7 +6,8 @@ import {
 
 export function addComputer(lobby, ply, data, ackFn) {
   if (lobby.isHost(ply.id)) {
-    lobby.misc.computerCount = (lobby.misc.computerCount || 0) + 1;
+    const lobbyMisc = lobby.misc;
+    lobbyMisc.computerCount = (lobbyMisc.computerCount || 0) + 1;
 
     const compId = `computer${lobby.misc.computerCount}`;
     const compName = `Computer ${lobby.misc.computerCount}`;
@@ -17,7 +18,7 @@ export function addComputer(lobby, ply, data, ackFn) {
 
 export function beginGame(lobby, ply, data, ackFn) {
   if (lobby.isHost(ply.id)) {
-    const gameState = lobby.game.state
+    const gameState = lobby.game.state;
     gameState.started = true;
     gameState.finished = false;
   }
@@ -25,7 +26,7 @@ export function beginGame(lobby, ply, data, ackFn) {
 
 export function endGame(lobby, ply, data, ackFn) {
   if (lobby.isHost(ply.id)) {
-    const gameState = lobby.game.state
+    const gameState = lobby.game.state;
     gameState.started = false;
     gameState.finished = null;
     gameResetPlayers(gameState);
@@ -42,7 +43,7 @@ export function hostDetachPlayer(lobby, ply) {
 
 export function hostAttachPlayer(lobby, ply) {
   const socket = ply.socket;
-  const state = lobby.game.state;
+  // const state = lobby.game.state;
 
   socket.on('addcomputer', (d, a) => addComputer(lobby, ply, d, a));
   socket.on('begingame', (d, a) => beginGame(lobby, ply, d, a));

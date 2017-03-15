@@ -10,7 +10,7 @@ export function getInitialState() {
     playerSize: 1,
     speed: 0.066,
     players: [],
-  }
+  };
 }
 
 export function copyState(state) {

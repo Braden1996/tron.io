@@ -8,7 +8,7 @@ import socketReducer from './sockets/reducers';
 
 import {
   rootSaga as sharedRootSaga,
-  rootReducer as sharedRootReducer
+  rootReducer as sharedRootReducer,
 } from '../../shared/state';
 
 export function rootReducer(state = Immutable.Map(), action) {
@@ -21,6 +21,6 @@ export function* rootSaga() {
     inputSaga(),
     lobbySaga(),
     socketSaga(),
-    sharedRootSaga()
+    sharedRootSaga(),
   ];
 }

@@ -23,7 +23,6 @@ export function playerDetachPlayer(lobby, ply) {
 
 export function playerAttachPlayer(lobby, ply) {
   const socket = ply.socket;
-  const state = lobby.game.state;
 
   socket.on('moveplayer', (data, ack) => { movePlayer(lobby, ply, data); });
 }

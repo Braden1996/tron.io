@@ -7,7 +7,7 @@ function configureStore(reducer, rootSaga, initialState) {
   const enhancers = compose(
     // Middleware store enhancer.
     applyMiddleware(
-      sagaMiddleware
+      sagaMiddleware,
     ),
     // Redux Dev Tools store enhancer.
     // @see https://github.com/zalmoxisus/redux-devtools-extension

@@ -1,4 +1,4 @@
-import gameLobby from './lobby';
+import GameLobby from './lobby';
 
 export default class GameServer {
   constructor() {
@@ -9,9 +9,9 @@ export default class GameServer {
   onConnect(plyId, socket) {
     this.players[plyId] = {
       id: plyId,
-      socket: socket,
+      socket,
       lobby: null,
-    }
+    };
 
     socket.on('disconnect', () => {
       this.onDisconnect(plyId);
@@ -51,7 +51,7 @@ export default class GameServer {
 
   createLobby(lobbyKey) {
     const game = this.createGame();
-    const lobby = new gameLobby(lobbyKey, game);
+    const lobby = new GameLobby(lobbyKey, game);
     lobby.start();
     return lobby;
   }
@@ -82,8 +82,6 @@ export default class GameServer {
     if (curLobby !== null) {
       throw new Error(`Player '${plyId}' trying to join lobby '${lobbyKey}', but is already in lobby '${curLobby.id}'.`);
     } else {
-      const socket = ply.socket;
-
       let lobby = this.lobbies[lobbyKey];
       // Check if we need to create a new lobby.
       if (lobby === undefined) {

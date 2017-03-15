@@ -3,7 +3,7 @@ import updateMove from './move';
 
 export default function update(state, progress) {
   state.progress = progress;
-  state.tick = state.tick + 1;
+  state.tick += 1;
   if (state.started && !state.finished) {
     // updateControl(state, progress);
     updateMove(state, progress);
