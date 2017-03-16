@@ -26,10 +26,11 @@ Tron Game:
    ✔ Divide arena space up into some data-structure (such as a uniform grid or quad-tree) to improve collision detection efficiency. @started @done (17-03-03 16:27)
      Quad tree research - https://gamedevelopment.tutsplus.com/tutorials/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space--gamedev-374
      Note - currently, the tree is recreated every tick. This isn't strickly necessary as existing trails wont ever move. Although, it would be difficult to change.
-   ☐ Fix conceptual bug where only the first collision point is found, as opposed to the closest/first-hit.
+   ✔ Fix conceptual bug where only the first collision point is found, as opposed to the closest/first-hit. @done (17-03-16 12:03)
    ☐ Make improvements to quadtree such that it is only rebalanced on updates, as opposed to being recreated.
    ✔ Read game state snapshots, which are sent from the server, into the client's understanding of the game. @done (17-03-11 16:26)
    ✔ Send input actions to the server. @done (17-03-12 00:10)
+   ☐ Player name is saved on the client as a cookie. That way, when the page is refreshed, their name persists.
 
   Server Functionality:
    ✔ Research and prepare a basic server technology. @done (17-02-28 11:21)
@@ -39,14 +40,18 @@ Tron Game:
    ✔ Game state snapshots are sent to all clients of a lobby at some rate. @done (17-03-09 13:41)
    ✔ The host of the lobby is able to add computer players into the game. @started @done (17-03-12 00:30)
    ✔ Receive input actions from the client, which are then applied to the game state. @done (17-03-12 00:10)
+   ☐ Add controller to game-loop update which allows us to make arbitrary moves for the computer players. This will late be extended upon by some AI.
+   ☐ Host can kick other players (including computers) from the game lobby.
+   ☐ Host can configure basic game lobby settings, such as speed.
 
  Shared Functionality:
   ✔ Decouple our game files from the rest of the project. This will make it far easier for our game to be portable; so we can execute on either the client or server. This will entail removing Immutable.js from our core game files and perhaps creating some kind of interface instead. @done (17-03-07 19:32)
 
   Misc:
    ☐ Add readme to project repository, with instructions on how to set everything up.
-   ☐ Improve npm tasks so that static folder structure is created.
-   ☐ Add an npm task to lint our JavaScript.
+   ✔ Improve npm tasks so that static folder structure is created. @done (17-03-16 12:08)
+   ✔ Add an npm task to lint our JavaScript. @done (17-03-16 12:07)
+   ☐ Start adding unit tests to the code.
 
  Research:
   ✔ Realtime HTML5 Multiplayer Games with NodeJS: https://www.youtube.com/watch?v=z1_QpUkX2Gg @done (17-02-25 22:50)
