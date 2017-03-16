@@ -21,6 +21,10 @@
     // This rule struggles with flow and class properties.
     "react/sort-comp": 0,
     // We use global requires in various places, e.g. code splitting instances.
-    "global-require": 0
+    "global-require": 0,
+    "no-unused-vars": ["error", { "vars": "local", "args": "none", "ignoreRestSiblings": true }],
+    "no-constant-condition": ["error", { "checkLoops": false }],
+    "no-param-reassign": "warn",
+    "class-methods-use-this": "warn"
   }
 }

@@ -1,14 +1,17 @@
-
 import React from 'react';
 import Helmet from 'react-helmet';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom';
 import { withAsyncComponents } from 'react-async-component';
+import { Provider as ReduxProvider } from 'react-redux';
+import transit from 'transit-immutable-js';
 
 import config from '../../../config';
+import { rootReducer, rootSaga } from '../../../shared/state';
+import configureStore from '../../../shared/state/configureStore';
 
 import ServerHTML from './ServerHTML';
-import DemoApp from '../../../shared/components/DemoApp';
+import App from '../../../shared/components/App';
 
 /**
  * React application middleware, supports server side rendering.
@@ -39,10 +42,16 @@ export default function reactApplicationMiddleware(request, response) {
   // query for the results of the render.
   const reactRouterContext = {};
 
+  // Create the redux store.
+  const store = configureStore(rootReducer, rootSaga);
+  const { getState } = store;
+
   // Declare our React application.
   const app = (
     <StaticRouter location={request.url} context={reactRouterContext}>
-      <DemoApp />
+      <ReduxProvider store={store}>
+        <App />
+      </ReduxProvider>
     </StaticRouter>
   );
 
@@ -56,6 +65,9 @@ export default function reactApplicationMiddleware(request, response) {
         nonce={nonce}
         helmet={Helmet.rewind()}
         asyncComponents={{ state, STATE_IDENTIFIER }}
+        // Provide the redux store state, this will be bound to the
+        // window.__APP_STATE__ so that we can rehydrate the state on the client.
+        initialState={transit.toJSON(getState())}
       />,
     );
 

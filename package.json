@@ -1,7 +1,7 @@
 {
-  "name": "react-universally",
-  "version": "13.0.0",
-  "description": "A starter kit for universal react applications.",
+  "name": "tron.io",
+  "version": "1.0.0",
+  "description": "A multiplayer browser implementation of the game tron including an AI computer player.",
   "main": "build/server/index.js",
   "engines": {
     "node": ">=6"
@@ -15,6 +15,7 @@
     "deploy": "babel-node internal/scripts/deploy",
     "develop": "babel-node internal/development",
     "lint": "eslint client server shared config internal",
+    "lint:fix": "eslint client server shared config internal --fix",
     "preinstall": "node internal/scripts/preinstall",
     "start": "node build/server",
     "test": "jest",
@@ -22,80 +23,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ctrlplusb/react-universally.git"
+    "url": "git+https://github.com/Braden1996/tron.io.git"
   },
-  "keywords": [
-    "react",
-    "boilerplate",
-    "starter kit",
-    "universal",
-    "javascript",
-    "express",
-    "webpack"
-  ],
-  "contributors": [
-    {
-      "name": "Alin Porumb",
-      "url": "https://github.com/alinporumb"
-    },
-    {
-      "name": "Benjamin Kniffler",
-      "url": "https://github.com/bkniffler"
-    },
-    {
-      "name": "Carson Perrotti",
-      "url": "https://github.com/carsonperrotti"
-    },
-    {
-      "name": "Christian Glombek",
-      "url": "https://github.com/LorbusChris"
-    },
-    {
-      "name": "Christoph Werner",
-      "url": "https://github.com/codepunkt"
-    },
-    {
-      "name": "David Edmondson",
-      "url": "https://github.com/threehams"
-    },
-    {
-      "name": "Dion Dirza",
-      "url": "https://github.com/diondirza"
-    },
-    {
-      "name": "Evgeny Boxer",
-      "url": "https://github.com/evgenyboxer"
-    },
-    {
-      "name": "Joe Kohlmann",
-      "url": "https://github.com/kohlmannj"
-    },
-    {
-      "name": "Lucian Lature",
-      "url": "https://github.com/lucianlature"
-    },
-    {
-      "name": "Steven Enten",
-      "url": "https://github.com/enten"
-    },
-    {
-      "name": "Sean Matheson",
-      "url": "https://github.com/ctrlplusb"
-    },
-    {
-      "name": "Steven Truesdell",
-      "url": "https://github.com/strues"
-    },
-    {
-      "name": "Tom",
-      "url": "https://github.com/datoml"
-    }
-  ],
-  "license": "MIT",
+  "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/ctrlplusb/react-universally/issues"
+    "url": "https://github.com/Braden1996/tron.io/issues"
   },
-  "homepage": "https://github.com/ctrlplusb/react-universally#readme",
+  "homepage": "https://github.com/Braden1996/tron.io#readme",
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.{js,jsx}"
@@ -113,8 +47,10 @@
     "compression": "1.6.2",
     "dotenv": "4.0.0",
     "express": "4.15.2",
+    "fast-json-patch": "^1.1.8",
     "helmet": "3.5.0",
     "hpp": "0.2.1",
+    "immutable": "^3.8.1",
     "modernizr": "3.3.1",
     "normalize.css": "5.0.0",
     "offline-plugin": "4.6.1",
@@ -122,8 +58,16 @@
     "react-async-component": "0.2.2",
     "react-dom": "15.4.2",
     "react-helmet": "4.0.0",
+    "react-redux": "^5.0.3",
     "react-router-dom": "4.0.0",
+    "redux": "^3.6.0",
+    "redux-saga": "^0.14.3",
     "serialize-javascript": "1.3.0",
+    "socket.io": "^1.7.3",
+    "socket.io-client": "^1.7.3",
+    "socketio-wildcard": "^0.3.0",
+    "transit-immutable-js": "^0.7.0",
+    "transit-js": "^0.8.846",
     "uuid": "3.0.1"
   },
   "devDependencies": {

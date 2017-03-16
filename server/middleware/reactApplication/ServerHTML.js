@@ -49,6 +49,7 @@ function ServerHTML(props) {
     helmet,
     nonce,
     reactAppString,
+    initialState,
   } = props;
 
   // Creates an inline script definition that is protected by the nonce.
@@ -104,6 +105,13 @@ function ServerHTML(props) {
       () => helmet.script.toComponent(),
       [],
     ),
+    // Bind the initial application state based on the server render
+    // so the client can register the correct initial state for the view.
+    ifElse(initialState)(
+      () => inlineScript(
+        `window.__APP_STATE__=${serialize(initialState)};`,
+      ),
+    ),
   ]);
 
   return (
@@ -130,6 +138,7 @@ ServerHTML.propTypes = {
   helmet: PropTypes.object,
   nonce: PropTypes.string,
   reactAppString: PropTypes.string,
+  initialState: PropTypes.string,
 };
 
 // EXPORT

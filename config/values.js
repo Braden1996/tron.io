@@ -27,7 +27,7 @@ const values = {
   },
 
   // The host on which the server should run.
-  host: EnvVars.string('HOST', '0.0.0.0'),
+  host: EnvVars.string('HOST', '192.168.0.24'),
 
   // The port on which the server should run.
   port: EnvVars.number('PORT', 1337),
@@ -41,7 +41,7 @@ const values = {
   welcomeMessage: EnvVars.string('WELCOME_MSG', 'Hello world!'),
 
   // Disable server side rendering?
-  disableSSR: false,
+  disableSSR: true,
 
   // How long should we set the browser cache for the served assets?
   // Don't worry, we add hashes to the files, so if they change the new files
