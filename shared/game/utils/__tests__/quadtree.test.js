@@ -1,14 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import Quadtree, { QuadtreeObjRect } from '../quadtree';
 
-// const objects = [
-//   new QuadtreeObjRect(0, 0, 2, 2, "Rect1"),
-//   new QuadtreeObjRect(3, 3, 10, 10, "Rect2"),
-//   new QuadtreeObjRect(0, 0, 10, 10, "Rect3"),
-//   new QuadtreeObjRect(0, 0, 10, 10, "Rect4"),
-//   new QuadtreeObjRect(0, 0, 10, 10, "Rect5"),
-// ];
-
 let testQuadTree;
 
 beforeEach(() => {
