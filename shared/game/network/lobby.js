@@ -201,13 +201,14 @@ export default class Lobby {
     if (plyStateIdx < 0 || plyStateIdx > this.stateHistoryLimit) {
       return false;
     }
+
     const plyState = this.stateHistory[plyStateIdx];
 
     applyFn(plyState);
     this.stateHistory[plyStateIdx] = plyState;
 
-      // Simmulate our game-loop and update the states, ignoring the tick-rate,
-      // so we are able to catch back up to where we were.
+    // Simulate our game-loop and update the states, ignoring the tick-rate,
+    // so we are able to catch back up to where we were.
     if (plyState.tick === this.game.state.tick) {
       this.game.state = copyState(plyState);
     } else {
