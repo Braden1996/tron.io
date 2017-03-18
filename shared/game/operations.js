@@ -1,5 +1,12 @@
 import getSpawn from './utils/spawn';
 
+export let legalDirections = {
+  north: ['east', 'west'],
+  south: ['east', 'west'],
+  east: ['north', 'south'],
+  west: ['north', 'south'],
+};
+
 export function getInitialState() {
   return {
     tick: 0,
@@ -25,12 +32,12 @@ export function resetPlayers(state) {
     ply.alive = true;
     ply.direction = spawn.direction;
     ply.position = spawn.position;
-    ply.trail = [ply.position, ply.position];
+    ply.trail = [ply.position.slice(), ply.position.slice()];
   });
 }
 
 export function addPlayer(state, id, name, color) {
-  state.players.push({
+  const ply = {
     id,
     name,
     color,
@@ -38,8 +45,14 @@ export function addPlayer(state, id, name, color) {
     direction: null,
     position: null,
     trail: [],
-  });
+  };
+
+  state.players.push(ply);
+
+  // Reset all player positions.
   resetPlayers(state);
+
+  return ply;
 }
 
 export function removePlayer(state, id) {
@@ -50,28 +63,46 @@ export function removePlayer(state, id) {
   }
 }
 
-export function updatePlayerDirection(ply, plySize, direction) {
-  if (ply.alive) {
-    let newDirection;
-    switch (direction) {
+export function movePlayer(ply, distance) {
+  if (!ply.alive) {
+    throw new Error(`Unable to move player '${ply.name}' as they're dead!`);
+  } else {
+    // Update trail's last move position with a copy of ply's current position.
+    const oldPos = ply.position.slice();
+
+    switch (ply.direction) {
       case 'north':
-        newDirection = 'north';
+        ply.position[1] -= distance;
         break;
       case 'south':
-        newDirection = 'south';
-        break;
-      case 'east':
-        newDirection = 'east';
+        ply.position[1] += distance;
         break;
       case 'west':
-        newDirection = 'west';
+        ply.position[0] -= distance;
+        break;
+      case 'east':
+        ply.position[0] += distance;
         break;
       default:
-        newDirection = undefined;
-        break;
+        throw new Error(`Unable to move player '${ply.name}' as '${ply.direction} is not a valid direction!`);
     }
 
-    if (newDirection !== undefined) {
+    // Update the trail only after we've checked for all errors.
+    ply.trail[ply.trail.length - 1] = oldPos;
+
+    return ply.position;
+  }
+}
+
+export function directPlayer(ply, plySize, direction) {
+  if (!ply.alive) {
+    throw new Error(`Unable to direct player '${ply.name}', to direction '${ply.direction}', as they're dead!`);
+  } else {
+    if (legalDirections[ply.direction].indexOf(direction) === -1) {
+      throw new Error(`Unable to direct player '${ply.name}' to an invalid direction '${ply.direction}'!`);
+    } else {
+      // At what coordinate did we last change direction? This must ignore the
+      // last move position which occupies the last trail index.
       const lastPoint = ply.trail[ply.trail.length - 2];
 
       // No need for Pythagoras, as we can only move along one axis.
@@ -79,30 +110,14 @@ export function updatePlayerDirection(ply, plySize, direction) {
       const yDiff = lastPoint[1] - ply.position[1];
       const curDistance = Math.abs(xDiff + yDiff);
 
-      // Player must move at least one grid cell before changing direction.
-      if (curDistance >= plySize) {
-        const oldDirection = ply.direction;
-
-        if (newDirection !== oldDirection &&
-          !(oldDirection === 'north' && newDirection === 'south') &&
-          !(oldDirection === 'south' && newDirection === 'north') &&
-          !(oldDirection === 'west' && newDirection === 'east') &&
-          !(oldDirection === 'east' && newDirection === 'west')) {
-          // Now we can update the change in direction.
-          ply.direction = newDirection;
-          ply.trail[ply.trail.length - 1] = [ply.position[0], ply.position[1]];
-          ply.trail.push(ply.position);
-        }
+      // Player must move at least past their own size.
+      if (curDistance < plySize) {
+        throw new Error(`Unable to direct player '${ply.name}' to direction '${ply.direction}', as they haven't move the minimum distance of '${plySize}' in their current direction!`);
+      } else {
+        ply.direction = direction;
+        ply.trail[ply.trail.length - 1] = ply.position.slice();
+        ply.trail.push(ply.position.slice());
       }
     }
   }
-}
-
-export function updatePlayerPosition(ply, newPos, ignoreOldPos = false) {
-  if (!ignoreOldPos) {
-    const oldPos = ply.position;
-    ply.trail[ply.trail.length - 1] = oldPos;
-  }
-
-  ply.position = newPos;
 }

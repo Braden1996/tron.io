@@ -1,4 +1,3 @@
-import { updatePlayerPosition } from '../operations';
 import Quadtree, { QuadtreeObjRect } from '../utils/quadtree';
 
 // Return the amount of overlap between two lines along a single dimension.
@@ -219,10 +218,11 @@ export default function updateCollision(state) {
     }
   });
 
-  // Only update players after we have checked all collisions.
+  // Once we have checked all collisions, pull players back into their death
+  // positions.
   killed.forEach((death) => {
     const { ply, deathPosition } = death;
     ply.alive = false;
-    updatePlayerPosition(ply, deathPosition, true);
+    ply.position = deathPosition;
   });
 }

@@ -1,15 +1,21 @@
 import {
-  updatePlayerDirection as gameUpdatePlayerDirection,
+  directPlayer as gameDirectPlayer,
 } from '../../operations';
 
 
-export function movePlayer(lobby, ply, data) {
+export function directPlayer(lobby, ply, data) {
   const inDirection = data;
 
   const applyMoveFn = (state) => {
     const gamePly = state.players.find(gPly => gPly.id === ply.id);
-    const plySize = state.playerSize;
-    gameUpdatePlayerDirection(gamePly, plySize, inDirection);
+
+    // Check if player is alive.
+    if (gamePly.alive) {
+      const plySize = state.playerSize;
+      try {
+        gameDirectPlayer(gamePly, plySize, inDirection);
+      } catch(e) {};
+    }
   };
 
   lobby.lagCompensation(ply, applyMoveFn);
@@ -18,11 +24,11 @@ export function movePlayer(lobby, ply, data) {
 export function playerDetachPlayer(lobby, ply) {
   const socket = ply.socket;
 
-  socket.removeAllListeners('moveplayer');
+  socket.removeAllListeners('directplayer');
 }
 
 export function playerAttachPlayer(lobby, ply) {
   const socket = ply.socket;
 
-  socket.on('moveplayer', (data, ack) => { movePlayer(lobby, ply, data); });
+  socket.on('directplayer', (data, ack) => { directPlayer(lobby, ply, data); });
 }
