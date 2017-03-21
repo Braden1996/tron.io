@@ -12,13 +12,9 @@ export default function socketsInit(app) {
   const gameServer = new GameServer();
 
   // Attach our Node compatible game-loop.
-  const oldCreateGame = gameServer.createGame.bind(gameServer);
-  function nodeCreateGame() {
-    const partGame = oldCreateGame();
-    partGame.loop = new NodeGameLoop(15);
-    return partGame;
-  }
-  gameServer.createGame = nodeCreateGame;
+  gameServer.getLobbyArgs = {
+    createGameLoop: (cb, tr) => new NodeGameLoop(cb, tr),
+  };
 
   io.on('connection', (socket) => {
     const plyId = socket.id;

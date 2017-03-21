@@ -4,6 +4,11 @@ export default class GameServer {
   constructor() {
     this.players = {};
     this.lobbies = {};
+
+    // Allows us to create lobbies with platform dependent configurations.
+    this.getLobbyArgs = {
+      createGameLoop: undefined,
+    };
   }
 
   onConnect(plyId, socket) {
@@ -43,15 +48,8 @@ export default class GameServer {
     delete this.players[plyId];
   }
 
-  // Abstract
-  // This function should be overridden to allow for a platform dependent loop.
-  createGame() {
-    return { loop: null };
-  }
-
   createLobby(lobbyKey) {
-    const game = this.createGame();
-    const lobby = new GameLobby(lobbyKey, game);
+    const lobby = new GameLobby(lobbyKey, this.getLobbyArgs);
     lobby.start();
     return lobby;
   }

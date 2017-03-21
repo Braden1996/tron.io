@@ -60,17 +60,17 @@ function processSnapshot(ply) {
 }
 
 export default class Lobby {
-  constructor(id, game = {}) {
+  constructor(id, lobbySettings) {
     this.id = id;
-    this.game = game;
+    this.game = { state: getInitialState(), loop: undefined };
 
-    // Make sure our input game object is as expected!
-    this.game.state = this.game.state || getInitialState();
-    this.game.loop.setArgument('state', this.game.state);
-    this.game.loop.subscribe(gameUpdate, ['state', 'progress']);
-    if (this.game.loop) {
-      this.game.loop.subscribe(this.onTick.bind(this));
-    }
+    // Set up our game loop using the given lobby settings.
+    const loopCallback = (progress) => {
+      gameUpdate(this.game.state, progress);
+      this.onTick();
+    };
+    const loopTickrate = 15;
+    this.game.loop = lobbySettings.createGameLoop(loopCallback, loopTickrate);
 
     this.stateHistory = []; // Buffer of past states.
 
@@ -114,7 +114,9 @@ export default class Lobby {
     this.game.loop.start();  // Kick-off our game-loop!
   }
 
+  // Perform strickly lobby related tasks at the end of each game loop tick.
   onTick() {
+    // Try again to process some of our queued snapshots.
     const curSnapshots = this.snapshotNextTick;
     this.snapshotNextTick = []; // Clear to-be completed tasks.
     curSnapshots.forEach((snapshotFn) => { snapshotFn(); });
@@ -225,8 +227,6 @@ export default class Lobby {
 
       this.game.state = lastState;
     }
-
-    this.game.loop.setArgument('state', this.game.state);
 
     return true;
   }

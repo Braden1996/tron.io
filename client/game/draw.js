@@ -107,4 +107,10 @@ export default function draw(gameState, canvas) {
   } else {
     drawArena(canvas, gameState, arena);
   }
+
+  // Some additional draw functions which are useful for debugging.
+  if (process.env.BUILD_FLAG_IS_DEV) {
+    const gameDrawDebug = require('./drawdebug').default;
+    gameDrawDebug(gameState, canvas);
+  }
 }

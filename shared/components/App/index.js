@@ -12,10 +12,9 @@ import './globals.css';
 import GameCanvas from './GameCanvas';
 
 function App(props, context) {
-  const gameloop = props.gameloop;
   return (
     <div>
-      <GameCanvas gameloop={gameloop} />
+      <GameCanvas/>
       <section id="game__menu" className="menu">
         <h1>Tron</h1>
         <article className="menu__section" id="menuSection">

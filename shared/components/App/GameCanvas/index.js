@@ -1,11 +1,17 @@
 import React from 'react';
+import { connect } from 'react-redux';
+
+import gameDraw from '../../../../client/game/draw';
+import ClientGameLoop from '../../../../client/game/gameloop';
+
+import gameUpdate from '../../../game/update';
 
 
 class GameCanvas extends React.Component {
   constructor(props) {
     super(props);
 
-    this.fixSize = this.fixSize.bind(this);
+    this.gameLoop = null;
   }
 
   fixSize() {
@@ -19,22 +25,33 @@ class GameCanvas extends React.Component {
     }
 
     // Redraw
-    this.props.gameloop.call('draw');
+    const state = this.props.gameState;
+    gameDraw(state, canvas);
   }
 
+  // The component will only be able to mount on the client, so this shouldn't
+  // interfere with server-side rendering.
   componentDidMount() {
-    const canvas = this.refs.canvas;
-    this.props.gameloop.setArgument('canvas', canvas);
+    // Create and configure our game's loop.
+    const gameLoopFn = (progress) => {
+      const state = this.props.gameState;
+      const canvas = this.refs.canvas;
 
-    window.addEventListener('resize', this.fixSize, false);
+      gameUpdate(state, progress);
+      gameDraw(state, canvas);
+    };
+    this.gameLoop = new ClientGameLoop(gameLoopFn, 15);
+
+    window.addEventListener('resize', this.fixSize.bind(this), false);
     this.fixSize();
 
-    this.props.gameloop.start();
+    this.gameLoop.start();
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.fixSize, false);
-    this.props.gameloop.stop();
+    window.removeEventListener('resize', this.fixSize.bind(this), false);
+    this.gameLoop.stop();
+    this.gameLoop
   }
 
   render() {
@@ -42,4 +59,10 @@ class GameCanvas extends React.Component {
   }
 }
 
-export default GameCanvas;
+const mapStateToProps = (state) => {
+  return {
+    gameState: state.get('lobby').get('gameState'),
+  };
+}
+
+export default connect(mapStateToProps)(GameCanvas);
