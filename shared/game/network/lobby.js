@@ -1,7 +1,6 @@
 import { getSnapshot, shouldSendSnapshot } from './snapshot';
 import { detachPlayer, attachPlayer } from './input';
 import gameUpdate from '../update';
-import gameAi from '../ai';
 import {
   getInitialState,
   copyState,
@@ -68,13 +67,6 @@ export default class Lobby {
     // Set up our game loop using the given lobby settings.
     const loopCallback = (progress) => {
       const state = this.game.state;
-
-      // Players in the game state, but not in the lobby, must be computers!
-      const computerPlayers = state.players.filter((ply) => {
-        return !this.players.some(pl => pl.id === ply.id);
-      });
-      gameAi(state, computerPlayers);
-
       gameUpdate(state, progress);
       this.onTick();
     };
@@ -143,6 +135,7 @@ export default class Lobby {
 
   // Kill this lobby.
   kill() {
+    this.game.loop.stop();
     this.players.forEach(ply => this.leave(ply.id));
   }
 

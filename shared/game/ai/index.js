@@ -1,19 +1,10 @@
-import {
-  directPlayer,
-  legalDirections
-} from '../operations';
+import getMinimaxMove from './minimax';
 
-export default function update(state, computerPlayers) {
-  computerPlayers.forEach((ply) => {
-    const chance = Math.random()*100;
-    if (chance < 10) {
-      const plySize = state.playerSize;
-      const plyLegalDirections = legalDirections[ply.direction];
-      const randomIdx = Math.floor(Math.random()*plyLegalDirections.length);
-      const newDirection = plyLegalDirections[randomIdx];
-      try {
-        directPlayer(ply, plySize, newDirection);
-      } catch(e) {};
-    }
-  });
+export default function getMove(state, ply) {
+  const chance = Math.random()*100;
+  if (chance < 10) {
+    return getMinimaxMove(state, ply);
+  }
+
+  return ply.direction;
 }

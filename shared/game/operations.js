@@ -15,7 +15,7 @@ export function getInitialState() {
     finished: undefined,
     arenaSize: 128,
     playerSize: 1,
-    speed: 0.066,
+    speed: 0.01,//66,
     players: [],
   };
 }
@@ -63,6 +63,27 @@ export function removePlayer(state, id) {
   }
 }
 
+export function movePosition(oldPosition, direction, distance) {
+  const newPosition = oldPosition.slice();
+  switch (direction) {
+    case 'north':
+      newPosition[1] -= distance;
+      break;
+    case 'south':
+      newPosition[1] += distance;
+      break;
+    case 'west':
+      newPosition[0] -= distance;
+      break;
+    case 'east':
+      newPosition[0] += distance;
+      break;
+    default:
+      throw new Error(`Unable to move position '${oldPosition}' as '${ply.direction} is not a valid direction!`);
+  }
+  return newPosition;
+}
+
 export function movePlayer(ply, distance) {
   if (!ply.alive) {
     throw new Error(`Unable to move player '${ply.name}' as they're dead!`);
@@ -70,21 +91,11 @@ export function movePlayer(ply, distance) {
     // Update trail's last move position with a copy of ply's current position.
     const oldPos = ply.position.slice();
 
-    switch (ply.direction) {
-      case 'north':
-        ply.position[1] -= distance;
-        break;
-      case 'south':
-        ply.position[1] += distance;
-        break;
-      case 'west':
-        ply.position[0] -= distance;
-        break;
-      case 'east':
-        ply.position[0] += distance;
-        break;
-      default:
-        throw new Error(`Unable to move player '${ply.name}' as '${ply.direction} is not a valid direction!`);
+    try {
+      ply.position = movePosition(ply.position, ply.direction, distance);
+    } catch(e) {
+      throw new Error(`Unable to move player '${ply.name}' as '${ply.direction} is not a valid direction!`);
+      return;
     }
 
     // Update the trail only after we've checked for all errors.
