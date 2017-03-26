@@ -259,6 +259,16 @@ const values = {
       outputPath: './build/api',
     }
     */
+    tronAi: {
+      srcEntryFile: './shared/game/ai/index.js',
+      srcPaths: [
+        './shared',
+        './config',
+      ],
+      outputPath: './build/tronAi/',
+      isNodeSever: false,
+      compiledEntryFile: null, // Set later on...
+    }
   },
 
   // These plugin definitions provide you with advanced hooks into customising

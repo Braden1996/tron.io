@@ -1,4 +1,6 @@
-import Threads from 'webworker-threads';
+import path from 'path';
+import cp from 'child_process';
+import appRootDir from 'app-root-dir';
 
 import gameAiGetMove from '../../ai';
 import {
@@ -10,10 +12,10 @@ import {
 export function addComputer(lobby, ply, data, ackFn) {
   if (!lobby.isHost(ply.id)) { return; }
 
+  const state = lobby.game.state;
+
   const lobbyMisc = lobby.misc;
   lobbyMisc.computerCount = (lobbyMisc.computerCount || 0) + 1;
-
-  const state = lobby.game.state;
 
   const compId = `computer${lobby.misc.computerCount}`;
   const compName = `Computer ${lobby.misc.computerCount}`;
@@ -21,38 +23,34 @@ export function addComputer(lobby, ply, data, ackFn) {
   const compPly = gameAddPlayer(state, compId, compName, compColor);
 
   // Begin calculation of AI moves.
-  console.log(Worker);
-  const aiWorker = new Worker(() => {
-    this.onmessage = (evnt) => {
-      const { state, compId } = evnt;
-      const compPly = state.players.find(pl => pl.id === compId);
+  const aiEntryFile = path.resolve(
+    appRootDir.get(),
+    'build/tronAi/index.js'
+  );
 
-      let direction;
-      if (compPly !== -1) {
-        direction = gameAiGetMove(state, compPly);
-      }
-      postMessage({ direction, compPly});
-    }
-  });
-  aiWorker.onmessage = (evnt) => {
-    const { direction, compId } = evnt;
+  const aiChild = cp.fork(aiEntryFile);
+  aiChild.on('message', (m) => {
+    const { direction, compId } = m;
+
+    // Get most recent state directly from the lobby.
+    const state = lobby.game.state;
+
     const compPly = state.players.find(pl => pl.id === compId);
     if (compPly !== -1) {
-      const newDirection = m[1];
-      if (newDirection !== compPly.direction) {
+      if (direction !== compPly.direction) {
         const plySize = state.playerSize;
         try {
-          directPlayer(compPly, plySize, newDirection);
+          directPlayer(compPly, plySize, direction);
         } catch(e) {};
       }
 
       // Immediately request the AI for their next move.
-      this.aiChild.send({ state, compId });
+      aiChild.send({ state, compId });
     }
-  };
+  });
 
-  // Kick start our AI thread.
-  aiWorker.postMessage({ state, compId });
+  // Kick start our AI process.
+  aiChild.send({ state, compId });
 }
 
 export function beginGame(lobby, ply, data, ackFn) {

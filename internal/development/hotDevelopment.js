@@ -3,6 +3,7 @@ import webpack from 'webpack';
 import appRootDir from 'app-root-dir';
 import { log } from '../utils';
 import HotNodeServer from './hotNodeServer';
+import HotChildProcessServer from './hotChildProcessServer';
 import HotClientServer from './hotClientServer';
 import createVendorDLL from './createVendorDLL';
 import webpackConfigFactory from '../webpack/configFactory';
@@ -66,13 +67,23 @@ class HotDevelopment {
   constructor() {
     this.hotClientServer = null;
     this.hotNodeServers = [];
+    this.hotChildProcessServers = [];
 
     const clientBundle = initializeBundle('client', config('bundles.client'));
 
     const nodeBundles = [initializeBundle('server', config('bundles.server'))]
-      .concat(Object.keys(config('additionalNodeBundles')).map(name =>
+      .concat(Object.keys(config('additionalNodeBundles'))
+        .filter(name => config('additionalNodeBundles')[name].isNodeSever)
+        .map(name =>
+          initializeBundle(name, config('additionalNodeBundles')[name]),
+        )
+      );
+
+    const childProcessBundles = Object.keys(config('additionalNodeBundles'))
+      .filter(name => !config('additionalNodeBundles')[name].isNodeSever)
+      .map(name =>
         initializeBundle(name, config('additionalNodeBundles')[name]),
-      ));
+      );
 
     Promise
       // First ensure the client dev vendor DLLs is created if needed.
@@ -95,8 +106,14 @@ class HotDevelopment {
         }),
         vendorDLLsFailed,
       )
-      // Then start the node development server(s).
       .then((clientCompiler) => {
+        // Then start the child process development server(s).
+        this.hotChildProcessServers = childProcessBundles
+          .map(({ name, createCompiler }) =>
+            new HotChildProcessServer(name, createCompiler()),
+          );
+
+        // Then start the node development server(s).
         this.hotNodeServers = nodeBundles
           .map(({ name, createCompiler }) =>
             // $FlowFixMe
@@ -115,7 +132,9 @@ class HotDevelopment {
     // First the hot client server.
     return safeDisposer(this.hotClientServer)
       // Then dispose the hot node server(s).
-      .then(() => Promise.all(this.hotNodeServers.map(safeDisposer)));
+      .then(() => Promise.all(this.hotNodeServers.map(safeDisposer)))
+      // Then dispose the hot child process server(s).
+      .then(() => Promise.all(this.hotChildProcessServers.map(safeDisposer)));
   }
 }
 
