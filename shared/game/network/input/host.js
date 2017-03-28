@@ -7,6 +7,7 @@ import {
   addPlayer as gameAddPlayer,
   removePlayer as gameRemovePlayer,
   resetPlayers as gameResetPlayers,
+  directPlayer as gameDirectPlayer,
 } from '../../operations';
 
 export function addComputer(lobby, ply, data, ackFn) {
@@ -40,7 +41,7 @@ export function addComputer(lobby, ply, data, ackFn) {
       if (direction !== compPly.direction) {
         const plySize = state.playerSize;
         try {
-          directPlayer(compPly, plySize, direction);
+          gameDirectPlayer(compPly, plySize, direction);
         } catch(e) {};
       }
 

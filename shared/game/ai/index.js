@@ -2,12 +2,9 @@ import getMinimaxMove from './minimax';
 
 export default function getMove(state, ply) {
   if (state.started && !state.finished) {
-    const chance = Math.random()*100;
-    if (chance < 10) {
-      const { direction } = getMinimaxMove(state, ply);
-      console.log(direction);
-      return direction;
-    }
+    const { direction } = getMinimaxMove(state, ply);
+    console.log(direction);
+    return direction;
   }
 
   return ply.direction;
