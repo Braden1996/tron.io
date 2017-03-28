@@ -40,7 +40,7 @@ Tron Game:
    ✔ Game state snapshots are sent to all clients of a lobby at some rate. @done (17-03-09 13:41)
    ✔ The host of the lobby is able to add computer players into the game. @started @done (17-03-12 00:30)
    ✔ Receive input actions from the client, which are then applied to the game state. @done (17-03-12 00:10)
-   ☐ Add controller to game-loop update which allows us to make arbitrary moves for the computer players. This will late be extended upon by some AI.
+   ✔ Add controller to game-loop update which allows us to make arbitrary moves for the computer players. This will late be extended upon by some AI. @done (17-03-28 12:57)
    ☐ Host can kick other players (including computers) from the game lobby.
    ☐ Host can configure basic game lobby settings, such as speed.
 
