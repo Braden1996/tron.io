@@ -8,7 +8,7 @@ import {
 } from '../../../../shared/state/input/player/actions';
 import {
   directPlayer as gameDirectPlayer,
-} from '../../../../shared/game/operations';
+} from '../../../../shared/game/operations/player';
 
 const getGameState = state => state.get('lobby').get('gameState');
 const getClientPlayer = (state) => {
@@ -26,9 +26,9 @@ function* directPlayer(action) {
   // Only process command if the client player is alive.
   if (clientPly.alive) {
     // Try to predict the move now whilst we wait for a snapshot.
-    try {
+     try {
       gameDirectPlayer(clientPly, plySize, direction);
-    } catch(e) {
+     } catch(e) {
       return;  // Don't send to server.
     };
 

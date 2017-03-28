@@ -4,11 +4,11 @@ import appRootDir from 'app-root-dir';
 
 import gameAiGetMove from '../../ai';
 import {
+  resetPlayers as gameResetPlayers,
   addPlayer as gameAddPlayer,
   removePlayer as gameRemovePlayer,
-  resetPlayers as gameResetPlayers,
   directPlayer as gameDirectPlayer,
-} from '../../operations';
+} from '../../operations/player';
 
 export function addComputer(lobby, ply, data, ackFn) {
   if (!lobby.isHost(ply.id)) { return; }

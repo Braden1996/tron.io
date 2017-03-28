@@ -1,10 +1,6 @@
 import evaluatePlayer from './heuristics';
-import {
-  legalDirections,
-  copyState,
-  movePlayer,
-  directPlayer,
-} from '../operations';
+import { legalDirections, copyState } from '../operations/general';
+import { movePlayer, directPlayer } from '../operations/player';
 
 export default function getMinimaxMove(state, ply, depth = 2, alpha=-Infinity, beta=Infinity, maximizingPlayer=true) {
   if (depth === 0) {

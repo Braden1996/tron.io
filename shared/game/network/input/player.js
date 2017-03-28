@@ -1,6 +1,6 @@
 import {
   directPlayer as gameDirectPlayer,
-} from '../../operations';
+} from '../../operations/player';
 
 
 export function directPlayer(lobby, ply, data) {

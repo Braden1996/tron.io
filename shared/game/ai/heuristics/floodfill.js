@@ -1,12 +1,8 @@
-import {
-  movePosition,
-  legalDirections
-} from '../../operations';
+import { legalDirections, movePosition } from '../../operations/general';
 import { setupQuadtree } from '../../update/collision';
 import { QuadtreeObjRect } from '../../utils/quadtree';
 
 // A queue-based Flood fill implementation.
-
 export default function floodFill(state, ply) {
   const arenaW = state.arenaSize;
   const totalCells = arenaW ** 2;

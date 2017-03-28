@@ -1,12 +1,8 @@
 import { getSnapshot, shouldSendSnapshot } from './snapshot';
 import { detachPlayer, attachPlayer } from './input';
 import gameUpdate from '../update';
-import {
-  getInitialState,
-  copyState,
-  addPlayer,
-  removePlayer,
-} from '../operations';
+import { getInitialState, copyState } from '../operations/general';
+import { addPlayer, removePlayer } from '../operations/player';
 
 function snapshotAck(ply) {
   const kickIdx = this.kickPlayers.findIndex(plyId => ply.id === plyId);

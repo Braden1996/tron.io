@@ -7,7 +7,7 @@ import {
   LOBBY_SET_NAME,
 } from './actions';
 
-import { getInitialState, copyState } from '../../game/operations';
+import { getInitialState, copyState } from '../../game/operations/general';
 import { applySnapshot } from '../../game/network/snapshot';
 
 
