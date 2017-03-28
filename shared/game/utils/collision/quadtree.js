@@ -2,16 +2,6 @@
 // Heavily inspired from:
 // https://gamedevelopment.tutsplus.com/tutorials/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space--gamedev-374
 
-export class QuadtreeObjRect {
-  constructor(x, y, w, h, obj) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.object = obj;
-  }
-}
-
 export default class Quadtree {
   constructor(bounds, level = 0) {
     this.MAX_OBJECTS = 10;

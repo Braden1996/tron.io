@@ -1,4 +1,5 @@
-import Quadtree, { QuadtreeObjRect } from '../utils/quadtree';
+import CollisionObject from '../utils/collision/object';
+import Quadtree from '../utils/collision/quadtree';
 
 // Return the amount of overlap between two lines along a single dimension.
 // (x0->x1, x2->x3)
@@ -28,9 +29,9 @@ function lineToRect(x0, y0, x1, y1, stroke) {
   return rect;
 }
 
-// Return a QuadtreeObjRect representing a trail line-segment for some player.
+// Return a CollisionObject representing a trail line-segment for some player.
 function rectToObjRect(rect, ply, trailIdx) {
-  return new QuadtreeObjRect(rect.x, rect.y, rect.w, rect.h, { ply, trailIdx });
+  return new CollisionObject(rect.x, rect.y, rect.w, rect.h, { ply, trailIdx });
 }
 
 // Return an array of rectangle objects representing the trail of the

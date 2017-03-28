@@ -1,11 +1,12 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import Quadtree, { QuadtreeObjRect } from '../quadtree';
+import Quadtree from '../quadtree';
+import CollisionObject from '../object';
 
 let testQuadTree;
+const BOUNDS = { x: 0, y: 0, w: 10, h: 10 };
 
 beforeEach(() => {
-  const bounds = { x: 0, y: 0, w: 10, h: 10 };
-  testQuadTree = new Quadtree(bounds);
+  testQuadTree = new Quadtree(BOUNDS);
 });
 
 test('Add and retrieve a single object from the Quadtree.', () => {
@@ -13,7 +14,7 @@ test('Add and retrieve a single object from the Quadtree.', () => {
 
   // Add an object into the tree and verify the array of tree objects has
   // increased.
-  const objRect = new QuadtreeObjRect(0, 0, 2, 4, obj);
+  const objRect = new CollisionObject(0, 0, 2, 4, obj);
   testQuadTree.insert(objRect);
   expect(testQuadTree.objects).toHaveLength(1);
 
@@ -32,12 +33,12 @@ test('Add and retrieve multiple objects from a Quadtree which has split.', () =>
 
   // Create an object which should be within the bounds of two sub-nodes.
   const obj = { id: 'rect1' };
-  const objRect = new QuadtreeObjRect(0, 0, 7, 4, obj);
+  const objRect = new CollisionObject(0, 0, 7, 4, obj);
 
   // Create an object which should be within the bounds of just a
   // single sub-node.
   const obj2 = { id: 'rect2' };
-  const objRect2 = new QuadtreeObjRect(1, 1, 1, 1, obj2);
+  const objRect2 = new CollisionObject(1, 1, 1, 1, obj2);
 
   // Inser the newly created nodes.
   testQuadTree.insert(objRect);  // Should lie within parent.
@@ -61,7 +62,7 @@ test('Add and retrieve multiple objects from a Quadtree which has split.', () =>
   // Check for when we query the tree with a new object, that overlaps objRect
   // in the top-right sub-node.
   const obj3 = { id: 'rect3' };
-  const objRect3 = new QuadtreeObjRect(6, 0, 4, 2, obj3);
+  const objRect3 = new CollisionObject(6, 0, 4, 2, obj3);
   const check2Received = testQuadTree.retrieve(objRect3);
   const check2Expected = [objRect];
   expect(check2Received).toEqual(check2Expected);

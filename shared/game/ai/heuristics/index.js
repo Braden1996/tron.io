@@ -1,8 +1,5 @@
 import floodFill from './floodFill';
 
-import { setupQuadtree } from '../../update/collision';
-import { QuadtreeObjRect } from '../../utils/quadtree';
-
 export default function evaluatePlayer(state, ply) {
   const distancesMap = state.players.map(pl => floodFill(state, pl));
 

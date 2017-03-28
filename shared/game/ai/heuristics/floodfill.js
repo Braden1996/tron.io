@@ -1,6 +1,6 @@
 import { legalDirections, movePosition } from '../../operations/general';
 import { setupQuadtree } from '../../update/collision';
-import { QuadtreeObjRect } from '../../utils/quadtree';
+import CollisionObject from '../../utils/collision/object';
 
 // A queue-based Flood fill implementation.
 export default function floodFill(state, ply) {
@@ -37,7 +37,7 @@ export default function floodFill(state, ply) {
         if (inRange && !cellDistanceMap[cellIdx]) {
 
           // Check that the current cell is not a wall.
-          const cellObjRect = new QuadtreeObjRect(cell[0], cell[1], 1, 1);
+          const cellObjRect = new CollisionObject(cell[0], cell[1], 1, 1);
           if (quadtree.retrieve(cellObjRect).length > 0) {
             cellDistanceMap[cellIdx] = dist;
             nextCellQueue.push(cell);

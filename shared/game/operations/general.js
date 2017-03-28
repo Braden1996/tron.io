@@ -15,6 +15,9 @@ export function getInitialState() {
     playerSize: 1,
     speed: 0.02,//66,
     players: [],
+    cache: {
+      collisionGrid: undefined
+    }
   };
 }
 
