@@ -70,21 +70,19 @@ describe('movePlayer(...)', () => {
     };
     const expectedPosition = expectedPositions[ply.direction];
 
-    movePlayer(ply, moveDistance);
+    movePlayer(gameState, ply, moveDistance);
 
     expect(ply.position).toEqual(expectedPosition);
   });
 
   test('Player last position updated in trail.', () => {
     const oldPos = ply.position.slice();
-    movePlayer(ply, 10);
+    movePlayer(gameState, ply, 10);
     expect(ply.trail[ply.trail.length - 1]).toEqual(oldPos);
   });
 });
 
 describe('directPlayer(...)', () => {
-  const plySize = gameState.playerSize;
-
   let ply, legal, allDirections, illegal;
   beforeAll(() => {
     ply = addPlayer(gameState, '1337', 'TestPlayer', '#0F0');
@@ -105,30 +103,38 @@ describe('directPlayer(...)', () => {
 
   test('Error on to direct player in a non-existent direction', () => {
     const fake = 'FakeDirection';
-    expect(() => { directPlayer(ply, plySize, fake); }).toThrow();
+    expect(() => {
+      directPlayer(gameState, ply, fake);
+    }).toThrow();
   });
 
   test('Error on attempt to direct player in an illegal direction', () => {
     illegal.forEach((tryDirection) => {
-      expect(() => { directPlayer(ply, plySize, tryDirection); }).toThrow();
+      expect(() => {
+        directPlayer(gameState, ply, tryDirection);
+      }).toThrow();
     });
   });
 
   test('Error on attempt to direct player if they haven\'t yet moved the minimum distance.', () => {
-    expect(() => { directPlayer(ply, plySize, legal[0]); }).toThrow();
+    expect(() => {
+      directPlayer(gameState, ply, legal[0]);
+    }).toThrow();
   });
 
   test('Error on attempt to direct player if they\'re not alive.', () => {
-    const moveDistance = plySize + 1;
-    movePlayer(ply, moveDistance);
+    const moveDistance = gameState.playerSize + 1;
+    movePlayer(gameState, ply, moveDistance);
     ply.alive = false; // Kill 'em!
-    expect(() => { directPlayer(ply, plySize, legal[0]); }).toThrow();
+    expect(() => {
+      directPlayer(gameState, ply, legal[0]);
+    }).toThrow();
   });
 
   test('Allow legal attempt to move.', () => {
-    const moveDistance = plySize + 1;
-    movePlayer(ply, moveDistance);
-    directPlayer(ply, plySize, legal[0]);
+    const moveDistance = gameState.playerSize + 1;
+    movePlayer(gameState, ply, moveDistance);
+    directPlayer(gameState, ply, legal[0]);
     expect(ply.direction).toBe(legal[0]);
   });
 });

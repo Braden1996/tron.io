@@ -1,5 +1,9 @@
-import CollisionObject from '../utils/collision/object';
-import Quadtree from '../utils/collision/quadtree';
+import {
+  lineToRect,
+  collisionStructCompare,
+  createPlayerCollisionRect
+} from '../operations/collision';
+import createCollisionRect from '../utils/collision/object';
 
 // Return the amount of overlap between two lines along a single dimension.
 // (x0->x1, x2->x3)
@@ -14,62 +18,6 @@ function getOvershoot1D(x0, x1, x2, x3) {
 
 function getDistance(p0, p1) {
   return Math.abs(Math.hypot(p0[0] - p1[0], p0[1] - p1[1]));
-}
-
-// Return a rectangle object calculated by the given two points and
-// a stroke width.
-function lineToRect(x0, y0, x1, y1, stroke) {
-  const halfStroke = stroke / 2;
-  const rect = {
-    x: Math.min(x0, x1) - halfStroke,
-    y: Math.min(y0, y1) - halfStroke,
-    w: Math.abs(x0 - x1) + stroke,
-    h: Math.abs(y0 - y1) + stroke,
-  };
-  return rect;
-}
-
-// Return a CollisionObject representing a trail line-segment for some player.
-function rectToObjRect(rect, ply, trailIdx) {
-  return new CollisionObject(rect.x, rect.y, rect.w, rect.h, { ply, trailIdx });
-}
-
-// Return an array of rectangle objects representing the trail of the
-// given player at some stroke width.
-function plyToObjRects(ply, stroke) {
-  let plyX0 = ply.position[0];
-  let plyY0 = ply.position[1];
-
-  const objRects = [];
-
-  // As the last element in the trail array is not the consequence of a
-  // direction change, we can simply ignore it to form a larger rectangle.
-  for (let i = ply.trail.length - 2; i >= 0; i -= 1) {
-    const plyX1 = ply.trail[i][0];
-    const plyY1 = ply.trail[i][1];
-
-    const rect = lineToRect(plyX0, plyY0, plyX1, plyY1, stroke);
-    const objRect = rectToObjRect(rect, ply, i);
-    objRects.push(objRect);
-
-    plyX0 = plyX1;
-    plyY0 = plyY1;
-  }
-
-  return objRects;
-}
-
-// Create, populate and return a quadtree for the given state of players.
-// This will be later used for efficient collision detection.
-// Exported so we can draw it in debug mode.
-export function setupQuadtree(players, plySize, arenaSize) {
-  const quadtree = new Quadtree({ x: 0, y: 0, w: arenaSize, h: arenaSize });
-  quadtree.MAX_OBJECTS = 4;  // Not sure what would be ideal.
-  quadtree.MAX_LEVELS = Math.ceil(Math.log2(arenaSize / 4));
-
-  players.map(ply => plyToObjRects(ply, plySize))
-    .forEach(objRects => objRects.forEach(oRect => quadtree.insert(oRect)));
-  return quadtree;
 }
 
 // Check if the given player has escaped the bounds of the arena.
@@ -94,7 +42,7 @@ function collideBorder(ply, plySize, arenaSize) {
 
 // Check if the given player has hit a trail.
 // If so, return their position at the point of impact.
-function collideTrail(ply, plySize, quadtree) {
+function collideTrail(ply, plySize, collisionStruct) {
   // Calculate a rectangle representing the path from ply's
   // position in the previous tick to where they are now.
   const lineIdx = ply.trail.length - 1;
@@ -104,10 +52,11 @@ function collideTrail(ply, plySize, quadtree) {
   const plyY0 = ply.position[1];
   const plyX1 = lastPlyPoint[0];
   const plyY1 = lastPlyPoint[1];
-  const plyRect = lineToRect(plyX0, plyY0, plyX1, plyY1, plySize);
-  const plyObjRect = rectToObjRect(plyRect, ply, lineIdx);
+  const pObj = { player: ply, trailIndex: lineIdx };
+  const { x, y, w, h } = lineToRect(plyX0, plyY0, plyX1, plyY1, plySize);
+  const plyObjRect = createCollisionRect(x, y, w, h, pObj);
 
-  const collisionCandidates = quadtree.retrieve(plyObjRect);
+  const collisionCandidates = collisionStruct.retrieve(plyObjRect);
 
   // The closest intersection point we've discovered.
   let insectionPoint;
@@ -120,12 +69,13 @@ function collideTrail(ply, plySize, quadtree) {
   const plyObjRectY1 = plyObjRect.y + plyObjRect.h;
 
   collisionCandidates.forEach((objRect) => {
-    const objPly = objRect.object.ply;
-    const objLineIdx = objRect.object.trailIdx;
+    const objPly = objRect.object.player;
+    const objLineIdx = objRect.object.trailIndex;
+
     // If the current objRect belongs to the player we're checking, ignore
     // their three most recent line-segments; as it could flag an undesired
     // collision.
-    if (objPly !== ply || objLineIdx < lineIdx - 3) {
+    if (objPly.id !== ply.id || lineIdx - objLineIdx > 3) {
       const objRectX0 = objRect.x;
       const objRectY0 = objRect.y;
       const objRectX1 = objRect.x + objRect.w;
@@ -204,13 +154,12 @@ export default function updateCollision(state) {
   const players = state.players;
   const plySize = state.playerSize;
   const arenaSize = state.arenaSize;
-
-  const quadtree = setupQuadtree(players, plySize, arenaSize);
+  const collisionStruct = state.cache.collisionStruct;
 
   const killed = [];
   players.forEach((ply) => {
     if (ply.alive) {
-      const deathPosition = collideTrail(ply, plySize, quadtree) ||
+      const deathPosition = collideTrail(ply, plySize, collisionStruct) ||
         collideBorder(ply, plySize, arenaSize);
 
       if (deathPosition !== undefined) {
@@ -225,5 +174,8 @@ export default function updateCollision(state) {
     const { ply, deathPosition } = death;
     ply.alive = false;
     ply.position = deathPosition;
+
+    const collisionRect = createPlayerCollisionRect(state, ply);
+    state.cache.collisionStruct.update(collisionRect, collisionStructCompare);
   });
 }

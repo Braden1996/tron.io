@@ -21,13 +21,12 @@ function* directPlayer(action) {
   const direction = action.value;
   const gameState = yield select(getGameState);
   const clientPly = yield select(getClientPlayer);
-  const plySize = gameState.playerSize;
 
   // Only process command if the client player is alive.
   if (clientPly.alive) {
     // Try to predict the move now whilst we wait for a snapshot.
      try {
-      gameDirectPlayer(clientPly, plySize, direction);
+      gameDirectPlayer(gameState, clientPly, direction);
      } catch(e) {
       return;  // Don't send to server.
     };

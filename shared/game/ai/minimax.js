@@ -2,7 +2,7 @@ import evaluatePlayer from './heuristics';
 import { legalDirections, copyState } from '../operations/general';
 import { movePlayer, directPlayer } from '../operations/player';
 
-export default function getMinimaxMove(state, ply, depth = 2, alpha=-Infinity, beta=Infinity, maximizingPlayer=true) {
+export default function getMinimaxMove(state, ply, depth = 1, alpha=-Infinity, beta=Infinity, maximizingPlayer=true) {
   if (depth === 0) {
     return { score: evaluatePlayer(state, ply), direction: ply.direction };
   }
@@ -17,9 +17,9 @@ export default function getMinimaxMove(state, ply, depth = 2, alpha=-Infinity, b
 
     try {
       if (cDirection !== cPly.direction) {
-        directPlayer(cPly, plySize, cDirection);
+        directPlayer(state, cPly, cDirection);
       }
-      movePlayer(cPly, 1);
+      movePlayer(state, cPly, 1);
 
       // On push result if we have directed and/or moved without error.
       result.push({ cState, cPly, cDirection });

@@ -41,8 +41,6 @@ function processSnapshot(ply) {
     // repeat this process as an acknowledgment. Otherwise, if there is no
     // difference, delay this snapshot until the next tick.
     if (shouldSendSnapshot(difference)) {
-      // console.log("LAST:", ply.lastState, "\n\nCURR:", curState);
-      // console.log("Sending Snapshot:", difference);
       this.sendSnapshot(ply, difference, bindedAckCallback);
     } else {
       const checkLaterCallback = (pong) => { bindedAck(ply); };
@@ -201,11 +199,9 @@ export default class Lobby {
     if (plyStateIdx < 0 || plyStateIdx > this.stateHistoryLimit) {
       return false;
     }
-
     const plyState = this.stateHistory[plyStateIdx];
 
     applyFn(plyState);
-    this.stateHistory[plyStateIdx] = plyState;
 
     // Simulate our game-loop and update the states, ignoring the tick-rate,
     // so we are able to catch back up to where we were.

@@ -7,7 +7,11 @@ import {
   LOBBY_SET_NAME,
 } from './actions';
 
-import { getInitialState, copyState } from '../../game/operations/general';
+import {
+  getInitialState,
+  copyState,
+  rebuildCache,
+} from '../../game/operations/general';
 import { applySnapshot } from '../../game/network/snapshot';
 
 
@@ -33,7 +37,7 @@ export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {
 
       // Make sure we've connected to the intended lobby.
       if (lobbyKey === state.get('key')) {
-        const gameStateNew = copyState(gameState);
+        const gameStateNew = copyState(rebuildCache(gameState));
         return state.set('connected', true)
           .set('gameState', gameStateNew)
           .set('lastGameState', gameState)
@@ -45,8 +49,11 @@ export default function lobbyReducer(state = INITIAL_LOBBY_STATE, action) {
 
     case LOBBY_APPLY_SNAPSHOT: {
       const snapshot = action.value;
-      const lastState = state.get('lastGameState');
-      applySnapshot(lastState, snapshot);  // Apply updates to last state.
+
+      // Apply updates to last state then rebuild the cache.
+      const lastState = rebuildCache(
+        applySnapshot(state.get('lastGameState'), snapshot)
+      );
 
       const lastStateNew = copyState(lastState);
 

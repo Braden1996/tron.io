@@ -1,3 +1,8 @@
+import { lineToRect, createPlayerCollisionRect } from './collision';
+import { copyPlayer } from './player';
+import UniformGrid from '../utils/collision/grid';
+import createCollisionRect from '../utils/collision/object';
+
 export let legalDirections = {
   north: ['east', 'west'],
   south: ['east', 'west'],
@@ -6,23 +11,76 @@ export let legalDirections = {
 };
 
 export function getInitialState() {
-  return {
+  const state = {
     tick: 0,
     progress: null,
     started: false,
     finished: undefined,
     arenaSize: 128,
     playerSize: 1,
-    speed: 0.02,//66,
+    speed: 0.04,
     players: [],
     cache: {
-      collisionGrid: undefined
+      collisionStruct: undefined
     }
   };
+
+  return rebuildCache(state);
 }
 
 export function copyState(state) {
-  return JSON.parse(JSON.stringify(state));
+  const newState = {
+    tick: state.tick,
+    progress: state.progress,
+    started: state.started,
+    finished: state.finished,
+    arenaSize: state.arenaSize,
+    playerSize: state.playerSize,
+    speed: state.speed,
+    players: state.players.map(ply => copyPlayer(ply)),
+    cache: {
+      collisionStruct: state.cache.collisionStruct
+    }
+  };
+
+  newState.cache.collisionStruct = state.cache.collisionStruct.clone((obj) => {
+    const trailIndex = obj.trailIndex;
+    const player = newState.players.find(ply => ply.id === obj.player.id);
+    return { player, trailIndex };
+  });
+
+  return newState;
+}
+
+export function rebuildCache(state) {
+  const arenaBounds = { x: 0, y: 0, w: state.arenaSize, h: state.arenaSize };
+  const resolution = state.arenaSize / (8 * state.playerSize);
+  state.cache.collisionStruct = new UniformGrid(arenaBounds, resolution);
+
+  // Build collision struct from known trails.
+  state.players.forEach((ply) => {
+    if (ply.trail.length > 2) {
+      const stroke = state.playerSize;
+      let [ lastX, lastY ] = ply.trail[0];
+      for (let i = 0; i < ply.trail.length - 2; i = i + 1) {
+        const obj = { player: ply, trailIndex: i };
+        const [ newX, newY ] = ply.trail[i + 1];
+        const { x, y, w, h } = lineToRect(lastX, lastY, newX, newY, stroke);
+
+        const trailRect = createCollisionRect(x, y, w, h, obj);
+        state.cache.collisionStruct.insert(trailRect);
+
+        lastX = newX;
+        lastY = newY;
+      }
+    }
+
+    // Use existing function for most recent trail rect.
+    const collisionRect = createPlayerCollisionRect(state, ply);
+    state.cache.collisionStruct.insert(collisionRect);
+  });
+
+  return state;
 }
 
 export function movePosition(oldPosition, direction, distance) {

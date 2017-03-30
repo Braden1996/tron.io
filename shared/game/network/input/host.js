@@ -9,6 +9,7 @@ import {
   removePlayer as gameRemovePlayer,
   directPlayer as gameDirectPlayer,
 } from '../../operations/player';
+import { copyState } from '../../operations/general';
 
 export function addComputer(lobby, ply, data, ackFn) {
   if (!lobby.isHost(ply.id)) { return; }
@@ -39,19 +40,22 @@ export function addComputer(lobby, ply, data, ackFn) {
     const compPly = state.players.find(pl => pl.id === compId);
     if (compPly !== -1) {
       if (direction !== compPly.direction) {
-        const plySize = state.playerSize;
         try {
-          gameDirectPlayer(compPly, plySize, direction);
+          gameDirectPlayer(state, compPly, direction);
         } catch(e) {};
       }
 
       // Immediately request the AI for their next move.
-      aiChild.send({ state, compId });
+      const sendState = copyState(state);
+      sendState.cache = {}; // Rebuild cache in process.
+      aiChild.send({ state: sendState, compId });
     }
   });
 
   // Kick start our AI process.
-  aiChild.send({ state, compId });
+  const sendState = copyState(state);
+  sendState.cache = {}; // Rebuild cache in process.
+  aiChild.send({ state: sendState, compId });
 }
 
 export function beginGame(lobby, ply, data, ackFn) {

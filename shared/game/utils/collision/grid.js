@@ -1,3 +1,5 @@
+const defaultCompareFunc = (a, b) => a.object === b.object;
+
 export default class UniformGrid {
   constructor(bounds, resolution) {
     if (!(resolution instanceof Array)) {
@@ -21,15 +23,39 @@ export default class UniformGrid {
     };
   }
 
-  clone() {
+  // Returns a copy of the UniformGrid.
+  clone(copyObject) {
     const { x, y, w, h } = this.bounds;
     const cloneGrid = new UniformGrid({ x, y, w, h }, this.RESOLUTION);
-    cloneNode.nodes = this.nodes.map(node => node.slice());
+    const oldRects = [];
+    const newRects = [];
+
+    cloneGrid.nodes = this.nodes.map(node => node.map((rect) => {
+      const copyIdx = oldRects.indexOf(rect);
+      if (copyIdx !== -1) {
+        return newRects[copyIdx];
+      } else {
+        const { x, y, w, h } = rect;
+        const object = copyObject(rect.object);
+        const newRect = { x, y, w, h, object };
+
+        // Store new rect, in relation to old rect, to avoid duplication.
+        oldRects.push(rect);
+        newRects.push(newRect);
+
+        return newRect;
+      }
+    }));
     return cloneGrid;
   }
 
   clear() {
     this.nodes = this.nodes.map(node => []);
+  }
+
+  getAll() {
+    const all = this.nodes.reduce((acc, n) => acc.concat(n), []);
+    return all.filter((o, i) => all.indexOf(o) === i);
   }
 
   // Return an array containing the indexes for the grid cell nodes that should
@@ -65,12 +91,33 @@ export default class UniformGrid {
 
   insert(objRect) {
     const idxs = this.getIndexes(objRect);
-    idxs.forEach(idx => this.nodes[idx].push(objRect));
+    idxs.forEach(idx => { this.nodes[idx].push(objRect); });
+  }
+
+  // An alternative to the standard insert method.
+  // Will remove all node object references that pass the given compare
+  // function, but don't contain the new given object.
+  update(objRect, compareFunc = defaultCompareFunc) {
+    const idxs = this.getIndexes(objRect);
+    this.nodes.forEach((node, idx) => {
+      const shouldBeMember = idxs.indexOf(idx) !== -1;
+      const oIdx = node.findIndex(o => compareFunc(o, objRect));
+      if (shouldBeMember) {
+        if (oIdx === -1) {
+          node.push(objRect);
+        } else {
+          node[oIdx] = objRect;
+        }
+      } else if (oIdx !== -1) {
+        node.splice(oIdx, 1);
+      }
+    });
   }
 
   // Return all objects that could collide with the given object.
   retrieve(objRect) {
     const idxs = this.getIndexes(objRect);
-    return idxs.reduce((acc, idx) => acc.concat(this.nodes[idx]), []);
+    const hits = idxs.reduce((acc, idx) => acc.concat(this.nodes[idx]), []);
+    return hits.filter((o, i) => hits.indexOf(o) === i);
   }
 }

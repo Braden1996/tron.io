@@ -46,3 +46,22 @@ test('Add and retrieve an out of bounds object.', () => {
   expect(gotObjRect).toBe(objRect);
   expect(gotObjRect.object).toBe(obj);
 });
+
+test('getAll() retrieves a single copy of each stored object.', () => {
+  // Populate grid with a bunch of arbitrary rects.
+  const addObjects = [
+    new CollisionObject(7, 5, 2, 4, { id: 'rect1' }),
+    new CollisionObject(6, 1, 2, 3, { id: 'rect2' }),
+    new CollisionObject(1, 25, 3, 6, { id: 'rect3' }),
+    new CollisionObject(2, 6, 1, 1, { id: 'rect4' }),
+    new CollisionObject(5, 5, 5, 8, { id: 'rect5' }),
+  ];
+  addObjects.forEach(r => { testGrid.insert(r) });
+
+  const all = testGrid.getAll();
+  expect(all.length).toBe(addObjects.length);
+
+  // Check that there is a one-to-one relationship.
+  all.forEach(r => { expect(addObjects.indexOf(r)).not.toBe(-1) });
+  addObjects.forEach(r => { expect(all.indexOf(r)).not.toBe(-1) });
+});

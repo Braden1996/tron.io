@@ -1,4 +1,5 @@
 import getMinimaxMove from './minimax';
+import { rebuildCache } from '../operations/general';
 
 export default function getMove(state, ply) {
   if (state.started && !state.finished) {
@@ -11,11 +12,15 @@ export default function getMove(state, ply) {
 }
 
 process.on('message', (m) => {
-  const { state, compId } = m;
+  const { compId } = m;
+  const state = rebuildCache(m.state);
+
   const ply = state.players.find(pl => pl.id === compId);
 
-  const direction = ply === -1 ? ply.direction : getMove(state, ply);
-
   // Pass results back to parent process
-  process.send({ direction, compId });
+  if (ply === undefined) {
+    process.send({ direction: undefined, compId: undefined }); // Panic
+  } else {
+    process.send({ direction: getMove(state, ply), compId });
+  }
 });

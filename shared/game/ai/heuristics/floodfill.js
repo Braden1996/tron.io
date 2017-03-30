@@ -1,6 +1,5 @@
 import { legalDirections, movePosition } from '../../operations/general';
-import { setupQuadtree } from '../../update/collision';
-import CollisionObject from '../../utils/collision/object';
+import createCollisionRect from '../../utils/collision/object';
 
 // A queue-based Flood fill implementation.
 export default function floodFill(state, ply) {
@@ -18,7 +17,7 @@ export default function floodFill(state, ply) {
   cellQueue.push(plyPos);
   cellDistanceMap[plyIdx] = dist;
 
-  const quadtree = setupQuadtree(state.players, state.playerSize, state.arenaSize);
+  const collisionStruct = state.cache.collisionStruct;
 
   while (cellQueue.length > 0) {
     dist += 1;
@@ -37,8 +36,8 @@ export default function floodFill(state, ply) {
         if (inRange && !cellDistanceMap[cellIdx]) {
 
           // Check that the current cell is not a wall.
-          const cellObjRect = new CollisionObject(cell[0], cell[1], 1, 1);
-          if (quadtree.retrieve(cellObjRect).length > 0) {
+          const cellObjRect = createCollisionRect(cell[0], cell[1], 1, 1, {});
+          if (collisionStruct.retrieve(cellObjRect).length > 0) {
             cellDistanceMap[cellIdx] = dist;
             nextCellQueue.push(cell);
           }

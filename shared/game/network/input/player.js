@@ -13,7 +13,7 @@ export function directPlayer(lobby, ply, data) {
     if (gamePly.alive) {
       const plySize = state.playerSize;
       try {
-        gameDirectPlayer(gamePly, plySize, inDirection);
+        gameDirectPlayer(state, gamePly, inDirection);
       } catch(e) {};
     }
   };

@@ -5,8 +5,8 @@ export default function update(state, progress) {
   state.progress = progress;
   state.tick += 1;
   if (state.started && !state.finished) {
-    // updateControl(state, progress);
     updateMove(state, progress);
+
     updateCollision(state, progress);
 
     // Check if the game has now finished.
