@@ -1,5 +1,6 @@
 import { legalDirections, movePosition } from '../../operations/general';
 import createCollisionRect from '../../utils/collision/object';
+import { getDistance } from '../../utils/geometry';
 
 // A queue-based Flood fill implementation.
 export default function floodFill(state, ply) {
@@ -7,9 +8,17 @@ export default function floodFill(state, ply) {
   const totalCells = arenaW ** 2;
   const directions = Object.keys(legalDirections);
 
+  const collisionStruct = state.cache.collisionStruct;
+
   let dist = 0;
   let cellQueue = [];
   const cellDistanceMap = [];
+
+  // Distance cutoff is equal to half the distance to the closest player.
+  // This is a heuristic to help speed things up.
+  const distanceCutoff = state.players.reduce((min, pl) =>
+    pl === ply ? min : Math.min(min, getDistance(ply.position, pl.position))
+  , state.arenaSize) / 2;
 
   const plyPos = [Math.floor(ply.position[0]), Math.floor(ply.position[1])];
   const plyIdx = plyPos[0] + arenaW*plyPos[1];
@@ -17,9 +26,9 @@ export default function floodFill(state, ply) {
   cellQueue.push(plyPos);
   cellDistanceMap[plyIdx] = dist;
 
-  const collisionStruct = state.cache.collisionStruct;
+  console.log(distanceCutoff);
 
-  while (cellQueue.length > 0) {
+  while (cellQueue.length > 0 && dist < distanceCutoff) {
     dist += 1;
 
     let nextCellQueue = [];
