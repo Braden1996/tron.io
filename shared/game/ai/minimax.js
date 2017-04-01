@@ -1,6 +1,7 @@
 import evaluatePlayer from './heuristics';
 import { legalDirections, copyState } from '../operations/general';
 import { movePlayer, directPlayer } from '../operations/player';
+import update from '../update';
 
 export default function getMinimaxMove(state, ply, depth = 2, alpha=-Infinity, beta=Infinity, maximizingPlayer=true) {
   if (depth === 0) {
@@ -11,15 +12,19 @@ export default function getMinimaxMove(state, ply, depth = 2, alpha=-Infinity, b
     .concat(legalDirections[ply.direction]);
 
   const plySize = state.playerSize;
+
   const childStates = checkDirections.reduce((result, cDirection) => {
     const cState = copyState(state);
     const cPly = cState.players.find(pl => pl.id === ply.id);
 
     try {
+      // To reduce performance costs, we assume that all other players will
+      // continue in their current direction.
       if (cDirection !== cPly.direction) {
         directPlayer(state, cPly, cDirection);
       }
-      movePlayer(state, cPly, 1);
+
+      update(cState, cState.progress);
 
       // On push result if we have directed and/or moved without error.
       result.push({ cState, cPly, cDirection });
@@ -28,45 +33,24 @@ export default function getMinimaxMove(state, ply, depth = 2, alpha=-Infinity, b
     return result;
   }, []);
 
-  if (maximizingPlayer) {
-    let v = -Infinity;
-    let vDirection = ply.direction;
-    for (let i = 0; i < childStates.length; i = i + 1) {
-      const { cState, cPly, cDirection } = childStates[i];
-      const scoreDir = getMinimaxMove(cState, cPly, depth - 1, alpha, beta, false);
-      const { score } = scoreDir;
+  let v = maximizingPlayer ? -Infinity : Infinity;
+  let vDirection = ply.direction;
+  for (let i = 0; i < childStates.length; i = i + 1) {
+    const { cState, cPly, cDirection } = childStates[i];
+    const scoreDir = getMinimaxMove(cState, cPly, depth - 1, alpha, beta, !maximizingPlayer);
+    const { score } = scoreDir;
 
-      if (score > v) {
-        v = score;
-        vDirection = cDirection;
-      }
+    if ((maximizingPlayer && score > v) || (!maximizingPlayer && score < v)) {
+      v = score;
+      vDirection = cDirection;
+    }
 
-      alpha = Math.max(alpha, v);
-      if (beta <= alpha) {
-        break; /* beta cut-off */
-      }
-    };
+    alpha = maximizingPlayer ? Math.max(alpha, v) : alpha;
+    beta = maximizingPlayer ? beta : Math.min(beta, v);
+    if (beta <= alpha) {
+      break; /* alpha/beta cut-off */
+    }
+  };
 
-    return { score: v, direction: vDirection};
-  } else {
-    let v = Infinity;
-    let vDirection = ply.direction;
-    for (let i = 0; i < childStates.length; i = i + 1) {
-      const { cState, cPly, cDirection } = childStates[i];
-      const scoreDir = getMinimaxMove(cState, cPly, depth - 1, alpha, beta, true);
-      const { score } = scoreDir;
-
-      if (score < v) {
-        v = score;
-        vDirection = cDirection;
-      }
-
-      beta = Math.min(beta, v);
-      if (beta <= alpha) {
-        break; /* alpha cut-off */;
-      }
-    };
-
-    return { score: v, direction: vDirection};
-  }
+  return { score: v, direction: vDirection};
 }
