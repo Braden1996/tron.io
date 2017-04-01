@@ -26,8 +26,6 @@ export default function floodFill(state, ply) {
   cellQueue.push(plyPos);
   cellDistanceMap[plyIdx] = dist;
 
-  console.log(distanceCutoff);
-
   while (cellQueue.length > 0 && dist < distanceCutoff) {
     dist += 1;
 
