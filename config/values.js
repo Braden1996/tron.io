@@ -21,7 +21,7 @@ const values = {
       enabled: true,
     },
     // We need to expose all the polyfill.io settings.
-    polyfillIO: true,
+    polyfillIO: false,
     // We need to expose all the htmlPage settings.
     htmlPage: true,
   },
@@ -57,7 +57,7 @@ const values = {
   // as the polyfill needs to be loaded BEFORE any of our other javascript
   // gets parsed.
   polyfillIO: {
-    enabled: true,
+    enabled: false,
     // Reference https://qa.polyfill.io/v2/docs/features for a full list
     // of features. We need to register Symbol as this is required by the
     // "transform-react-inline-elements" Babel plugin.

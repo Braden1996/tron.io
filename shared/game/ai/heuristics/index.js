@@ -1,25 +1,22 @@
 import floodFill from './floodFill';
 
-export default function evaluatePlayer(state, ply) {
-  const distancesMap = state.players.map(pl => floodFill(state, pl));
+export default function evaluatePlayers(state) {
+  const distancesMap = state.players.map(ply => floodFill(state, ply));
 
-  const plyIdx = state.players.findIndex(pl => pl === ply);
-  const plyDistances = distancesMap[plyIdx];
-
-  if (ply.alive === false) {
-    return -Infinity;
-  }
-
-  let score = 0;
+  const scores = state.players.map(ply => 0);
   for (let cellIdx = 0; cellIdx < state.arenaSize**2; cellIdx += 1) {
-    // If ply can reach the current cell, add 1 to their score for each player
-    // that cannot reach it, or is further away.
-    if (distancesMap[plyIdx][cellIdx] !== undefined) {
-      const furtherPlys = distancesMap.reduce((acc, distances) => {
-        return acc + ((plyDistances[cellIdx] < distances[cellIdx]) ? 1 : 0);
-      }, 0);
-      score += furtherPlys;
-    }
+    state.players.forEach((ply, i) => {
+      if (distancesMap[i][cellIdx] === undefined) { return; }
+
+      state.players.forEach((pl, k) => {
+        if (pl === ply) { return; }
+        if (distancesMap[k][cellIdx] === undefined) {
+          scores[i] += 2;
+        } else if (distancesMap[i][cellIdx] <= distancesMap[k][cellIdx]) {
+          scores[i] += 1;
+        }
+      });
+    });
   }
-  return score;
+  return scores;
 }

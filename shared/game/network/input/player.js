@@ -11,14 +11,13 @@ export function directPlayer(lobby, ply, data) {
 
     // Check if player is alive.
     if (gamePly.alive) {
-      const plySize = state.playerSize;
       try {
         gameDirectPlayer(state, gamePly, inDirection);
       } catch(e) {};
     }
   };
 
-  lobby.lagCompensation(ply, applyMoveFn);
+  lobby.lagCompensation(ply.latency, applyMoveFn);
 }
 
 export function playerDetachPlayer(lobby, ply) {

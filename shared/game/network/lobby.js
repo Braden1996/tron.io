@@ -169,46 +169,45 @@ export default class Lobby {
 
   leave(plyId) {
     const plyIdx = this.players.findIndex(ply => ply.id === plyId);
-    if (plyIdx !== -1) {
-      const ply = this.players[plyIdx];
-      detachPlayer(this, ply);
+    if (plyIdx === -1) { return; }
 
-      this.players.splice(plyIdx, 1);
+    const ply = this.players[plyIdx];
+    detachPlayer(this, ply);
 
-      // Check if we need to find a new host.
-      if (this.isHost(plyId)) {
-        if (this.players.length > 0) {
-          this.setHost(this.players[0]);
-        } else {
-          this.setHost(null);
-        }
+    this.players.splice(plyIdx, 1);
+
+    // Check if we need to find a new host.
+    if (this.isHost(plyId)) {
+      if (this.players.length > 0) {
+        this.setHost(this.players[0]);
+      } else {
+        this.setHost(null);
       }
-
-      removePlayer(this.game.state, ply.id);
-      this.kickPlayers.push(ply.id);
     }
+
+    removePlayer(this.game.state, ply.id);
+    this.kickPlayers.push(ply.id);
   }
 
   // Rewind the game, apply a function, then update the game till we're back at
   // the expected tick. This is to compensate for player latency.
-  lagCompensation(ply, applyFn) {
-    const plyTick = Math.floor(this.game.state.tick - ply.latency);
-    const plyStateIdx = plyTick - this.stateHistory[0].tick;
+  lagCompensation(latency, applyFn) {
+    const tick = Math.floor(this.game.state.tick - latency);
+    const stateIdxUnbounded = tick - this.stateHistory[0].tick;
+    const stateIdx = Math.max(0,
+      Math.min(stateIdxUnbounded, this.stateHistory.length - 1)
+    );
 
-    // Check if we're out of our bounds.
-    if (plyStateIdx < 0 || plyStateIdx > this.stateHistoryLimit) {
-      return false;
-    }
-    const plyState = this.stateHistory[plyStateIdx];
+    const state = this.stateHistory[stateIdx];
 
-    applyFn(plyState);
+    applyFn(state);
 
     // Simulate our game-loop and update the states, ignoring the tick-rate,
     // so we are able to catch back up to where we were.
-    if (plyState.tick === this.game.state.tick) {
-      this.game.state = copyState(plyState);
+    if (state.tick === this.game.state.tick) {
+      this.game.state = copyState(state);
     } else {
-      const lastState = copyState(plyState);
+      const lastState = copyState(state);
       while (lastState.tick < this.game.state.tick) {
         const lastIdx = lastState.tick - this.stateHistory[0].tick;
         const newIdx = lastIdx + 1;

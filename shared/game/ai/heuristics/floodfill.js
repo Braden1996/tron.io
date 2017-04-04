@@ -37,11 +37,17 @@ export default function floodFill(state, ply) {
           cell = movePosition(cellPos, direction, 1);
         } catch(e) { return; }
 
-        const cellIdx = cell[0] + arenaW*cell[1];
+        // Avoid counting cells which are beyond the arena's bounds.
+        const plySizeOffset = state.playerSize / 2;
+        const [x, y] = cell;
+        if (x - plySizeOffset < 0 || x + plySizeOffset > state.arenaSize
+          || y - plySizeOffset < 0 || y + plySizeOffset > state.arenaSize) {
+          return;
+        }
 
+        const cellIdx = cell[0] + arenaW*cell[1];
         const inRange = cellIdx >= 0 && cellIdx < totalCells;
         if (inRange && !cellDistanceMap[cellIdx]) {
-
           // Check that the current cell is not a wall.
           const cellObjRect = createCollisionRect(cell[0], cell[1], 1, 1, {});
           if (collisionStruct.retrieve(cellObjRect).length > 0) {

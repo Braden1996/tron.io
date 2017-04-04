@@ -1,10 +1,16 @@
-import getMinimaxMove from './minimax';
+//import getMinimaxMove from './minimax';
+import getMonteCarloMove from './montecarlo';
 import { rebuildCache } from '../operations/general';
 
-export default function getMove(state, ply) {
-  if (state.started && !state.finished) {
-    const { direction } = getMinimaxMove(state, ply);
-    console.log(direction);
+export default function getMove(state, ply, searchTime) {
+  if (ply.alive && state.started && !state.finished) {
+    const startTime = new Date().getTime();
+    const shouldStopFn = () => {
+      const curTime = new Date().getTime();
+      return curTime > startTime + searchTime;
+    };
+    const direction = getMonteCarloMove(state, ply, shouldStopFn);
+    console.log(`Moving ${ply.id} ${direction}`);
     return direction;
   }
 
@@ -12,7 +18,7 @@ export default function getMove(state, ply) {
 }
 
 process.on('message', (m) => {
-  const { compId } = m;
+  const { compId, searchTime } = m;
   const state = rebuildCache(m.state);
 
   const ply = state.players.find(pl => pl.id === compId);
@@ -21,6 +27,6 @@ process.on('message', (m) => {
   if (ply === undefined) {
     process.send({ direction: undefined, compId: undefined }); // Panic
   } else {
-    process.send({ direction: getMove(state, ply), compId });
+    process.send({ direction: getMove(state, ply, searchTime), compId });
   }
 });

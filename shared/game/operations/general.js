@@ -16,9 +16,9 @@ export function getInitialState() {
     progress: null,
     started: false,
     finished: undefined,
-    arenaSize: 128,
+    arenaSize: 64,
     playerSize: 1,
-    speed: 0.04,
+    speed: 0.015,
     players: [],
     cache: {
       collisionStruct: undefined
@@ -101,5 +101,6 @@ export function movePosition(oldPosition, direction, distance) {
     default:
       throw new Error(`Unable to move position '${oldPosition}' as '${direction} is not a valid direction!`);
   }
+
   return newPosition;
 }

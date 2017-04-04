@@ -71,7 +71,7 @@ export function movePlayer(state, ply, distance) {
   try {
     ply.position = movePosition(ply.position, ply.direction, distance);
   } catch(e) {
-    throw new Error(`Unable to move player '${ply.name}' as '${ply.direction} is not a valid direction!`);
+    throw e;
     return;
   }
 
@@ -103,7 +103,7 @@ export function directPlayer(state, ply, direction) {
 
   // Player must move at least past their own size.
   if (curDistance < state.playerSize) {
-    throw new Error(`Unable to direct player '${ply.name}' to direction '${ply.direction}', as they haven't move the minimum distance of '${plySize}' in their current direction!`);
+    throw new Error(`Unable to direct player '${ply.name}' to direction '${ply.direction}', as they haven't move the minimum distance of '${state.playerSize}' in their current direction!`);
   }
 
   ply.trail[ply.trail.length - 1] = ply.position.slice();
