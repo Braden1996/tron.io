@@ -6,7 +6,8 @@
 /* eslint-disable react/no-danger */
 /* eslint-disable react/no-array-index-key */
 
-import React, { Children, PropTypes } from 'react';
+import React, { Children } from 'react';
+import PropTypes from 'prop-types';
 import serialize from 'serialize-javascript';
 
 import config from '../../../config';
@@ -28,12 +29,7 @@ const clientEntryAssets = getClientBundleEntryAssets();
 
 function stylesheetTag(stylesheetFilePath) {
   return (
-    <link
-      href={stylesheetFilePath}
-      media="screen, projection"
-      rel="stylesheet"
-      type="text/css"
-    />
+    <link href={stylesheetFilePath} media="screen, projection" rel="stylesheet" type="text/css" />
   );
 }
 
@@ -45,7 +41,7 @@ function scriptTag(jsFilePath) {
 
 function ServerHTML(props) {
   const {
-    asyncComponents,
+    asyncComponentsState,
     helmet,
     nonce,
     reactAppString,
@@ -54,19 +50,15 @@ function ServerHTML(props) {
 
   // Creates an inline script definition that is protected by the nonce.
   const inlineScript = body => (
-    <script
-      nonce={nonce}
-      type="text/javascript"
-      dangerouslySetInnerHTML={{ __html: body }}
-    />
+    <script nonce={nonce} type="text/javascript" dangerouslySetInnerHTML={{ __html: body }} />
   );
 
   const headerElements = removeNil([
+    ...ifElse(helmet)(() => helmet.title.toComponent(), []),
+    ...ifElse(helmet)(() => helmet.base.toComponent(), []),
     ...ifElse(helmet)(() => helmet.meta.toComponent(), []),
     ...ifElse(helmet)(() => helmet.link.toComponent(), []),
-    ifElse(clientEntryAssets && clientEntryAssets.css)(
-      () => stylesheetTag(clientEntryAssets.css),
-    ),
+    ifElse(clientEntryAssets && clientEntryAssets.css)(() => stylesheetTag(clientEntryAssets.css)),
     ...ifElse(helmet)(() => helmet.style.toComponent(), []),
   ]);
 
@@ -78,67 +70,53 @@ function ServerHTML(props) {
     // Bind our async components state so the client knows which ones
     // to initialise so that the checksum matches the server response.
     // @see https://github.com/ctrlplusb/react-async-component
-    ifElse(asyncComponents)(
-      () => inlineScript(
-        `window.${asyncComponents.STATE_IDENTIFIER}=${serialize(asyncComponents.state)};`,
-      ),
-    ),
+    ifElse(asyncComponentsState)(() =>
+      inlineScript(
+        `window.__ASYNC_COMPONENTS_REHYDRATE_STATE__=${serialize(asyncComponentsState)};`,
+      )),
     // Enable the polyfill io script?
     // This can't be configured within a react-helmet component as we
     // may need the polyfill's before our client JS gets parsed.
-    ifElse(config('polyfillIO.enabled'))(
-      () => scriptTag(`https://cdn.polyfill.io/v2/polyfill.min.js?features=${config('polyfillIO.features').join(',')}`),
-    ),
+    ifElse(config('polyfillIO.enabled'))(() =>
+      scriptTag(
+        `https://cdn.polyfill.io/v2/polyfill.min.js?features=${config('polyfillIO.features').join(',')}`,
+      )),
     // When we are in development mode our development server will
     // generate a vendor DLL in order to dramatically reduce our
     // compilation times.  Therefore we need to inject the path to the
     // vendor dll bundle below.
-    ifElse(process.env.BUILD_FLAG_IS_DEV && config('bundles.client.devVendorDLL.enabled'))(
-      () => scriptTag(
+    ifElse(
+      process.env.BUILD_FLAG_IS_DEV === 'true' && config('bundles.client.devVendorDLL.enabled'),
+    )(() =>
+      scriptTag(
         `${config('bundles.client.webPath')}${config('bundles.client.devVendorDLL.name')}.js?t=${Date.now()}`,
-      ),
-    ),
-    ifElse(clientEntryAssets && clientEntryAssets.js)(
-      () => scriptTag(clientEntryAssets.js),
-    ),
-    ...ifElse(helmet)(
-      () => helmet.script.toComponent(),
-      [],
-    ),
+      )),
+    ifElse(clientEntryAssets && clientEntryAssets.js)(() => scriptTag(clientEntryAssets.js)),
+    ...ifElse(helmet)(() => helmet.script.toComponent(), []),
     // Bind the initial application state based on the server render
     // so the client can register the correct initial state for the view.
-    ifElse(initialState)(
-      () => inlineScript(
-        `window.__APP_STATE__=${serialize(initialState)};`,
-      ),
-    ),
+    ifElse(initialState)(() => inlineScript(`window.__APP_STATE__=${serialize(initialState)};`)),
   ]);
 
   return (
     <HTML
-      title={config('htmlPage.defaultTitle')}
-      description={config('htmlPage.description')}
+      htmlAttributes={ifElse(helmet)(() => helmet.htmlAttributes.toComponent(), null)}
+      headerElements={headerElements.map((x, idx) => (
+        <KeyedComponent key={idx}>{x}</KeyedComponent>
+      ))}
+      bodyElements={bodyElements.map((x, idx) => <KeyedComponent key={idx}>{x}</KeyedComponent>)}
       appBodyString={reactAppString}
-      headerElements={
-        headerElements.map((x, idx) => <KeyedComponent key={idx}>{x}</KeyedComponent>)
-      }
-      bodyElements={
-        bodyElements.map((x, idx) => <KeyedComponent key={idx}>{x}</KeyedComponent>)
-      }
     />
   );
 }
 
 ServerHTML.propTypes = {
-  asyncComponents: PropTypes.shape({
-    state: PropTypes.object.isRequired,
-    STATE_IDENTIFIER: PropTypes.string.isRequired,
-  }),
+  // eslint-disable-next-line react/forbid-prop-types
+  asyncComponentsState: PropTypes.object,
   // eslint-disable-next-line react/forbid-prop-types
   helmet: PropTypes.object,
   nonce: PropTypes.string,
   reactAppString: PropTypes.string,
-  initialState: PropTypes.string,
 };
 
 // EXPORT

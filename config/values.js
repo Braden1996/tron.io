@@ -59,11 +59,12 @@ const values = {
   polyfillIO: {
     enabled: false,
     // Reference https://qa.polyfill.io/v2/docs/features for a full list
-    // of features. We need to register Symbol as this is required by the
-    // "transform-react-inline-elements" Babel plugin.
+    // of features.
     features: [
+      // The default list.
       'default',
-      'Symbol',
+      // All es6 features.
+      'es6',
     ],
   },
 
@@ -82,7 +83,7 @@ const values = {
     childSrc: [],
     connectSrc: [],
     defaultSrc: [],
-    fontSrc: [],
+    fontSrc: ['https://fonts.googleapis.com/css', 'https://fonts.gstatic.com'],
     imgSrc: [],
     mediaSrc: [],
     manifestSrc: [],
@@ -92,7 +93,10 @@ const values = {
       // polyfill.
       'https://cdn.polyfill.io',
     ],
-    styleSrc: [],
+    styleSrc: [
+      'https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css',
+      'https://fonts.googleapis.com/css',
+    ],
   },
 
   // Path to the public assets that will be served off the root of the
@@ -225,11 +229,7 @@ const values = {
       srcEntryFile: './server/index.js',
 
       // Src paths.
-      srcPaths: [
-        './server',
-        './shared',
-        './config',
-      ],
+      srcPaths: ['./server', './shared', './config'],
 
       // Where does the server bundle output live?
       outputPath: './build/server',
@@ -333,8 +333,10 @@ const values = {
 
 // This protects us from accidentally including this configuration in our
 // client bundle. That would be a big NO NO to do. :)
-if (process.env.BUILD_FLAG_IS_CLIENT) {
-  throw new Error("You shouldn't be importing the `<projectroot>/config/values.js` directly into code that will be included in your 'client' bundle as the configuration object will be sent to user's browsers. This could be a security risk! Instead, use the `config` helper function located at `<projectroot>/config/index.js`.");
+if (process.env.BUILD_FLAG_IS_CLIENT === 'true') {
+  throw new Error(
+    "You shouldn't be importing the `<projectroot>/config/values.js` directly into code that will be included in your 'client' bundle as the configuration object will be sent to user's browsers. This could be a security risk! Instead, use the `config` helper function located at `<projectroot>/config/index.js`.",
+  );
 }
 
 export default values;
