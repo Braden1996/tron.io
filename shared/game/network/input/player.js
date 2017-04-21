@@ -17,7 +17,7 @@ export function directPlayer(lobby, ply, data) {
     }
   };
 
-  lobby.lagCompensation(ply.latency, applyMoveFn);
+  lobby.stateController.apply(applyMoveFn, ply.latency);
 }
 
 export function playerDetachPlayer(lobby, ply) {

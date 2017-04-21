@@ -1,13 +1,15 @@
 import GameLobby from './lobby';
 
 export default class GameServer {
-  constructor() {
+  constructor(lobbyDependencies) {
     this.players = {};
     this.lobbies = {};
 
     // Allows us to create lobbies with platform dependent configurations.
-    this.getLobbyArgs = {
-      createGameLoop: undefined,
+    this.lobbyDependencies = {
+      createGameLoop: lobbyDependencies.createGameLoop,
+      stateUpdateFork: lobbyDependencies.stateUpdateFork,
+      aiMoveFork: lobbyDependencies.aiMoveFork,
     };
   }
 
@@ -49,7 +51,7 @@ export default class GameServer {
   }
 
   createLobby(lobbyKey) {
-    const lobby = new GameLobby(lobbyKey, this.getLobbyArgs);
+    const lobby = new GameLobby(lobbyKey, this.lobbyDependencies);
     lobby.start();
     return lobby;
   }

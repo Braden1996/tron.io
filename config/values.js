@@ -260,15 +260,27 @@ const values = {
     }
     */
     tronAi: {
-      srcEntryFile: './shared/game/ai/index.js',
+      srcEntryFile: './server/game/processes/aimove.js',
       srcPaths: [
+        './server',
         './shared',
         './config',
       ],
       outputPath: './build/tronAi/',
       isNodeSever: false,
       compiledEntryFile: null, // Set later on...
-    }
+    },
+    tronUpdate: {
+      srcEntryFile: './server/game/processes/update.js',
+      srcPaths: [
+        './server',
+        './shared',
+        './config',
+      ],
+      outputPath: './build/tronUpdate/',
+      isNodeSever: false,
+      compiledEntryFile: null,
+    },
   },
 
   // These plugin definitions provide you with advanced hooks into customising

@@ -1,18 +1,8 @@
 import AbstractGameLoop from '../../shared/game/gameloop';
 
-function getTime() {
-  const hrTime = process.hrtime();
-  return (hrTime[0] * 1000) + (hrTime[1] / 1000000);
-}
-
 export default class NodeGameLoop extends AbstractGameLoop {
-
-  internalGetStartTick() {
-    return getTime();
-  }
-
   internalQueueLoop(callback) {
-    const time = getTime();
+    const time = this.getTime();
     const resolutionFix = 16;
     if (time - this.lastTick < this.tickLength - resolutionFix) {
       this.lastTimeoutTimer = setTimeout(() => callback(time));

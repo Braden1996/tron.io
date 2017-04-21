@@ -1,6 +1,5 @@
 //import getMinimaxMove from './minimax';
 import getMonteCarloMove from './montecarlo';
-import { rebuildCache } from '../operations/general';
 
 export default function getMove(state, ply, searchTime) {
   if (ply.alive && state.started && !state.finished) {
@@ -17,16 +16,4 @@ export default function getMove(state, ply, searchTime) {
   return ply.direction;
 }
 
-process.on('message', (m) => {
-  const { compId, searchTime } = m;
-  const state = rebuildCache(m.state);
 
-  const ply = state.players.find(pl => pl.id === compId);
-
-  // Pass results back to parent process
-  if (ply === undefined) {
-    process.send({ direction: undefined, compId: undefined }); // Panic
-  } else {
-    process.send({ direction: getMove(state, ply, searchTime), compId });
-  }
-});

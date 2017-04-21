@@ -1,3 +1,5 @@
+import now from 'performance-now';
+
 export default class AbstractGameLoop {
   constructor(callback, tickLength = 15) {
     this.callback = callback;
@@ -6,9 +8,6 @@ export default class AbstractGameLoop {
     this.lastTick = null;
     this.tickLength = tickLength;  // 15 = 66.666 tick-rate
   }
-
-  // Abstract
-  // internalGetStartTick() { ... }
 
   // Abstract
   // internalQueueLoop(callback) { ... }
@@ -28,10 +27,14 @@ export default class AbstractGameLoop {
     this.internalQueueLoop(this.internalLoop.bind(this));
   }
 
+  getTime() {
+    return now().toFixed(3);
+  }
+
   start() {
     if (!this.started) {
       this.started = true;
-      const tick = this.internalGetStartTick();
+      const tick = this.getTime();
       this.internalLoop(tick);
     }
   }

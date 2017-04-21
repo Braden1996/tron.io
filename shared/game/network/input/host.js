@@ -1,7 +1,3 @@
-import path from 'path';
-import cp from 'child_process';
-import appRootDir from 'app-root-dir';
-
 import gameAiGetMove from '../../ai';
 import {
   resetPlayers as gameResetPlayers,
@@ -14,19 +10,22 @@ import { copyState } from '../../operations/general';
 export function addComputer(lobby, ply, data, ackFn) {
   if (!lobby.isHost(ply.id)) { return; }
 
-  const lobbyMisc = lobby.misc;
-  lobbyMisc.computerCount = (lobbyMisc.computerCount || 0) + 1;
+  // Create misc data-structures if needed.
+  if (lobby.misc.computerPlayers === undefined) {
+    lobby.misc.computerPlayers = [];
+    lobby.onDeath.push(() => {
+      lobby.misc.computerPlayers.forEach((comp) => {
+        comp.moveFork.kill();
+      });
+    })
+  }
 
-  const compId = `computer${lobby.misc.computerCount}`;
-  const compName = `Computer ${lobby.misc.computerCount}`;
+  const compNum = lobby.misc.computerPlayers.reduce((p, c) => {
+    return p > c.compNum ? p : c.compNum;
+  }, 0);
+  const compId = `computer${compNum}`;
+  const compName = `Computer ${compNum}`;
   const compColor = '#0f0';
-  const compPly = gameAddPlayer(lobby.game.state, compId, compName, compColor);
-
-  // Begin calculation of AI moves.
-  const aiEntryFile = path.resolve(
-    appRootDir.get(),
-    'build/tronAi/index.js'
-  );
 
   const applyMoveFn = (state, direction, compId) => {
     const compPly = state.players.find(pl => pl.id === compId);
@@ -37,58 +36,103 @@ export function addComputer(lobby, ply, data, ackFn) {
     }
   }
 
-  const tr = lobby.game.loop.tickLength
-  const searchTime = (lobby.game.state.tick - lobby.stateHistory[1].tick) * tr;
-
-  const aiChild = cp.fork(aiEntryFile);
-  let aiLastTick = lobby.game.state.tick; // For lag compensation.
-  aiChild.on('message', (m) => {
+  const moveFork = { kill: undefined, send: undefined };
+  let aiStartTime = lobby.stateController.gameLoop.getTime();
+  const onMessageCallback = (m) => {
     const { direction, compId } = m;
-    const state = lobby.game.state;
-    const compPly = state.players.find(pl => pl.id === compId);
+    const state = lobby.stateController.current();
 
+    const comps = lobby.misc.computerPlayers;
+    const compIndex = comps.findIndex(c => c.compId === compId);
+    const comp = comps[compIndex];
+
+    // Check if we should die as we're no longer part of the game lobby.
+    const compPly = state.players.find(pl => pl.id === compId);
     if (!compPly || lobby.players.length === 0) {
-      aiChild.kill('SIGINT');
+      comps.splice(compIndex, 1);
+      comp.moveFork.kill();
       return;
     }
 
-    const latency = lobby.game.state.tick - aiLastTick;
-    if (direction !== compPly.direction) {
-      console.log(`Moving ${compId} ${direction} with latency ${latency}`);
-      applyMoveFn(state, direction, compId);
-      lobby.lagCompensation(latency, s => applyMoveFn(s, direction, compId));
+    // Check if we can pause looking for moves.
+    if (state.finished || !state.started || !compPly.alive) {
+      comp.working = false;
+      return;
     }
 
-    aiLastTick = state.tick; // For lag compensation.
+    // Make our chosen AI move.
+    const latency = lobby.stateController.gameLoop.getTime() - aiStartTime;
+    if (direction !== compPly.direction) {
+      console.log(`Moving ${compId} ${direction} with latency ${latency}ms`);
+      lobby.stateController.apply(s => {
+        applyMoveFn(s, direction, compId);
+      }, latency);
+    }
 
     // Immediately request the AI for their next move.
     const sendState = copyState(state);
     sendState.cache = {}; // Rebuild cache in process.
 
-    aiChild.send({ state: sendState, compId, searchTime });
-  });
+    aiStartTime = lobby.stateController.gameLoop.getTime();
+
+    // The amount of time (ms) we're willing to give our AI.
+    const searchTime = 100;
+
+    const payload = { state: sendState, compId, searchTime};
+    comp.moveFork.send(payload);
+  };
+
+  // Setup our AI move process fork.
+  const aiMoveFork = lobby.dependencies.aiMoveFork;
+  const { killFcn, sendFcn } = aiMoveFork(onMessageCallback);
+  moveFork.kill = killFcn;
+  moveFork.send = sendFcn;
+
+  // Add our computer AI player to the game lobby.
+  const addCompPly = s => { gameAddPlayer(s, compId, compName, compColor); };
+  lobby.stateController.apply(addCompPly, ply.latency);
 
   // Kick start our AI process.
-  const sendState = copyState(lobby.game.state);
-  sendState.cache = {}; // Rebuild cache in process.
-  aiChild.send({ state: sendState, compId, searchTime });
+  const working = false;
+  lobby.misc.computerPlayers.push({ compNum, compId, moveFork, working });
 }
 
 export function beginGame(lobby, ply, data, ackFn) {
-  if (lobby.isHost(ply.id)) {
-    const gameState = lobby.game.state;
-    gameState.started = true;
-    gameState.finished = false;
+  if (!lobby.isHost(ply.id)) { return; }
+
+  const startGameChange = (state) => {
+    state.started = true;
+    state.finished = false;
+
+    // Check if our computer players should begin.
+    const currentState = lobby.stateController.current();
+    if (lobby.misc.computerPlayers && state.tick === currentState.tick) {
+      const sendState = copyState(currentState);
+      sendState.cache = {}; // Rebuild cache in process.
+      lobby.misc.computerPlayers.forEach((comp) => {
+        const { compNum, compId, moveFork, working } = comp;
+        if (working) { return; } // Computer is already doing work...
+
+        comp.working = true;
+        const payload = { state: sendState, compId, searchTime: 0 };
+        moveFork.send(payload);
+      });
+    }
   }
+
+  lobby.stateController.apply(startGameChange);
 }
 
 export function endGame(lobby, ply, data, ackFn) {
-  if (lobby.isHost(ply.id)) {
-    const gameState = lobby.game.state;
-    gameState.started = false;
-    gameState.finished = null;
-    gameResetPlayers(gameState);
+  if (!lobby.isHost(ply.id)) { return; }
+
+  const endGameChange = (state) => {
+    state.started = false;
+    state.finished = null;
+    gameResetPlayers(state);
   }
+
+  lobby.stateController.apply(endGameChange);
 }
 
 export function hostDetachPlayer(lobby, ply) {
@@ -101,7 +145,6 @@ export function hostDetachPlayer(lobby, ply) {
 
 export function hostAttachPlayer(lobby, ply) {
   const socket = ply.socket;
-  // const state = lobby.game.state;
 
   socket.on('addcomputer', (d, a) => addComputer(lobby, ply, d, a));
   socket.on('begingame', (d, a) => beginGame(lobby, ply, d, a));

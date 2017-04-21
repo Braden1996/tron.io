@@ -1,52 +1,55 @@
+import now from 'performance-now';
+
+import StateController from './statecontroller.js';
 import { getSnapshot, shouldSendSnapshot } from './snapshot';
 import { detachPlayer, attachPlayer } from './input';
-import gameUpdate from '../update';
 import { getInitialState, copyState } from '../operations/general';
 import { addPlayer, removePlayer } from '../operations/player';
 
 function snapshotAck(ply) {
+  // Check if this player has been kicked.
   const kickIdx = this.kickPlayers.findIndex(plyId => ply.id === plyId);
-
-  // Check if we should kick this player.
   if (kickIdx !== -1) {
     this.kickPlayers.splice(kickIdx, 1);
-  } else {
-    const privateProcessSnapshot = processSnapshot.bind(this);
-    privateProcessSnapshot(ply);
+    return;
   }
+
+  const privateProcessSnapshot = processSnapshot.bind(this);
+  privateProcessSnapshot(ply);
 }
 
+// Determine and set the latency from a previous communication.
 function updateLatencyPrivate(ply, pong) {
-  const curTick = this.game.state.tick;
-  const fullLatency = curTick - pong;
+  const curTime = now().toFixed(3);
+  const fullLatency = curTime - pong;
   const halfLatency = fullLatency === 0 ? 0 : fullLatency / 2;
-  ply.latency = Math.max(0, Math.min(this.latencyMax, halfLatency));
+  ply.latency = Math.max(0, halfLatency);
 }
 
 function processSnapshot(ply) {
-  const curState = this.game.state;
+  const curState = this.stateController.current();
+
   const bindedAck = snapshotAck.bind(this);
   const updateLatency = updateLatencyPrivate.bind(this);
-  const bindedAckCallback = (pong) => {
-    updateLatency(ply, pong);
-    bindedAck(ply);
-  };
+  const bindedAckCallback = t => { updateLatency(ply, t); bindedAck(ply); };
 
+  // Is this the first time we're sending the state?
   if (ply.lastState === null) {
     this.sendFullState(ply, curState, bindedAckCallback);
   } else {
+    // Construct an object the player can use to reconstruct the state.
     const difference = getSnapshot(ply.lastState, curState);
 
-    // Check if the state has actually changed. If so, send the snapshot and
-    // repeat this process as an acknowledgment. Otherwise, if there is no
-    // difference, delay this snapshot until the next tick.
-    if (shouldSendSnapshot(difference)) {
-      this.sendSnapshot(ply, difference, bindedAckCallback);
-    } else {
+    // Confirm that this snapshot actually contains data worth sending.
+    // Otherwise, schedule to check again later.
+    if (!shouldSendSnapshot(difference)) {
       const checkLaterCallback = (pong) => { bindedAck(ply); };
       this.snapshotNextTick.push(checkLaterCallback);
       return;
     }
+
+    // Send the snapshot and schedule for the next snapshot after acknowledgment.
+    this.sendSnapshot(ply, difference, bindedAckCallback);
   }
 
   // Recognise this state as being the last communicated to the player.
@@ -54,34 +57,37 @@ function processSnapshot(ply) {
 }
 
 export default class Lobby {
-  constructor(id, lobbySettings) {
+  constructor(id, dependencies) {
     this.id = id;
-    this.game = { state: getInitialState(), loop: undefined };
 
-    // Set up our game loop using the given lobby settings.
-    const loopCallback = (progress) => {
-      const state = this.game.state;
-      gameUpdate(state, progress);
-      this.onTick();
-    };
-    const loopTickrate = 15;
-    this.game.loop = lobbySettings.createGameLoop(loopCallback, loopTickrate);
+    const { createGameLoop, stateUpdateFork, aiMoveFork } = dependencies;
+    this.dependencies = { createGameLoop, stateUpdateFork, aiMoveFork };
 
-    this.stateHistory = []; // Buffer of past states.
+    const state = getInitialState();
+    const hLimit = 100;  // How many states shall we keep in history?
+    // Try to process some of our queued snapshots at the end of each tick.
+    const onTick = () => {
+      const curSnapshots = this.snapshotNextTick;
+      this.snapshotNextTick = []; // Clear to-be completed tasks.
+      curSnapshots.forEach((snapshotFn) => { snapshotFn(); });
+    }
+    const sDeps = { createGameLoop, stateUpdateFork };
+    this.stateController = new StateController(state, hLimit, onTick, sDeps);
 
-    // How many ticks are we willing to compensate for?
-    this.latencyMax = 500 / this.game.loop.tickLength;
-    this.stateHistoryLimit = Math.ceil(this.latencyMax);
-
-    // An array of functions which we be called after the next game.loop tick.
+    // If we decide not to send a snapshot, a callback will be added to the
+    // following array. This allows us to keep track of the snapshots we need
+    // to resend next tick.
     this.snapshotNextTick = [];
 
-    this.players = [];
-    this.host = null;  // Host's player.id
+    this.players = [];  // An array of all the connected players.
+    this.host = null;  // Host player's ID.
 
     // Keep track of players that have recently left the lobby.
-    // This is done to allow us to stop sending them snapshot updates.
+    // We do this so we can cancel their snapshot updates.
     this.kickPlayers = [];
+
+    // An array of function to be called when this lobby dies.
+    this.onDeath = [];
 
     // A place to attach arbitrary data to a lobby.
     this.misc = {};
@@ -93,34 +99,20 @@ export default class Lobby {
     const lobbyKey = this.id;
     const plyId = ply.id;
     const hostId = this.host;
-    const ping = this.game.state.tick;
+    const ping = this.stateController.gameLoop.getTime();
     const payload = { lobbyKey, gameState, plyId, hostId, ping };
     socket.emit('fullstate', payload, bindedAckCallback);
   }
 
   sendSnapshot(ply, snapshot, bindedAckCallback) {
     const socket = ply.socket;
-    const ping = this.game.state.tick;
+    const ping = this.stateController.gameLoop.getTime();
     const payload = { snapshot, ping };
     socket.emit('snapshot', payload, bindedAckCallback);
   }
 
   start() {
-    this.game.loop.start();  // Kick-off our game-loop!
-  }
-
-  // Perform strickly lobby related tasks at the end of each game loop tick.
-  onTick() {
-    // Try again to process some of our queued snapshots.
-    const curSnapshots = this.snapshotNextTick;
-    this.snapshotNextTick = []; // Clear to-be completed tasks.
-    curSnapshots.forEach((snapshotFn) => { snapshotFn(); });
-
-    // Cache past states, so we can rewind the game for lag compensation.
-    if (this.stateHistory.length >= this.stateHistoryLimit) {
-      this.stateHistory.shift();
-    }
-    this.stateHistory.push(copyState(this.game.state));
+    this.stateController.start();
   }
 
   size() {
@@ -129,7 +121,8 @@ export default class Lobby {
 
   // Kill this lobby.
   kill() {
-    this.game.loop.stop();
+    this.onDeath.forEach(fn => { fn(); });
+    this.stateController.kill();
     this.players.forEach(ply => this.leave(ply.id));
   }
 
@@ -159,7 +152,9 @@ export default class Lobby {
       this.setHost(ply);
     }
 
-    addPlayer(this.game.state, ply.id, plyData.name, plyData.color);
+    this.stateController.apply((state) => {
+      addPlayer(state, ply.id, plyData.name, plyData.color);
+    });
 
     const privateProcessSnapshot = processSnapshot.bind(this);
     privateProcessSnapshot(ply);
@@ -185,42 +180,10 @@ export default class Lobby {
       }
     }
 
-    removePlayer(this.game.state, ply.id);
+    this.stateController.apply((state) => {
+      removePlayer(state, ply.id);
+    });
+
     this.kickPlayers.push(ply.id);
-  }
-
-  // Rewind the game, apply a function, then update the game till we're back at
-  // the expected tick. This is to compensate for player latency.
-  lagCompensation(latency, applyFn) {
-    const tick = Math.floor(this.game.state.tick - latency);
-    const stateIdxUnbounded = tick - this.stateHistory[0].tick;
-    const stateIdx = Math.max(0,
-      Math.min(stateIdxUnbounded, this.stateHistory.length - 1)
-    );
-
-    const state = this.stateHistory[stateIdx];
-
-    applyFn(state);
-
-    // Simulate our game-loop and update the states, ignoring the tick-rate,
-    // so we are able to catch back up to where we were.
-    if (state.tick === this.game.state.tick) {
-      this.game.state = copyState(state);
-    } else {
-      const lastState = copyState(state);
-      while (lastState.tick < this.game.state.tick) {
-        const lastIdx = lastState.tick - this.stateHistory[0].tick;
-        const newIdx = lastIdx + 1;
-        const newProgress = this.stateHistory[newIdx].progress;
-
-        gameUpdate(lastState, newProgress);
-
-        this.stateHistory[newIdx] = copyState(lastState);
-      }
-
-      this.game.state = lastState;
-    }
-
-    return true;
   }
 }

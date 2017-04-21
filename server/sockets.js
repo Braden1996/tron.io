@@ -1,5 +1,8 @@
-import socketio from 'socket.io';
 import http from 'http';
+import socketio from 'socket.io';
+import path from 'path';
+import cp from 'child_process';
+import appRootDir from 'app-root-dir';
 
 import GameServer from '../shared/game/network/server';
 
@@ -9,12 +12,32 @@ export default function socketsInit(app) {
   const server = http.createServer(app);
   const io = socketio(server);
 
-  const gameServer = new GameServer();
+  // A quick helper to make process dependencies easier.
+  const processInterface = (entryFile, onMessage) => {
+    const childProcess = cp.fork(entryFile);
+    childProcess.on('message', m => { onMessage(m); });
 
-  // Attach our Node compatible game-loop.
-  gameServer.getLobbyArgs = {
+    const killFcn = (signal = 'SIGINT') => { childProcess.kill(signal); };
+    const sendFcn = payload => { childProcess.send(payload); };
+
+    return { killFcn, sendFcn };
+  }
+
+  // Attach our Node specialised dependencies.
+  const lobbyDependencies = {
     createGameLoop: (cb, tr) => new NodeGameLoop(cb, tr),
+    stateUpdateFork: (onMessage) => {
+      const rootDir = appRootDir.get();
+      const entryFile = path.resolve(rootDir, 'build/tronUpdate/index.js');
+      return processInterface(entryFile, onMessage);
+    },
+    aiMoveFork: (onMessage) => {
+      const rootDir = appRootDir.get();
+      const entryFile = path.resolve(rootDir, 'build/tronAi/index.js');
+      return processInterface(entryFile, onMessage);
+    }
   };
+  const gameServer = new GameServer(lobbyDependencies);
 
   io.on('connection', (socket) => {
     const plyId = socket.id;
