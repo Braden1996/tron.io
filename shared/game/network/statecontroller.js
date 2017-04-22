@@ -9,6 +9,8 @@ export default class StateController {
   constructor(initialState, historyLimit, onStateChange, dependencies) {
     const { stateUpdateFork, createGameLoop } = dependencies;
 
+    //this.benchmark = 0;
+
     // History: state objects
     this.states = [initialState];
 
@@ -51,6 +53,8 @@ export default class StateController {
         this.states[stateIndex] = state;
       }
 
+      //console.log(`Benchmark: ${this.gameLoop.getTime() - this.benchmark}, ${state.progress}`);
+
       // Check if we need to catch up to the current state.
       if (stateIndex < (this.states.length + this.missedTicks.length - 1)) {
         const nextStateIdx = stateIndex + 1;
@@ -69,9 +73,10 @@ export default class StateController {
       onStateChange();
 
       // Check if there exists an update which was missed due to being
-      // scheduled after we had updated its associated state.
+      // scheduled after we had updated its associated state. Ignore changes
+      // for states that haven't occured yet.
       const nextStateIdx = this.unappliedChanges.findIndex(n => n > 0);
-      if (nextStateIdx === -1) {
+      if (nextStateIdx === -1 && nextStateIdx < (this.states.length - 1)) {
         this.updating = false;
       } else {
         const progress = this.states[nextStateIdx].progress;
@@ -81,6 +86,9 @@ export default class StateController {
 
     const { killFcn, sendFcn } = stateUpdateFork(onMessageCallback);
     this.updateFork = { kill: killFcn, send: sendFcn };
+
+    // Prevent updates after we've died.
+    this.dead = false;
 
     // Avoid running multiple updates.
     this.updating = false;
@@ -127,7 +135,7 @@ export default class StateController {
 
     // Only trigger an update if we're not already updating
     // and the change is for a past state.
-    if (this.updating === false && stateIndex !== this.states.length) {
+    if (this.updating === false && stateIndex < (this.states.length - 1)) {
       const progress = this.states[stateIndex + 1].progress;
       this.update(stateIndex, progress);
     }
@@ -135,6 +143,8 @@ export default class StateController {
 
   // Update the state starting from, and including, the state at stateIdx.
   update(stateIndex, progress) {
+    if (this.dead) { return; } // Can no longer update.
+
     this.updating = true;
 
     // Get a copy of the current state.
@@ -148,8 +158,9 @@ export default class StateController {
     });
 
     // Delegate the actual update to our update process.
+    state.cache = {};  // Avoid communicating length state
     const updatePayload = { state, stateIndex, progress };
-
+    //this.benchmark = this.gameLoop.getTime();
     this.updateFork.send(updatePayload);
   }
 
@@ -163,6 +174,7 @@ export default class StateController {
   }
 
   kill() {
+    this.dead = true;
     this.gameLoop.stop();
     this.updateFork.kill();
   }

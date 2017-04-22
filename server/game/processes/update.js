@@ -8,6 +8,7 @@ process.on('message', (m) => {
   gameUpdate(state, progress);
 
   // Pass results back to parent process
+  state.cache = {};
   const payload = { state, stateIndex };
   process.send(payload);
 });
