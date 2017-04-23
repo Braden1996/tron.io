@@ -65,14 +65,17 @@ export default class Lobby {
 
     const state = getInitialState();
     const hLimit = 100;  // How many states shall we keep in history?
-    // Try to process some of our queued snapshots at the end of each tick.
-    const onTick = () => {
+    const sDeps = { createGameLoop, stateUpdateFork };
+    this.stateController = new StateController(state, hLimit, sDeps);
+
+    // Try to process any delayed snapshots when the current state changes.
+    const checkSnapshots = () => {
       const curSnapshots = this.snapshotNextTick;
       this.snapshotNextTick = []; // Clear to-be completed tasks.
       curSnapshots.forEach((snapshotFn) => { snapshotFn(); });
+      return true;
     }
-    const sDeps = { createGameLoop, stateUpdateFork };
-    this.stateController = new StateController(state, hLimit, onTick, sDeps);
+    this.stateController.updateCallbacks.push(checkSnapshots);
 
     // If we decide not to send a snapshot, a callback will be added to the
     // following array. This allows us to keep track of the snapshots we need

@@ -6,7 +6,7 @@ import { copyState, rebuildCache } from '../operations/general';
 // must also keep track of all non-deterministic changes to the states, such as
 // user-input, otherwise it could end up being unintentionally ignored.
 export default class StateController {
-  constructor(initialState, historyLimit, onStateChange, dependencies) {
+  constructor(initialState, historyLimit, dependencies) {
     const { stateUpdateFork, createGameLoop } = dependencies;
 
     //this.benchmark = 0;
@@ -25,12 +25,19 @@ export default class StateController {
     // This is to avoid running simultaneous updates.
     this.missedTicks = [];
 
+    // An array of functions to be called once the current state is updated.
+    // If the function returns true, it will be kept for the next update.
+    // Otherwise, it will be removed from the array.
+    this.updateCallbacks = [];
+
     // To avoid locking the event loop during our state update, we delegate the
     // updates to a separate dedicated process. Only a single state should be
     // updated at any one time.
     const onMessageCallback = (m) => {
       const { state } = m;
       let { stateIndex } = m;
+
+      this.updating = false;
 
       rebuildCache(state);
 
@@ -68,17 +75,14 @@ export default class StateController {
         return;
       }
 
-
       // Alert our creator that the most-recent state has just changed.
-      onStateChange();
+      this.updateCallbacks = this.updateCallbacks.filter(fcn => fcn());
 
       // Check if there exists an update which was missed due to being
       // scheduled after we had updated its associated state. Ignore changes
       // for states that haven't occured yet.
-      const nextStateIdx = this.unappliedChanges.findIndex(n => n > 0);
-      if (nextStateIdx === -1 && nextStateIdx < (this.states.length - 1)) {
-        this.updating = false;
-      } else {
+      const nextStateIdx = this.unappliedChanges.findIndex(bool => bool);
+      if (nextStateIdx !== -1 && nextStateIdx < (this.states.length - 1)) {
         const progress = this.states[nextStateIdx].progress;
         this.update(nextStateIdx, progress);
       }
@@ -108,7 +112,7 @@ export default class StateController {
 
   // Apply changes to the game state using the given function.
   // Latency is used for the purpose of lag compensation.
-  apply(changeFcn, latency = 0) {
+  apply(changeFcn, latency = 0, onUpdateFcn = undefined) {
     // Calculate the lag compensated state index.
     let state;
     let stateIndex = this.states.length;
@@ -130,8 +134,9 @@ export default class StateController {
     }
 
     // Record the change for future reference.
-    this.changes[stateIndex].push(changeFcn);
-    this.unappliedChanges[stateIndex] += 1;
+    const changeObj = { changeFcn, onUpdateFcn };
+    this.changes[stateIndex].push(changeObj);
+    this.unappliedChanges[stateIndex] = true;
 
     // Only trigger an update if we're not already updating
     // and the change is for a past state.
@@ -143,7 +148,7 @@ export default class StateController {
 
   // Update the state starting from, and including, the state at stateIdx.
   update(stateIndex, progress) {
-    if (this.dead) { return; } // Can no longer update.
+    if (this.updating || this.dead) { return; } // Can no longer update.
 
     this.updating = true;
 
@@ -152,10 +157,12 @@ export default class StateController {
 
     // Apply, in-order, all the changes we have queued for the current state.
     this.changes[stateIndex].forEach((ch, k) => {
-      ch(state);
-      const remainingUnapplied = this.unappliedChanges[stateIndex] - 1;
-      this.unappliedChanges[stateIndex] = Math.max(0, remainingUnapplied);
+      ch.changeFcn(state);
+      if (ch.onUpdateFcn !== undefined) {
+        this.updateCallbacks.push(ch.onUpdateFcn);
+      }
     });
+    this.unappliedChanges[stateIndex] = false;
 
     // Delegate the actual update to our update process.
     state.cache = {};  // Avoid communicating length state

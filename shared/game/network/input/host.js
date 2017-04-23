@@ -10,6 +10,7 @@ import { copyState } from '../../operations/general';
 export function addComputer(lobby, ply, data, ackFn) {
   if (!lobby.isHost(ply.id)) { return; }
 
+
   // Create misc data-structures if needed.
   if (lobby.misc.computerPlayers === undefined) {
     lobby.misc.computerPlayers = [];
@@ -20,9 +21,9 @@ export function addComputer(lobby, ply, data, ackFn) {
     })
   }
 
-  const compNum = lobby.misc.computerPlayers.reduce((p, c) => {
-    return p > c.compNum ? p : c.compNum;
-  }, 0);
+  const compNum = 1 + lobby.misc.computerPlayers.reduce((p, c) => {
+    return c.compNum > p ? c.compNum : p;
+  }, -1);
   const compId = `computer${compNum}`;
   const compName = `Computer ${compNum}`;
   const compColor = '#0f0';
@@ -64,9 +65,8 @@ export function addComputer(lobby, ply, data, ackFn) {
     const latency = lobby.stateController.gameLoop.getTime() - aiStartTime;
     if (direction !== compPly.direction) {
       console.log(`Moving ${compId} ${direction} with latency ${latency}ms`);
-      lobby.stateController.apply(s => {
-        applyMoveFn(s, direction, compId);
-      }, latency);
+      const aiMoveChange = s => { applyMoveFn(s, direction, compId); };
+      lobby.stateController.apply(aiMoveChange, latency);
     }
 
     // Immediately request the AI for their next move.
@@ -82,19 +82,19 @@ export function addComputer(lobby, ply, data, ackFn) {
     comp.moveFork.send(payload);
   };
 
+  const comp = { compNum, compId, moveFork, working: false };
+
   // Setup our AI move process fork.
   const aiMoveFork = lobby.dependencies.aiMoveFork;
   const { killFcn, sendFcn } = aiMoveFork(onMessageCallback);
   moveFork.kill = killFcn;
-  moveFork.send = sendFcn;
+  moveFork.send = p => { comp.working = true; sendFcn(p); };
+
+  lobby.misc.computerPlayers.push(comp);
 
   // Add our computer AI player to the game lobby.
   const addCompPly = s => { gameAddPlayer(s, compId, compName, compColor); };
   lobby.stateController.apply(addCompPly, ply.latency);
-
-  // Kick start our AI process.
-  const working = false;
-  lobby.misc.computerPlayers.push({ compNum, compId, moveFork, working });
 }
 
 export function beginGame(lobby, ply, data, ackFn) {
@@ -103,24 +103,29 @@ export function beginGame(lobby, ply, data, ackFn) {
   const startGameChange = (state) => {
     state.started = true;
     state.finished = false;
-
-    // Check if our computer players should begin.
-    const currentState = lobby.stateController.current();
-    if (lobby.misc.computerPlayers && state.tick === currentState.tick) {
-      const sendState = copyState(currentState);
-      sendState.cache = {}; // Rebuild cache in process.
-      lobby.misc.computerPlayers.forEach((comp) => {
-        const { compNum, compId, moveFork, working } = comp;
-        if (working) { return; } // Computer is already doing work...
-
-        comp.working = true;
-        const payload = { state: sendState, compId, searchTime: 0 };
-        moveFork.send(payload);
-      });
-    }
   }
 
-  lobby.stateController.apply(startGameChange);
+  if (!lobby.misc.computerPlayers || lobby.misc.computerPlayers.length === 0) {
+    lobby.stateController.apply(startGameChange, 0);
+  } else {
+    const onStateUpdated = (state) => {
+      const updateComps = lobby.misc.computerPlayers.filter(c => !c.working);
+      if (updateComps.length === 0) { return; }
+
+      const currentState = lobby.stateController.current();
+      const sendState = copyState(currentState);
+      sendState.cache = {}; // Rebuild cache in process.
+      updateComps.forEach((comp) => {
+        const payload = {
+          state: sendState, compId: comp.compId, searchTime: 0
+        };
+
+        comp.moveFork.send(payload);
+      });
+    }
+
+    lobby.stateController.apply(startGameChange, 0, onStateUpdated);
+  }
 }
 
 export function endGame(lobby, ply, data, ackFn) {
