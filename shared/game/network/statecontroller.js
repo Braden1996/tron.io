@@ -112,7 +112,7 @@ export default class StateController {
 
   // Apply changes to the game state using the given function.
   // Latency is used for the purpose of lag compensation.
-  apply(changeFcn, latency = 0, onUpdateFcn = undefined) {
+  apply(changeFcn, latency = 0, onUpdateFcn = undefined, stateCheckFcn = undefined) {
     // Calculate the lag compensated state index.
     let state;
     let stateIndex = this.states.length;
@@ -127,8 +127,11 @@ export default class StateController {
 
       // Otherwise, move onto the previous state.
       } else {
-        state = previousState;
-        stateIndex = previousStateIndex;
+        // Only compensate to this state if stateCheckFcn() returns true.
+        if (stateCheckFcn === undefined || stateCheckFcn(previousState)) {
+          state = previousState;
+          stateIndex = previousStateIndex;
+        }
         progressSum += state.progress;
       }
     }
@@ -151,6 +154,11 @@ export default class StateController {
     if (this.updating || this.dead) { return; } // Can no longer update.
 
     this.updating = true;
+
+    // A bug once occured. This 'should' log if it happens again.
+    if(this.states[stateIndex - 1] === undefined) {
+      console.log("BUG:", stateIndex, this.states.length, this.states[stateIndex - 1]);
+    }
 
     // Get a copy of the current state.
     const state = copyState(this.states[stateIndex - 1]);

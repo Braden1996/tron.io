@@ -18,23 +18,29 @@ export function addComputer(lobby, ply, data, ackFn) {
       lobby.misc.computerPlayers.forEach((comp) => {
         comp.moveFork.kill();
       });
-    })
+    });
   }
 
   const compNum = 1 + lobby.misc.computerPlayers.reduce((p, c) => {
     return c.compNum > p ? c.compNum : p;
-  }, -1);
+  }, 0);
   const compId = `computer${compNum}`;
   const compName = `Computer ${compNum}`;
   const compColor = '#0f0';
 
-  const applyMoveFn = (state, direction, compId) => {
+  const moveChangeFcn = (state, direction, compId) => {
     const compPly = state.players.find(pl => pl.id === compId);
     if (compPly.alive && direction !== compPly.direction) {
       try {
         gameDirectPlayer(state, compPly, direction);
       } catch(e) {};
     }
+  }
+
+  // Avoid lag compensation from applying the change to an invalid state.
+  const checkStateFcn = (state) => {
+    const compPly = state.players.find(pl => pl.id === compId);
+    return compPly !== undefined && compPly.alive;
   }
 
   const moveFork = { kill: undefined, send: undefined };
@@ -65,8 +71,10 @@ export function addComputer(lobby, ply, data, ackFn) {
     const latency = lobby.stateController.gameLoop.getTime() - aiStartTime;
     if (direction !== compPly.direction) {
       console.log(`Moving ${compId} ${direction} with latency ${latency}ms`);
-      const aiMoveChange = s => { applyMoveFn(s, direction, compId); };
-      lobby.stateController.apply(aiMoveChange, latency);
+      const aiMoveChange = s => { moveChangeFcn(s, direction, compId); };
+      lobby.stateController.apply(
+        aiMoveChange, latency, undefined, checkStateFcn
+      );
     }
 
     // Immediately request the AI for their next move.

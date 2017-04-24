@@ -40,18 +40,19 @@ function ucb1PickMove(legalMoves, winTreeCurrent) {
   return ucb1Move === undefined ? undefined : ucb1Move.move;
 }
 
-function getMonteCarloMove(state, ply, shouldStopFn, maxDepth = 4) {
+function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 4) {
   const winTrees = state.players.map(pl => new WinTree(pl.id));
 
   const plyIndex = state.players.indexOf(ply);
 
+  // As we model the game to be turn based...
   const actualMaxDepth = maxDepth * state.players.length;
 
   let playersMoved = 0;
   let curIndex = plyIndex;  // Start simulation turns from our player.
   let curState = copyState(state);
   let winTreesCurrent = winTrees;
-  while (shouldStopFn() !== true) {
+  while (shouldStopFcn() !== true) {
     const simulatePly = curState.players[curIndex];
     const legalMoves = [simulatePly.direction]
       .concat(legalDirections[simulatePly.direction]);
