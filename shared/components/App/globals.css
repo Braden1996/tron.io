@@ -36,6 +36,10 @@ body {
   margin: 0 auto;
 }
 
+#menuSection{
+  margin: 0 8px;
+}
+
 .menu {
   color: #FFF;
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
