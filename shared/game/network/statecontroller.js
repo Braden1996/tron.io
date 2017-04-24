@@ -76,7 +76,7 @@ export default class StateController {
       }
 
       // Alert our creator that the most-recent state has just changed.
-      this.updateCallbacks = this.updateCallbacks.filter(fcn => fcn());
+      this.updateCallbacks = this.updateCallbacks.filter(fcn => fcn(state));
 
       // Check if there exists an update which was missed due to being
       // scheduled after we had updated its associated state. Ignore changes
@@ -116,6 +116,8 @@ export default class StateController {
     // Calculate the lag compensated state index.
     let state;
     let stateIndex = this.states.length;
+
+    // Get the state which was closest to current when we go back by latency.
     let progressSum = 0;
     while (progressSum <= latency && stateIndex !== 1) {
       const previousStateIndex = stateIndex - 1;
@@ -127,12 +129,17 @@ export default class StateController {
 
       // Otherwise, move onto the previous state.
       } else {
-        // Only compensate to this state if stateCheckFcn() returns true.
-        if (stateCheckFcn === undefined || stateCheckFcn(previousState)) {
-          state = previousState;
-          stateIndex = previousStateIndex;
-        }
+        state = previousState;
+        stateIndex = previousStateIndex;
         progressSum += state.progress;
+      }
+    }
+
+    // Go forward in time to the closest state which passes the check.
+    if (stateCheckFcn !== undefined) {
+      while (!stateCheckFcn(state) && stateIndex < this.states.length) {
+        stateIndex += 1;
+        state = this.states[stateIndex];
       }
     }
 

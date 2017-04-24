@@ -37,6 +37,32 @@ export function addComputer(lobby, ply, data, ackFn) {
     }
   }
 
+  // Called when the current game state is updated with our AI's last move.
+  const nextMoveFcn = (state) => {
+    const compPly = state.players.find(pl => pl.id === compId);
+
+    // Check if we can now pause looking for more moves.
+    if (state.finished || !state.started || !compPly.alive) {
+      return;
+    }
+
+    const comps = lobby.misc.computerPlayers;
+    const compIndex = comps.findIndex(c => c.compId === compId);
+    const comp = comps[compIndex];
+
+    // Check the AI move fork isn't busy, i.e. this function was called during
+    // lag compensation for an unrelated change.
+    if (comp.working) { return; }
+
+    // Otherwise, immediately request the AI for their next move.
+    aiStartTime = lobby.stateController.gameLoop.getTime(); // Track latency.
+    const sendState = copyState(state);
+    sendState.cache = {}; // Rebuild cache in process.
+    const searchTime = 100;
+    const payload = { state: sendState, compId, searchTime};
+    comp.moveFork.send(payload);
+  }
+
   // Avoid lag compensation from applying the change to an invalid state.
   const checkStateFcn = (state) => {
     const compPly = state.players.find(pl => pl.id === compId);
@@ -53,7 +79,9 @@ export function addComputer(lobby, ply, data, ackFn) {
     const compIndex = comps.findIndex(c => c.compId === compId);
     const comp = comps[compIndex];
 
-    // Check if we should die as we're no longer part of the game lobby.
+    comp.working = false;
+
+    // Check if the AI should die as they're no longer part of the game lobby.
     const compPly = state.players.find(pl => pl.id === compId);
     if (!compPly || lobby.players.length === 0) {
       comps.splice(compIndex, 1);
@@ -61,33 +89,18 @@ export function addComputer(lobby, ply, data, ackFn) {
       return;
     }
 
-    // Check if we can pause looking for moves.
-    if (state.finished || !state.started || !compPly.alive) {
-      comp.working = false;
-      return;
-    }
-
-    // Make our chosen AI move.
-    const latency = lobby.stateController.gameLoop.getTime() - aiStartTime;
-    if (direction !== compPly.direction) {
+    // Apply the move if the AI wants to change direction. Otherwise, just
+    // request their next move.
+    if (direction === compPly.direction) {
+      nextMoveFcn(state);
+    } else {
+      const latency = lobby.stateController.gameLoop.getTime() - aiStartTime;
       console.log(`Moving ${compId} ${direction} with latency ${latency}ms`);
       const aiMoveChange = s => { moveChangeFcn(s, direction, compId); };
       lobby.stateController.apply(
-        aiMoveChange, latency, undefined, checkStateFcn
+        aiMoveChange, latency, nextMoveFcn, checkStateFcn
       );
     }
-
-    // Immediately request the AI for their next move.
-    const sendState = copyState(state);
-    sendState.cache = {}; // Rebuild cache in process.
-
-    aiStartTime = lobby.stateController.gameLoop.getTime();
-
-    // The amount of time (ms) we're willing to give our AI.
-    const searchTime = 100;
-
-    const payload = { state: sendState, compId, searchTime};
-    comp.moveFork.send(payload);
   };
 
   const comp = { compNum, compId, moveFork, working: false };

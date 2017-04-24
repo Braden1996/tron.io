@@ -67,4 +67,30 @@ export default class WinTree {
       this.parent.addLoss(count);
     }
   }
+
+  getUCB1() {
+    const mWins = this.wins;
+    const mTotal = this.total;
+    const cTotal = this.parent.total;
+    return (mWins / mTotal) + Math.sqrt((2 * Math.log(cTotal)) / mTotal);
+  }
+
+  toDebugString(prefix = '', isTail = true) {
+    const cLength = this.children.length;
+    const ucb1 = this.parent === null ? null : this.getUCB1();
+    const ratio = `${this.wins}/${this.total}`;
+    const string = `${this.playerId}:${this.move}(${ucb1})[${ratio}{${cLength}}]\n`;
+
+    let outString = `${prefix} ${(isTail ? '└─ ' : '├─ ')}${string}`;
+
+    if (this.children.length > 0) {
+      const newPrefix = prefix + (isTail ? '  ' : ' │ ');
+      this.children.forEach((child, i) => {
+        const childIsTail = i === this.children.length - 1;
+        outString += child.toDebugString(newPrefix, childIsTail);
+      });
+    }
+
+    return outString;
+  }
 }

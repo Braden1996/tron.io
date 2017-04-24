@@ -23,24 +23,18 @@ function ucb1PickMove(legalMoves, winTreeCurrent) {
   }
 
   // Otherwise, simply return the move with the most promising UCB1 score.
-  const cTotal = winTreeCurrent.total;
   const ucb1Move = legalMoves.reduce((acc, move) => {
-    const mWinTree = winTreeCurrent.getMoveChild(move);
-    const mTotal = mWinTree.total;
-    const mWins = mWinTree.wins;
-
-    const ucb1 = (mWins / mTotal)
-      + Math.sqrt((2 * Math.log(cTotal)) / mTotal);
-
+    const ucb1 = winTreeCurrent.getMoveChild(move).getUCB1();
     if (acc === undefined || ucb1 > acc.ucb1) {
       return { ucb1, move };
     }
+    return acc;
   }, undefined);
 
   return ucb1Move === undefined ? undefined : ucb1Move.move;
 }
 
-function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 4) {
+function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 10) {
   const winTrees = state.players.map(pl => new WinTree(pl.id));
 
   const plyIndex = state.players.indexOf(ply);
@@ -62,7 +56,7 @@ function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 4) {
     playersMoved += 1;
 
     // Update the game state once all able players have moved.
-    const alivePlayers = state.players.filter(pl => pl.alive).length;
+    const alivePlayers = curState.players.filter(pl => pl.alive).length;
     if (alivePlayers !== 0 && playersMoved >= alivePlayers) {
       update(curState, curState.progress);
       playersMoved = 0;
@@ -93,7 +87,7 @@ function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 4) {
         }
 
         // Well done for staying alive!
-        // winTree.addWin();
+        winTree.addWin();
 
         curState.players.forEach((pl2, k) => {
           if (pl === pl2) { return; }
@@ -119,6 +113,8 @@ function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 4) {
   }
 
   const winTreePly = winTrees[plyIndex];
+  console.log(winTreePly.total);
+  //console.log(winTreePly.toDebugString());
   return winTreePly.getBestChildMove();
 }
 
