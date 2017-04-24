@@ -6,6 +6,8 @@ import {
   INPUT_HOST_ADD_COMPUTER,
   INPUT_HOST_BEGIN_GAME,
   INPUT_HOST_END_GAME,
+  INPUT_HOST_UPDATE_SPEED,
+  INPUT_HOST_UPDATE_ARENA_SIZE,
 } from '../../../../shared/state/input/host/actions';
 
 function* addComputer(action) {
@@ -23,8 +25,22 @@ function* endGame(action) {
   yield put(socketsSend(eventName));
 }
 
+function* updateSpeed(action) {
+  const eventName = 'updatespeed';
+  const speed = action.speed;
+  yield put(socketsSend(eventName, speed));
+}
+
+function* updateArenaSize(action) {
+  const eventName = 'updatearenasize';
+  const size = action.size;
+  yield put(socketsSend(eventName, size));
+}
+
 export default function* inputHostSaga() {
   yield takeEvery(INPUT_HOST_ADD_COMPUTER, addComputer);
   yield takeEvery(INPUT_HOST_BEGIN_GAME, beginGame);
   yield takeEvery(INPUT_HOST_END_GAME, endGame);
+  yield takeEvery(INPUT_HOST_UPDATE_SPEED, updateSpeed);
+  yield takeEvery(INPUT_HOST_UPDATE_ARENA_SIZE, updateArenaSize);
 }

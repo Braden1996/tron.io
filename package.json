@@ -64,6 +64,8 @@
     "offline-plugin": "4.7.0",
     "performance-now": "^2.1.0",
     "prop-types": "15.5.8",
+    "rc-slider": "^7.0.2",
+    "rc-tooltip": "^3.4.3",
     "react": "15.5.4",
     "react-async-bootstrapper": "1.1.1",
     "react-async-component": "1.0.0-beta.3",

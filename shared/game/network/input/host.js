@@ -5,7 +5,7 @@ import {
   removePlayer as gameRemovePlayer,
   directPlayer as gameDirectPlayer,
 } from '../../operations/player';
-import { copyState } from '../../operations/general';
+import { rebuildCache, copyState } from '../../operations/general';
 
 export function addComputer(lobby, ply, data, ackFn) {
   if (!lobby.isHost(ply.id)) { return; }
@@ -148,12 +148,39 @@ export function endGame(lobby, ply, data, ackFn) {
   lobby.stateController.apply(endGameChange);
 }
 
+export function updateSpeed(lobby, ply, data, ackFn) {
+  if (!lobby.isHost(ply.id)) { return; }
+
+  const speed = parseFloat(data);
+  if (isNaN(speed)) { return; }
+
+  const updateSpeedChange = (state) => { state.speed = speed; }
+
+  lobby.stateController.apply(updateSpeedChange);
+}
+
+export function updateArenaSize(lobby, ply, data, ackFn) {
+  if (!lobby.isHost(ply.id)) { return; }
+
+  const size = parseFloat(data);
+  if (isNaN(size)) { return; }
+
+  const updateArenaSize = (state) => {
+    state.arenaSize = size;
+    gameResetPlayers(state);
+  }
+
+  lobby.stateController.apply(updateArenaSize);
+}
+
 export function hostDetachPlayer(lobby, ply) {
   const socket = ply.socket;
 
   socket.removeAllListeners('addcomputer');
   socket.removeAllListeners('begingame');
   socket.removeAllListeners('endgame');
+  socket.removeAllListeners('updatespeed');
+  socket.removeAllListeners('updatearenasize');
 }
 
 export function hostAttachPlayer(lobby, ply) {
@@ -162,4 +189,6 @@ export function hostAttachPlayer(lobby, ply) {
   socket.on('addcomputer', (d, a) => addComputer(lobby, ply, d, a));
   socket.on('begingame', (d, a) => beginGame(lobby, ply, d, a));
   socket.on('endgame', (d, a) => endGame(lobby, ply, d, a));
+  socket.on('updatespeed', (d, a) => updateSpeed(lobby, ply, d, a));
+  socket.on('updatearenasize', (d, a) => updateArenaSize(lobby, ply, d, a));
 }

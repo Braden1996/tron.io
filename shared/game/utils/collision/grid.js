@@ -81,7 +81,7 @@ export default class UniformGrid {
     const indexes = [];
     for (let x = startIdx[0]; x <= endIdx[0]; x = x + 1) {
       for (let y = startIdx[1]; y <= endIdx[1]; y = y + 1) {
-        const idx = x + (y * this.RESOLUTION[0]);
+        const idx = Math.round(x + (y * this.RESOLUTION[0]));
         indexes.push(idx);
       }
     }
