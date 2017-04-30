@@ -17,7 +17,7 @@ export default class StateController {
     // History: functions which change a particular state.
     this.changes = [undefined, []];
 
-    // History: number of unapplied changes for state.
+    // History: boolean indicating unapplied changes for state.
     this.unappliedChanges = [undefined, []];
 
     // Track the amount of ticks we've missed due to an update in progress.
@@ -52,7 +52,16 @@ export default class StateController {
         if (this.states.length >= historyLimit) {
           this.states.shift();
           this.changes.shift();
+          this.changes[0] = undefined;
+
+          // Slide up any unapplied changes
+          const unappliedChanges = this.unappliedChanges[1];
+          if (unappliedChanges.length > 0) {
+            this.unappliedChanges[2] = this.unappliedChanges[2]
+              .concat(unappliedChanges);
+          }
           this.unappliedChanges.shift();
+          this.unappliedChanges[0] = undefined;
 
           stateIndex -= 1;
         }
@@ -81,8 +90,9 @@ export default class StateController {
       // Check if there exists an update which was missed due to being
       // scheduled after we had updated its associated state. Ignore changes
       // for states that haven't occured yet.
-      const nextStateIdx = this.unappliedChanges.findIndex(bool => bool);
-      if (nextStateIdx !== -1 && nextStateIdx < (this.states.length - 1)) {
+      const nextStateIdx = this.unappliedChanges
+        .findIndex(u => u && u.length > 0);
+      if (nextStateIdx >= 1 && nextStateIdx < (this.states.length - 1)) {
         const progress = this.states[nextStateIdx].progress;
         this.update(nextStateIdx, progress);
       }
@@ -119,7 +129,7 @@ export default class StateController {
 
     // Get the state which was closest to current when we go back by latency.
     let progressSum = 0;
-    while (progressSum <= latency && stateIndex !== 1) {
+    while (progressSum <= latency && stateIndex > 1) {
       const previousStateIndex = stateIndex - 1;
       const previousState = this.states[previousStateIndex];
 
@@ -137,7 +147,7 @@ export default class StateController {
 
     // Go forward in time to the closest state which passes the check.
     if (stateCheckFcn !== undefined) {
-      while (!stateCheckFcn(state) && stateIndex < this.states.length) {
+      while (stateIndex < this.states.length && !stateCheckFcn(state)) {
         stateIndex += 1;
         state = this.states[stateIndex];
       }
@@ -146,7 +156,7 @@ export default class StateController {
     // Record the change for future reference.
     const changeObj = { changeFcn, onUpdateFcn };
     this.changes[stateIndex].push(changeObj);
-    this.unappliedChanges[stateIndex] = true;
+    this.unappliedChanges[stateIndex].push(changeObj);
 
     // Only trigger an update if we're not already updating
     // and the change is for a past state.
@@ -162,11 +172,6 @@ export default class StateController {
 
     this.updating = true;
 
-    // A bug once occured. This 'should' log if it happens again.
-    if(this.states[stateIndex - 1] === undefined) {
-      console.log("BUG:", stateIndex, this.states.length, this.states[stateIndex - 1]);
-    }
-
     // Get a copy of the current state.
     const state = copyState(this.states[stateIndex - 1]);
 
@@ -177,7 +182,7 @@ export default class StateController {
         this.updateCallbacks.push(ch.onUpdateFcn);
       }
     });
-    this.unappliedChanges[stateIndex] = false;
+    this.unappliedChanges[stateIndex] = []; // Empty
 
     // Delegate the actual update to our update process.
     state.cache = {};  // Avoid communicating length state
