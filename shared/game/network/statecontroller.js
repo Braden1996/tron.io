@@ -9,8 +9,6 @@ export default class StateController {
   constructor(initialState, historyLimit, dependencies) {
     const { stateUpdateFork, createGameLoop } = dependencies;
 
-    //this.benchmark = 0;
-
     // History: state objects
     this.states = [initialState];
 
@@ -68,8 +66,6 @@ export default class StateController {
       } else {
         this.states[stateIndex] = state;
       }
-
-      //console.log(`Benchmark: ${this.gameLoop.getTime() - this.benchmark}, ${state.progress}`);
 
       // Check if we need to catch up to the current state.
       if (stateIndex < (this.states.length + this.missedTicks.length - 1)) {
@@ -187,7 +183,6 @@ export default class StateController {
     // Delegate the actual update to our update process.
     state.cache = {};  // Avoid communicating length state
     const updatePayload = { state, stateIndex, progress };
-    //this.benchmark = this.gameLoop.getTime();
     this.updateFork.send(updatePayload);
   }
 

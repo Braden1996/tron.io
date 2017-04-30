@@ -9,7 +9,6 @@ export default function getMove(state, ply, searchTime) {
       return curTime > startTime + searchTime;
     };
     const direction = getMonteCarloMove(state, ply, shouldStopFn);
-    console.log(`Moving ${ply.id} ${direction}`);
     return direction;
   }
 
