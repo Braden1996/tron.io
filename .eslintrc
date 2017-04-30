@@ -13,7 +13,6 @@
   "rules": {
     // A jsx extension is not required for files containing jsx
     "react/jsx-filename-extension": 0,
-<<<<<<< HEAD
     // This rule struggles with flow and class properties.
     "react/sort-comp": 0,
     // We use global requires in various places, e.g. code splitting instances.
@@ -22,9 +21,7 @@
     "no-constant-condition": ["error", { "checkLoops": false }],
     "no-param-reassign": "warn",
     "class-methods-use-this": "warn"
-=======
     // This rule struggles with flow and class properties
     "react/sort-comp": 0
->>>>>>> template
   }
 }
