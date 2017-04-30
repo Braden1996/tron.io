@@ -9,7 +9,41 @@ export default class StateController {
   constructor(initialState, historyLimit, dependencies) {
     const { stateUpdateFork, createGameLoop } = dependencies;
 
-    //this.benchmark = 0;
+    // Object containing data required to run benchmarks.
+    this.benchmark = {
+      startUpdateTime: undefined,
+      gameBeginTime: undefined,
+      captureTime: 1000,
+      done: false,
+    };
+
+    const runBenchmark = (state) => {
+      if (state.started) {
+        if (this.benchmark.gameBeginTime === undefined) {
+          this.benchmark.gameBeginTime = 0;
+        } else {
+          this.benchmark.gameBeginTime += state.progress;
+        }
+
+        const doCapture = this.benchmark.gameBeginTime >=
+          this.benchmark.captureTime;
+        if (!this.benchmark.done && doCapture) {
+          const endTime = this.gameLoop.getTime();
+          const duration = endTime - this.benchmark.startUpdateTime;
+          console.log(`State update:\ ` +
+//tick=${state.tick},\
+`captureTime=${this.benchmark.captureTime},\ ` +
+//progress=${state.progress}, \
+`players=${state.players.length},\
+duration=${duration}\
+          `);
+          this.benchmark.done = true;
+        }
+      } else {
+        this.benchmark.done = false;
+        this.benchmark.gameBeginTime = undefined;
+      }
+    }
 
     // History: state objects
     this.states = [initialState];
@@ -60,8 +94,6 @@ export default class StateController {
         this.states[stateIndex] = state;
       }
 
-      //console.log(`Benchmark: ${this.gameLoop.getTime() - this.benchmark}, ${state.progress}`);
-
       // Check if we need to catch up to the current state.
       if (stateIndex < (this.states.length + this.missedTicks.length - 1)) {
         const nextStateIdx = stateIndex + 1;
@@ -75,6 +107,8 @@ export default class StateController {
         return;
       }
 
+      runBenchmark(state);
+
       // Alert our creator that the most-recent state has just changed.
       this.updateCallbacks = this.updateCallbacks.filter(fcn => fcn(state));
 
@@ -82,7 +116,8 @@ export default class StateController {
       // scheduled after we had updated its associated state. Ignore changes
       // for states that haven't occured yet.
       const nextStateIdx = this.unappliedChanges.findIndex(bool => bool);
-      if (nextStateIdx !== -1 && nextStateIdx < (this.states.length - 1)) {
+      if (nextStateIdx >= 1 && nextStateIdx !== -1
+        && nextStateIdx < (this.states.length - 1)) {
         const progress = this.states[nextStateIdx].progress;
         this.update(nextStateIdx, progress);
       }
@@ -119,7 +154,7 @@ export default class StateController {
 
     // Get the state which was closest to current when we go back by latency.
     let progressSum = 0;
-    while (progressSum <= latency && stateIndex !== 1) {
+    while (progressSum <= latency && stateIndex > 1) {
       const previousStateIndex = stateIndex - 1;
       const previousState = this.states[previousStateIndex];
 
@@ -182,7 +217,7 @@ export default class StateController {
     // Delegate the actual update to our update process.
     state.cache = {};  // Avoid communicating length state
     const updatePayload = { state, stateIndex, progress };
-    //this.benchmark = this.gameLoop.getTime();
+    this.benchmark.startUpdateTime = this.gameLoop.getTime();
     this.updateFork.send(updatePayload);
   }
 
