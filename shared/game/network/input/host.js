@@ -95,7 +95,6 @@ export function addComputer(lobby, ply, data, ackFn) {
       nextMoveFcn(state);
     } else {
       const latency = lobby.stateController.gameLoop.getTime() - aiStartTime;
-      console.log(`Moving ${compId} ${direction} with latency ${latency}ms`);
       const aiMoveChange = s => { moveChangeFcn(s, direction, compId); };
       lobby.stateController.apply(
         aiMoveChange, latency, nextMoveFcn, checkStateFcn

@@ -113,8 +113,6 @@ function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 10) {
   }
 
   const winTreePly = winTrees[plyIndex];
-  console.log(winTreePly.total);
-  //console.log(winTreePly.toDebugString());
   return winTreePly.getBestChildMove();
 }
 
