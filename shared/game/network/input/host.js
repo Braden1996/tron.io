@@ -31,21 +31,12 @@ export function addComputer(lobby, ply, data, ackFn) {
   const moveChangeFcn = (state, direction, compId) => {
     const compPly = state.players.find(pl => pl.id === compId);
     if (compPly.alive && direction !== compPly.direction) {
-      try {
-        gameDirectPlayer(state, compPly, direction);
-      } catch(e) {};
+      gameDirectPlayer(state, compPly, direction);
     }
   }
 
   // Called when the current game state is updated with our AI's last move.
   const nextMoveFcn = (state) => {
-    const compPly = state.players.find(pl => pl.id === compId);
-
-    // Check if we can now pause looking for more moves.
-    if (state.finished || !state.started || !compPly.alive) {
-      return;
-    }
-
     const comps = lobby.misc.computerPlayers;
     const compIndex = comps.findIndex(c => c.compId === compId);
     const comp = comps[compIndex];
@@ -54,19 +45,33 @@ export function addComputer(lobby, ply, data, ackFn) {
     // lag compensation for an unrelated change.
     if (comp.working) { return; }
 
+    const compPly = state.players.find(pl => pl.id === compId);
+
+    // Check if we can now pause looking for more moves.
+    if (state.finished || !state.started || !compPly.alive) { return; }
+
     // Otherwise, immediately request the AI for their next move.
     aiStartTime = lobby.stateController.gameLoop.getTime(); // Track latency.
     const sendState = copyState(state);
     sendState.cache = {}; // Rebuild cache in process.
     const searchTime = 100;
-    const payload = { state: sendState, compId, searchTime};
+    const payload = { state: sendState, compId, searchTime };
     comp.moveFork.send(payload);
   }
 
   // Avoid lag compensation from applying the change to an invalid state.
-  const checkStateFcn = (state) => {
-    const compPly = state.players.find(pl => pl.id === compId);
-    return compPly !== undefined && compPly.alive;
+  const checkStateFcn = (state, stateIndex) => {
+    const previousState = lobby.stateController.states[stateIndex - 1];
+
+    const compPl = previousState.players.find(pl => pl.id === compId);
+    if (compPl === undefined || !compPl.alive) { return false; }
+
+    const lastPoint = compPl.trail[compPl.trail.length - 2];
+
+    const xDiff = lastPoint[0] - compPl.position[0];
+    const yDiff = lastPoint[1] - compPl.position[1];
+    const curDistance = Math.abs(xDiff + yDiff);
+    return curDistance >= previousState.playerSize;
   }
 
   const moveFork = { kill: undefined, send: undefined };

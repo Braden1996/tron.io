@@ -123,13 +123,13 @@ export default class StateController {
     let state;
     let stateIndex = this.states.length;
 
-    // Get the state which was closest to current when we go back by latency.
+    // Get the state closest when we go back by latency.
     let progressSum = 0;
     while (progressSum <= latency && stateIndex > 1) {
       const previousStateIndex = stateIndex - 1;
       const previousState = this.states[previousStateIndex];
 
-      // Check if our lag compensation should round to the current state.
+      // Check if our lag compensation should round to the state.
       if ((latency - progressSum) <= (previousState.progress / 2)) {
         break;
 
@@ -143,7 +143,8 @@ export default class StateController {
 
     // Go forward in time to the closest state which passes the check.
     if (stateCheckFcn !== undefined) {
-      while (stateIndex < this.states.length && !stateCheckFcn(state)) {
+      while (stateIndex < this.states.length
+        && !stateCheckFcn(state, stateIndex)) {
         stateIndex += 1;
         state = this.states[stateIndex];
       }
@@ -168,10 +169,10 @@ export default class StateController {
 
     this.updating = true;
 
-    // Get a copy of the current state.
+    // Get a copy of the state.
     const state = copyState(this.states[stateIndex - 1]);
 
-    // Apply, in-order, all the changes we have queued for the current state.
+    // Apply, in-order, all the changes we have queued for the state.
     this.changes[stateIndex].forEach((ch, k) => {
       ch.changeFcn(state);
       if (ch.onUpdateFcn !== undefined) {
