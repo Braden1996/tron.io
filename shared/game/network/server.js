@@ -1,7 +1,7 @@
 import GameLobby from './lobby';
 
 export default class GameServer {
-  constructor(lobbyDependencies) {
+  constructor(lobbyDependencies, config) {
     this.players = {};
     this.lobbies = {};
 
@@ -11,6 +11,23 @@ export default class GameServer {
       stateUpdateFork: lobbyDependencies.stateUpdateFork,
       aiMoveFork: lobbyDependencies.aiMoveFork,
     };
+
+    // Config defaults
+    this.config = {
+      lobby: {
+        stateHistoryLimit: 100,
+      },
+      ai: {
+        searchTime: 100
+      }
+    };
+
+    // Merge default config with parameter values.
+    if (config.ai) {
+      this.config.ai.searchTime = config.ai.searchTime === undefined
+        ? this.config.ai.searchTime
+        : config.ai.searchTime;
+    }
   }
 
   onConnect(plyId, socket) {
@@ -51,7 +68,7 @@ export default class GameServer {
   }
 
   createLobby(lobbyKey) {
-    const lobby = new GameLobby(lobbyKey, this.lobbyDependencies);
+    const lobby = new GameLobby(lobbyKey, this.lobbyDependencies, this.config);
     lobby.start();
     return lobby;
   }

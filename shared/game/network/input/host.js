@@ -7,11 +7,11 @@ import {
 } from '../../operations/player';
 import { rebuildCache, copyState } from '../../operations/general';
 
-export function addComputer(lobby, ply, data, ackFn) {
+export function addComputer(lobby, ply, data, ackFn, aiConfig) {
   if (!lobby.isHost(ply.id)) { return; }
 
   // How long to calculate a single move?
-  const searchTime = 100;
+  const searchTime = aiConfig.searchTime;
 
   // Create misc data-structures if needed.
   if (lobby.misc.computerPlayers === undefined) {
@@ -212,10 +212,12 @@ export function hostDetachPlayer(lobby, ply) {
   socket.removeAllListeners('updatearenasize');
 }
 
-export function hostAttachPlayer(lobby, ply) {
+export function hostAttachPlayer(lobby, ply, serverConfig) {
   const socket = ply.socket;
 
-  socket.on('addcomputer', (d, a) => addComputer(lobby, ply, d, a));
+  const aiConfig = serverConfig.ai;
+
+  socket.on('addcomputer', (d, a) => addComputer(lobby, ply, d, a, aiConfig));
   socket.on('begingame', (d, a) => beginGame(lobby, ply, d, a));
   socket.on('endgame', (d, a) => endGame(lobby, ply, d, a));
   socket.on('updatespeed', (d, a) => updateSpeed(lobby, ply, d, a));

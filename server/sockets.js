@@ -4,6 +4,7 @@ import path from 'path';
 import cp from 'child_process';
 import appRootDir from 'app-root-dir';
 
+import config from '../config';
 import GameServer from '../shared/game/network/server';
 
 import NodeGameLoop from './game/gameloop';
@@ -37,7 +38,8 @@ export default function socketsInit(app) {
       return processInterface(entryFile, onMessage);
     }
   };
-  const gameServer = new GameServer(lobbyDependencies);
+  const serverConfig =  config('tronServer');
+  const gameServer = new GameServer(lobbyDependencies, config);
 
   io.on('connection', (socket) => {
     const plyId = socket.id;

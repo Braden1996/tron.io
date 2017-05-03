@@ -57,14 +57,20 @@ function processSnapshot(ply) {
 }
 
 export default class Lobby {
-  constructor(id, dependencies) {
+  constructor(id, dependencies, serverConfig) {
     this.id = id;
 
     const { createGameLoop, stateUpdateFork, aiMoveFork } = dependencies;
     this.dependencies = { createGameLoop, stateUpdateFork, aiMoveFork };
 
+    this.serverConfig = serverConfig;
+
     const state = getInitialState();
-    const hLimit = 100;  // How many states shall we keep in history?
+
+    // How many states shall we keep in history?
+    const hLimit = this.serverConfig.lobby.stateHistoryLimit;  
+
+    // Set up state controller.
     const sDeps = { createGameLoop, stateUpdateFork };
     this.stateController = new StateController(state, hLimit, sDeps);
 
@@ -162,7 +168,7 @@ export default class Lobby {
     const privateProcessSnapshot = processSnapshot.bind(this);
     privateProcessSnapshot(ply);
 
-    attachPlayer(this, ply);
+    attachPlayer(this, ply, this.serverConfig);
   }
 
   leave(plyId) {
@@ -170,7 +176,7 @@ export default class Lobby {
     if (plyIdx === -1) { return; }
 
     const ply = this.players[plyIdx];
-    detachPlayer(this, ply);
+    detachPlayer(this, ply, this.serverConfig);
 
     this.players.splice(plyIdx, 1);
 

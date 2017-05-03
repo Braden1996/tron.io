@@ -32,6 +32,15 @@ const values = {
     debugDraw: false,
   },
 
+  tronServer: {
+    lobby: {
+      stateHistoryLimit: 100,
+    },
+    ai: {
+      searchTime: 100
+    }
+  },
+
   // The host on which the server should run.
   host: EnvVars.string('HOST', '192.168.0.24'),
 
