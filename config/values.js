@@ -32,6 +32,23 @@ const values = {
     debugDraw: false,
   },
 
+  tronServer: {
+    lobby: {
+      stateHistoryLimit: 100,
+      debug: {
+        stateController: false,
+      }
+    },
+    ai: {
+      maxDepth: 10,
+      searchTime: 100,
+      debug: {
+        output: true,
+        wintreeDepth: 4,
+      }
+    }
+  },
+
   // The host on which the server should run.
   host: EnvVars.string('HOST', '192.168.0.24'),
 

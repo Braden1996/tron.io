@@ -29,7 +29,7 @@ function ucb1PickMove(legalMoves, winTreeCurrent) {
   return ucb1Move === undefined ? undefined : ucb1Move.move;
 }
 
-function getMonteCarloMove(state, ply, progress, shouldStopFcn, debugAi, maxDepth = 10) {
+function getMonteCarloMove(state, ply, progress, shouldStopFcn, aiConfig) {
   const winTrees = state.players.map(pl => new WinTree(pl.id));
 
   const plyIndex = state.players.indexOf(ply);
@@ -56,7 +56,7 @@ function getMonteCarloMove(state, ply, progress, shouldStopFcn, debugAi, maxDept
   }
 
   // As we model the game to be turn based...
-  const actualMaxDepth = maxDepth * state.players.length;
+  const actualMaxDepth = aiConfig.maxDepth * state.players.length;
 
   let totalSimulations = 0;
 
@@ -70,7 +70,7 @@ function getMonteCarloMove(state, ply, progress, shouldStopFcn, debugAi, maxDept
       .concat(legalDirections[simulatePly.direction]);
     const simulateWinTree = winTreesCurrent[curIndex];
     const simulateMove = ucb1PickMove(legalMoves, simulateWinTree);
-    doMove(curState, simulatePly, simulateMove, debugAi);
+    doMove(curState, simulatePly, simulateMove, aiConfig);
     playersMoved += 1;
 
     // Update the game state once all able players have moved.
@@ -150,9 +150,9 @@ function getMonteCarloMove(state, ply, progress, shouldStopFcn, debugAi, maxDept
     bestMove = legalDirections[compPly.direction][0];
   }
 
-  if (debugAi.output && bestMove !== compPly.direction) {
+  if (aiConfig.debug.output && bestMove !== compPly.direction) {
     console.log(`After ${totalSimulations} simulations, move ${compPly.name} '${bestMove}' from '${compPly.direction}'`);
-    console.log(winTreePly.toDebugString(debugAi.wintreeDepth));
+    console.log(winTreePly.toDebugString(aiConfig.debug.wintreeDepth));
   }
 
   return bestMove;

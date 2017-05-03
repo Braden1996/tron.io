@@ -57,31 +57,24 @@ function processSnapshot(ply) {
 }
 
 export default class Lobby {
-  constructor(id, dependencies) {
+  constructor(id, dependencies, serverConfig) {
     this.id = id;
-
-    // Hard coded debug configurations.
-    this.debugConfig = {
-      stateController: false, // Benchmark state controller
-      inputs: {
-        host: {
-          ai: {
-            output: false,
-            wintreeDepth: 4,
-          }
-        }
-      }
-    };
 
     const { createGameLoop, stateUpdateFork, aiMoveFork } = dependencies;
     this.dependencies = { createGameLoop, stateUpdateFork, aiMoveFork };
 
+    this.serverConfig = serverConfig;
+
     const state = getInitialState();
-    const hLimit = 100;  // How many states shall we keep in history?
+
+    // How many states shall we keep in history?
+    const hLimit = this.serverConfig.lobby.stateHistoryLimit;  
+
+    // Set up state controller.
     const sDeps = {
       createGameLoop,
       stateUpdateFork,
-      shouldDebug: this.debugConfig.stateController,
+      shouldDebug: this.serverConfig.lobby.debug.stateController,
     };
     this.stateController = new StateController(state, hLimit, sDeps);
 
@@ -179,10 +172,7 @@ export default class Lobby {
     const privateProcessSnapshot = processSnapshot.bind(this);
     privateProcessSnapshot(ply);
 
-    const attachDeps = {
-      host: this.debugConfig.inputs.host
-    }
-    attachPlayer(this, ply, attachDeps);
+    attachPlayer(this, ply, this.serverConfig);
   }
 
   leave(plyId) {
@@ -190,11 +180,7 @@ export default class Lobby {
     if (plyIdx === -1) { return; }
 
     const ply = this.players[plyIdx];
-
-    const detachDeps = {
-      host: this.debugConfig.inputs.host
-    }
-    detachPlayer(this, ply, detachDeps);
+    detachPlayer(this, ply, this.serverConfig);
 
     this.players.splice(plyIdx, 1);
 
