@@ -1,7 +1,7 @@
 //import getMinimaxMove from './minimax';
 import getMonteCarloMove from './montecarlo';
 
-export default function getMove(state, ply, searchTime, debugAi = false) {
+export default function getMove(state, ply, nextMoveLatency, searchTime, debugAi) {
   if (state.started && !state.finished) {
     const lastPoint = ply.trail[ply.trail.length - 2];
 
@@ -11,15 +11,18 @@ export default function getMove(state, ply, searchTime, debugAi = false) {
     const canMove = ply.alive && curDistance >= state.playerSize
 
     if (canMove) {
+      const progress = nextMoveLatency;
       const startTime = new Date().getTime();
       const shouldStopFn = (extraDelay) => {
         const curTime = new Date().getTime();
         return curTime > (startTime + searchTime + extraDelay);
       };
-      const direction = getMonteCarloMove(state, ply, shouldStopFn, debugAi);
-      return direction ;
+      const direction = getMonteCarloMove(state, ply, progress, shouldStopFn, debugAi);
+      return direction;
     }
   }
 
   return ply.direction;
 }
+
+

@@ -166,13 +166,13 @@ duration=${duration}\
     let state;
     let stateIndex = this.states.length;
 
-    // Get the state which was closest to current when we go back by latency.
+    // Get the state closest when we go back by latency.
     let progressSum = 0;
     while (progressSum <= latency && stateIndex > 1) {
       const previousStateIndex = stateIndex - 1;
       const previousState = this.states[previousStateIndex];
 
-      // Check if our lag compensation should round to the current state.
+      // Check if our lag compensation should round to the state.
       if ((latency - progressSum) <= (previousState.progress / 2)) {
         break;
 
@@ -186,7 +186,8 @@ duration=${duration}\
 
     // Go forward in time to the closest state which passes the check.
     if (stateCheckFcn !== undefined) {
-      while (stateIndex < this.states.length && !stateCheckFcn(state, stateIndex)) {
+      while (stateIndex < this.states.length
+        && !stateCheckFcn(state, stateIndex)) {
         stateIndex += 1;
         state = this.states[stateIndex];
       }

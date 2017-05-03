@@ -99,7 +99,7 @@ export function getArenaObject(canvas, state) {
   return arena;
 }
 
-export default function draw(gameState, canvas) {
+export default function draw(gameState, canvas, debugMode) {
   const arena = getArenaObject(canvas, gameState);
 
   if (gameState.players.length === 0) {
@@ -109,7 +109,7 @@ export default function draw(gameState, canvas) {
   }
 
   // Some additional draw functions which are useful for debugging.
-  if (process.env.BUILD_FLAG_IS_DEV && false) {
+  if (debugMode) {
     const gameDrawDebug = require('./drawdebug').default;
     gameDrawDebug(gameState, canvas);
   }

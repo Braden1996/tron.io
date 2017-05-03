@@ -10,6 +10,9 @@ import { rebuildCache, copyState } from '../../operations/general';
 export function addComputer(lobby, ply, data, ackFn, debugAi) {
   if (!lobby.isHost(ply.id)) { return; }
 
+  // How long to calculate a single move?
+  const searchTime = 100;
+
   // Create misc data-structures if needed.
   if (lobby.misc.computerPlayers === undefined) {
     lobby.misc.computerPlayers = [];
@@ -33,9 +36,16 @@ export function addComputer(lobby, ply, data, ackFn, debugAi) {
       console.log(`Change player ${compId} from '${compPly.direction}' to '${direction}', tick='${state.tick}', alive='${compPly.alive}'`);
     }
     if (compPly.alive && direction !== compPly.direction) {
+      const lastPoint = compPly.trail[compPly.trail.length - 2];
+      const xDiff = lastPoint[0] - compPly.position[0];
+      const yDiff = lastPoint[1] - compPly.position[1];
+      const curDistance = Math.abs(xDiff + yDiff);
+      if (curDistance < state.playerSize) { return; } // Throw away move :(
       gameDirectPlayer(state, compPly, direction);
     }
   }
+
+  let aiStartTime = lobby.stateController.gameLoop.getTime();
 
   // Called when the current game state is updated with our AI's last move.
   const nextMoveFcn = (state) => {
@@ -65,8 +75,13 @@ alive='${compPly.alive}', \
     aiStartTime = lobby.stateController.gameLoop.getTime(); // Track latency.
     const sendState = copyState(state);
     sendState.cache = {}; // Rebuild cache in process.
-    const searchTime = 100;
-    const payload = { state: sendState, compId, searchTime, debugAi };
+
+    // Track latency.
+    const time = lobby.stateController.gameLoop.getTime()
+    const latency = time - aiStartTime;
+    aiStartTime = time;
+
+    const payload = { state: sendState, compId, searchTime, latency, debugAi };
     comp.moveFork.send(payload);
   }
 
@@ -86,7 +101,6 @@ alive='${compPly.alive}', \
   }
 
   const moveFork = { kill: undefined, send: undefined };
-  let aiStartTime = lobby.stateController.gameLoop.getTime();
   const onMessageCallback = (m) => {
     const { direction, compId } = m;
     const state = lobby.stateController.current();
@@ -107,7 +121,7 @@ alive='${compPly.alive}', \
 
     // Apply the move if the AI wants to change direction. Otherwise, just
     // request their next move.
-    if (direction === undefined || direction === compPly.direction) {
+    if (direction === compPly.direction) {
       nextMoveFcn(state);
     } else {
       const latency = lobby.stateController.gameLoop.getTime() - aiStartTime;

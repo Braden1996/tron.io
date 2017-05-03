@@ -1,6 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
+import config from '../../../../config';
+
+// It would be ideal to have this exist only within client :L
 import gameDraw from '../../../../client/game/draw';
 import ClientGameLoop from '../../../../client/game/gameloop';
 
@@ -12,6 +15,7 @@ class GameCanvas extends React.Component {
     super(props);
 
     this.gameLoop = null;
+    this.debugMode = config('tron.debugDraw');
   }
 
   fixSize() {
@@ -26,7 +30,7 @@ class GameCanvas extends React.Component {
 
     // Redraw
     const state = this.props.gameState;
-    gameDraw(state, canvas);
+    gameDraw(state, canvas, this.debugMode);
   }
 
   // The component will only be able to mount on the client, so this shouldn't
@@ -38,7 +42,7 @@ class GameCanvas extends React.Component {
       const canvas = this.refs.canvas;
 
       gameUpdate(state, progress);
-      gameDraw(state, canvas);
+      gameDraw(state, canvas, this.debugMode);
     };
     this.gameLoop = new ClientGameLoop(gameLoopFn, 15);
 
