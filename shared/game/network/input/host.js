@@ -33,6 +33,11 @@ export function addComputer(lobby, ply, data, ackFn) {
   const moveChangeFcn = (state, direction, compId) => {
     const compPly = state.players.find(pl => pl.id === compId);
     if (compPly.alive && direction !== compPly.direction) {
+      const lastPoint = compPly.trail[compPly.trail.length - 2];
+      const xDiff = lastPoint[0] - compPly.position[0];
+      const yDiff = lastPoint[1] - compPly.position[1];
+      const curDistance = Math.abs(xDiff + yDiff);
+      if (curDistance < state.playerSize) { return; } // Throw away move :(
       gameDirectPlayer(state, compPly, direction);
     }
   }
