@@ -60,12 +60,26 @@ export default class Lobby {
   constructor(id, dependencies) {
     this.id = id;
 
+    // Hard coded debug configurations.
+    this.debugConfig = {
+      stateController: false, // Benchmark state controller
+      inputs: {
+        host: {
+          ai: true  // Debug AI
+        }
+      }
+    };
+
     const { createGameLoop, stateUpdateFork, aiMoveFork } = dependencies;
     this.dependencies = { createGameLoop, stateUpdateFork, aiMoveFork };
 
     const state = getInitialState();
     const hLimit = 100;  // How many states shall we keep in history?
-    const sDeps = { createGameLoop, stateUpdateFork };
+    const sDeps = {
+      createGameLoop,
+      stateUpdateFork,
+      shouldDebug: this.debugConfig.stateController,
+    };
     this.stateController = new StateController(state, hLimit, sDeps);
 
     // Try to process any delayed snapshots when the current state changes.
@@ -162,7 +176,10 @@ export default class Lobby {
     const privateProcessSnapshot = processSnapshot.bind(this);
     privateProcessSnapshot(ply);
 
-    attachPlayer(this, ply);
+    const attachDeps = {
+      host: this.debugConfig.inputs.host
+    }
+    attachPlayer(this, ply, attachDeps);
   }
 
   leave(plyId) {
@@ -170,7 +187,11 @@ export default class Lobby {
     if (plyIdx === -1) { return; }
 
     const ply = this.players[plyIdx];
-    detachPlayer(this, ply);
+
+    const detachDeps = {
+      host: this.debugConfig.inputs.host
+    }
+    detachPlayer(this, ply, detachDeps);
 
     this.players.splice(plyIdx, 1);
 

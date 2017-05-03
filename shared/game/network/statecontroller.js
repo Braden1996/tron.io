@@ -7,10 +7,11 @@ import { copyState, rebuildCache } from '../operations/general';
 // user-input, otherwise it could end up being unintentionally ignored.
 export default class StateController {
   constructor(initialState, historyLimit, dependencies) {
-    const { stateUpdateFork, createGameLoop } = dependencies;
+    const { stateUpdateFork, createGameLoop, shouldDebug } = dependencies;
 
     // Object containing data required to run benchmarks.
     this.benchmark = {
+      shouldOutput: shouldDebug,
       startUpdateTime: undefined,
       gameBeginTime: undefined,
       captureTime: 1000,
@@ -30,13 +31,17 @@ export default class StateController {
         if (!this.benchmark.done && doCapture) {
           const endTime = this.gameLoop.getTime();
           const duration = endTime - this.benchmark.startUpdateTime;
-          console.log(`State update:\ ` +
+
+          if (this.benchmark.shouldOutput) {
+            console.log(`State update:\ ` +
 //tick=${state.tick},\
 `captureTime=${this.benchmark.captureTime},\ ` +
 //progress=${state.progress}, \
 `players=${state.players.length},\
 duration=${duration}\
-          `);
+            `);
+          }
+
           this.benchmark.done = true;
         }
       } else {

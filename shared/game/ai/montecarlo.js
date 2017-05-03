@@ -34,7 +34,7 @@ function ucb1PickMove(legalMoves, winTreeCurrent) {
   return ucb1Move === undefined ? undefined : ucb1Move.move;
 }
 
-function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 10) {
+function getMonteCarloMove(state, ply, shouldStopFcn, debugAi = false, maxDepth = 10) {
   const winTrees = state.players.map(pl => new WinTree(pl.id));
 
   const plyIndex = state.players.indexOf(ply);
@@ -113,7 +113,12 @@ function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 10) {
   }
 
   const winTreePly = winTrees[plyIndex];
-  return winTreePly.getBestChildMove();
+  const bestMove = winTreePly.getBestChildMove();
+  if (debugAi && bestMove !== state.players[plyIndex].direction) {
+    console.log(`Moving: ${bestMove}`);
+    console.log(winTreePly.toDebugString());
+  }
+  return bestMove;
 }
 
 export default getMonteCarloMove;

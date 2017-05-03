@@ -4,6 +4,7 @@ import { rebuildCache } from '../../../shared/game/operations/general';
 process.on('message', (m) => {
   const { compId, searchTime } = m;
   const state = rebuildCache(m.state);
+  const debugAi = !!m.debugAi;
 
   const ply = state.players.find(pl => pl.id === compId);
 
@@ -11,6 +12,7 @@ process.on('message', (m) => {
   if (ply === undefined) {
     process.send({ direction: undefined, compId: undefined }); // Panic
   } else {
-    process.send({ direction: getMove(state, ply, searchTime), compId });
+  	const move = getMove(state, ply, searchTime, debugAi);
+    process.send({ direction: move, compId });
   }
 });

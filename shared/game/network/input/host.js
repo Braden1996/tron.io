@@ -7,7 +7,7 @@ import {
 } from '../../operations/player';
 import { rebuildCache, copyState } from '../../operations/general';
 
-export function addComputer(lobby, ply, data, ackFn) {
+export function addComputer(lobby, ply, data, ackFn, debugAi = false) {
   if (!lobby.isHost(ply.id)) { return; }
 
 
@@ -38,7 +38,7 @@ export function addComputer(lobby, ply, data, ackFn) {
   }
 
   // Called when the current game state is updated with our AI's last move.
-  const nextMoveFcn = (state) => {
+  const nextMoveFcn = (state, debug) => {
     const compPly = state.players.find(pl => pl.id === compId);
 
     // Check if we can now pause looking for more moves.
@@ -59,7 +59,7 @@ export function addComputer(lobby, ply, data, ackFn) {
     const sendState = copyState(state);
     sendState.cache = {}; // Rebuild cache in process.
     const searchTime = 100;
-    const payload = { state: sendState, compId, searchTime};
+    const payload = { state: sendState, compId, searchTime, debugAi };
     comp.moveFork.send(payload);
   }
 
@@ -96,6 +96,11 @@ export function addComputer(lobby, ply, data, ackFn) {
     } else {
       const latency = lobby.stateController.gameLoop.getTime() - aiStartTime;
       const aiMoveChange = s => { moveChangeFcn(s, direction, compId); };
+
+      if (debugAi) {
+        console.log(`Applying to move '${compPly.name}' '${direction}' with latency ${latency} milliseconds`);
+      }
+
       lobby.stateController.apply(
         aiMoveChange, latency, nextMoveFcn, checkStateFcn
       );
@@ -185,7 +190,7 @@ export function updateArenaSize(lobby, ply, data, ackFn) {
   lobby.stateController.apply(updateArenaSize);
 }
 
-export function hostDetachPlayer(lobby, ply) {
+export function hostDetachPlayer(lobby, ply, detachDeps) {
   const socket = ply.socket;
 
   socket.removeAllListeners('addcomputer');
@@ -195,10 +200,12 @@ export function hostDetachPlayer(lobby, ply) {
   socket.removeAllListeners('updatearenasize');
 }
 
-export function hostAttachPlayer(lobby, ply) {
+export function hostAttachPlayer(lobby, ply, attachDeps) {
   const socket = ply.socket;
 
-  socket.on('addcomputer', (d, a) => addComputer(lobby, ply, d, a));
+  const debugAi = attachDeps ? attachDeps.ai : false;
+
+  socket.on('addcomputer', (d, a) => addComputer(lobby, ply, d, a, debugAi));
   socket.on('begingame', (d, a) => beginGame(lobby, ply, d, a));
   socket.on('endgame', (d, a) => endGame(lobby, ply, d, a));
   socket.on('updatespeed', (d, a) => updateSpeed(lobby, ply, d, a));
