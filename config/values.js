@@ -24,6 +24,12 @@ const values = {
     polyfillIO: false,
     // We need to expose all the htmlPage settings.
     htmlPage: true,
+    tron: true,
+  },
+
+  // Tron game settings
+  tron: {
+    debugDraw: false,
   },
 
   // The host on which the server should run.
