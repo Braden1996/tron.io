@@ -75,7 +75,7 @@ export default class WinTree {
     return (mWins / mTotal) + Math.sqrt((2 * Math.log(cTotal)) / mTotal);
   }
 
-  toDebugString(prefix = '', isTail = true) {
+  toDebugString(depthLimit=Infinity, prefix = '', isTail = true) {
     const cLength = this.children.length;
     const ucb1 = this.parent === null ? null : this.getUCB1();
     const ratio = `${this.wins}/${this.total}`;
@@ -83,11 +83,12 @@ export default class WinTree {
 
     let outString = `${prefix} ${(isTail ? '└─ ' : '├─ ')}${string}`;
 
-    if (this.children.length > 0) {
+    if (depthLimit > 0 && this.children.length > 0) {
       const newPrefix = prefix + (isTail ? '  ' : ' │ ');
       this.children.forEach((child, i) => {
+        const childDepth = depthLimit - 1;
         const childIsTail = i === this.children.length - 1;
-        outString += child.toDebugString(newPrefix, childIsTail);
+        outString += child.toDebugString(childDepth, newPrefix, childIsTail);
       });
     }
 

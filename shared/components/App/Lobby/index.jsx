@@ -47,6 +47,14 @@ class Lobby extends React.Component {
       <div>
         <h2>{lobbyKey}</h2>
         { connected ? 'Connected' : 'Connecting' }
+        <section>
+          <h3>Lobby Configuration</h3>
+          <ul>
+            <li>Arena size: {gameState.arenaSize}</li>
+            <li>Player size: {gameState.playerSize}</li>
+            <li>Player speed: {gameState.speed}</li>
+          </ul>
+        </section>
         <figure>
           <figcaption>Players:</figcaption>
           <ol>{plyList}</ol>
