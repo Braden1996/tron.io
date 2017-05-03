@@ -2,9 +2,8 @@ import getMove from '../../../shared/game/ai';
 import { rebuildCache } from '../../../shared/game/operations/general';
 
 process.on('message', (m) => {
-  const { compId, searchTime } = m;
+  const { compId, searchTime, debugAi } = m;
   const state = rebuildCache(m.state);
-  const debugAi = !!m.debugAi;
 
   const ply = state.players.find(pl => pl.id === compId);
 

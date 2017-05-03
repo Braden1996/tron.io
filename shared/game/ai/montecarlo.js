@@ -4,14 +4,9 @@ import { legalDirections, copyState } from '../operations/general';
 import { movePlayer, directPlayer } from '../operations/player';
 import update from '../update';
 
-function doMove(state, ply, direction) {
-  try {
-    if (direction !== ply.direction) {
-      directPlayer(state, ply, direction);
-    }
-
-    return state;
-  } catch(e) { }
+function doMove(state, ply, direction, debugAi) {
+  if (direction === ply.direction) { return; }
+  directPlayer(state, ply, direction);
 }
 
 function ucb1PickMove(legalMoves, winTreeCurrent) {
@@ -34,31 +29,58 @@ function ucb1PickMove(legalMoves, winTreeCurrent) {
   return ucb1Move === undefined ? undefined : ucb1Move.move;
 }
 
-function getMonteCarloMove(state, ply, shouldStopFcn, debugAi = false, maxDepth = 10) {
+function getMonteCarloMove(state, ply, shouldStopFcn, debugAi, maxDepth = 10) {
   const winTrees = state.players.map(pl => new WinTree(pl.id));
 
   const plyIndex = state.players.indexOf(ply);
 
+  let skipProgress = 0;
+
+  // Make sure all other alive player are currently able to move!
+  const minDistance = state.players.reduce((minDistance, pl) => {
+    if (!pl.alive || pl === ply) { return minDistance; }
+
+    const lastPoint = pl.trail[pl.trail.length - 2];
+
+    const xDiff = lastPoint[0] - pl.position[0];
+    const yDiff = lastPoint[1] - pl.position[1];
+    const curDistance = Math.abs(xDiff + yDiff);
+
+    return curDistance < minDistance ? curDistance : minDistance;
+  }, 0);
+  if (minDistance < state.playerSize) {
+    const epsilon = 0.001;
+    const mustMove = state.playerSize - minDistance;
+    skipProgress = epsilon + (mustMove / state.speed);
+    update(state, skipProgress);
+  }
+
   // As we model the game to be turn based...
   const actualMaxDepth = maxDepth * state.players.length;
+
+  let totalSimulations = 0;
 
   let playersMoved = 0;
   let curIndex = plyIndex;  // Start simulation turns from our player.
   let curState = copyState(state);
   let winTreesCurrent = winTrees;
-  while (shouldStopFcn() !== true) {
+  while (shouldStopFcn(skipProgress) !== true
+    && curState.players[curIndex].alive) {
     const simulatePly = curState.players[curIndex];
+
     const legalMoves = [simulatePly.direction]
       .concat(legalDirections[simulatePly.direction]);
     const simulateWinTree = winTreesCurrent[curIndex];
     const simulateMove = ucb1PickMove(legalMoves, simulateWinTree);
-    doMove(curState, simulatePly, simulateMove);
+    doMove(curState, simulatePly, simulateMove, debugAi);
     playersMoved += 1;
 
     // Update the game state once all able players have moved.
     const alivePlayers = curState.players.filter(pl => pl.alive).length;
-    if (alivePlayers !== 0 && playersMoved >= alivePlayers) {
-      update(curState, curState.progress);
+    if (alivePlayers > 0 && playersMoved >= alivePlayers) {
+      const epsilon = 0.001;
+      const minProgress = curState.playerSize / curState.speed;
+      update(curState, 100);
       playersMoved = 0;
     }
 
@@ -80,9 +102,15 @@ function getMonteCarloMove(state, ply, shouldStopFcn, debugAi = false, maxDepth 
       const scores = evaluatePlayers(curState);
       curState.players.forEach((pl, i) => {
         const winTree = winTreesCurrent[i];
-        const otherPlayers = curState.players.length - 1;
+        const alivePlayers = curState.players.filter(p => p.alive).length;
         if (!pl.alive) {
-          winTree.addLoss(otherPlayers);
+          const losses = Math.max(alivePlayers, 1);
+          const closeDanger = 3 * state.players.length;
+          if (winTree.depth < closeDanger) {
+            winTree.addLoss(losses*2);
+          } else {
+            winTree.addLoss(losses);
+          }
           return;
         }
 
@@ -104,6 +132,8 @@ function getMonteCarloMove(state, ply, shouldStopFcn, debugAi = false, maxDepth 
       curIndex = plyIndex;
       winTreesCurrent = winTrees;
 
+      totalSimulations += 1;
+
     // Otherwise, prepare for the next player's turn.
     } else {
       do {
@@ -113,11 +143,20 @@ function getMonteCarloMove(state, ply, shouldStopFcn, debugAi = false, maxDepth 
   }
 
   const winTreePly = winTrees[plyIndex];
-  const bestMove = winTreePly.getBestChildMove();
-  if (debugAi && bestMove !== state.players[plyIndex].direction) {
-    console.log(`Moving: ${bestMove}`);
-    console.log(winTreePly.toDebugString());
+  let bestMove = winTreePly.getBestChildMove();
+  const compPly = state.players[plyIndex];
+
+  // No simulations could be performed. This is probably due our initial update
+  // skip resulting in the player dying! Panic and change direction.
+  if (bestMove === undefined) {
+    bestMove = legalDirections[compPly.direction][0];
   }
+
+  if (debugAi.output && bestMove !== compPly.direction) {
+    console.log(`After ${totalSimulations} simulations, move ${compPly.name} '${bestMove}' from '${compPly.direction}'`);
+    console.log(winTreePly.toDebugString(debugAi.wintreeDepth));
+  }
+
   return bestMove;
 }
 

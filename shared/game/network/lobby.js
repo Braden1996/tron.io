@@ -65,7 +65,10 @@ export default class Lobby {
       stateController: false, // Benchmark state controller
       inputs: {
         host: {
-          ai: true  // Debug AI
+          ai: {
+            output: false,
+            wintreeDepth: 4,
+          }
         }
       }
     };

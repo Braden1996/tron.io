@@ -186,7 +186,7 @@ duration=${duration}\
 
     // Go forward in time to the closest state which passes the check.
     if (stateCheckFcn !== undefined) {
-      while (stateIndex < this.states.length && !stateCheckFcn(state)) {
+      while (stateIndex < this.states.length && !stateCheckFcn(state, stateIndex)) {
         stateIndex += 1;
         state = this.states[stateIndex];
       }
@@ -211,10 +211,10 @@ duration=${duration}\
 
     this.updating = true;
 
-    // Get a copy of the current state.
+    // Get a copy of the state.
     const state = copyState(this.states[stateIndex - 1]);
 
-    // Apply, in-order, all the changes we have queued for the current state.
+    // Apply, in-order, all the changes we have queued for the state.
     this.changes[stateIndex].forEach((ch, k) => {
       ch.changeFcn(state);
       if (ch.onUpdateFcn !== undefined) {
