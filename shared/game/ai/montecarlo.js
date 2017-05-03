@@ -29,12 +29,13 @@ function ucb1PickMove(legalMoves, winTreeCurrent) {
   return ucb1Move === undefined ? undefined : ucb1Move.move;
 }
 
-function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 10) {
+function getMonteCarloMove(state, ply, progress, shouldStopFcn, maxDepth = 10) {
   const winTrees = state.players.map(pl => new WinTree(pl.id));
 
   const plyIndex = state.players.indexOf(ply);
 
   let skipProgress = 0;
+  const epsilon = 0.001;
 
   // Make sure all other alive player are currently able to move!
   const minDistance = state.players.reduce((minDistance, pl) => {
@@ -49,7 +50,6 @@ function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 10) {
     return curDistance < minDistance ? curDistance : minDistance;
   }, 0);
   if (minDistance < state.playerSize) {
-    const epsilon = 0.001;
     const mustMove = state.playerSize - minDistance;
     skipProgress = epsilon + (mustMove / state.speed);
     update(state, skipProgress);
@@ -74,9 +74,9 @@ function getMonteCarloMove(state, ply, shouldStopFcn, maxDepth = 10) {
     // Update the game state once all able players have moved.
     const alivePlayers = curState.players.filter(pl => pl.alive).length;
     if (alivePlayers > 0 && playersMoved >= alivePlayers) {
-      const epsilon = 0.001;
-      const minProgress = curState.playerSize / curState.speed;
-      update(curState, 100);
+      const minProgress = epsilon + (curState.playerSize / curState.speed);
+      const updateProgress = Math.max(minProgress, progress);
+      update(curState, updateProgress);
       playersMoved = 0;
     }
 

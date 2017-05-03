@@ -10,6 +10,8 @@ import { rebuildCache, copyState } from '../../operations/general';
 export function addComputer(lobby, ply, data, ackFn) {
   if (!lobby.isHost(ply.id)) { return; }
 
+  // How long to calculate a single move?
+  const searchTime = 100;
 
   // Create misc data-structures if needed.
   if (lobby.misc.computerPlayers === undefined) {
@@ -35,6 +37,8 @@ export function addComputer(lobby, ply, data, ackFn) {
     }
   }
 
+  let aiStartTime = lobby.stateController.gameLoop.getTime();
+
   // Called when the current game state is updated with our AI's last move.
   const nextMoveFcn = (state) => {
     const comps = lobby.misc.computerPlayers;
@@ -51,11 +55,15 @@ export function addComputer(lobby, ply, data, ackFn) {
     if (state.finished || !state.started || !compPly.alive) { return; }
 
     // Otherwise, immediately request the AI for their next move.
-    aiStartTime = lobby.stateController.gameLoop.getTime(); // Track latency.
     const sendState = copyState(state);
     sendState.cache = {}; // Rebuild cache in process.
-    const searchTime = 100;
-    const payload = { state: sendState, compId, searchTime };
+
+    // Track latency.
+    const time = lobby.stateController.gameLoop.getTime()
+    const latency = time - aiStartTime;
+    aiStartTime = time;
+
+    const payload = { state: sendState, compId, searchTime, latency };
     comp.moveFork.send(payload);
   }
 
@@ -75,7 +83,6 @@ export function addComputer(lobby, ply, data, ackFn) {
   }
 
   const moveFork = { kill: undefined, send: undefined };
-  let aiStartTime = lobby.stateController.gameLoop.getTime();
   const onMessageCallback = (m) => {
     const { direction, compId } = m;
     const state = lobby.stateController.current();
