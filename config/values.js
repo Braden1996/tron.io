@@ -25,6 +25,7 @@ const values = {
     // We need to expose all the htmlPage settings.
     htmlPage: true,
     tron: true,
+    websocketUrl: true,
   },
 
   // Tron game settings
@@ -42,8 +43,11 @@ const values = {
     }
   },
 
+  websocketPort: '3000',
+  websocketUrl: 'http://82.10.50.148:3000',
+
   // The host on which the server should run.
-  host: EnvVars.string('HOST', '192.168.0.24'),
+  host: EnvVars.string('HOST', '82.10.50.148'),
 
   // The port on which the server should run.
   port: EnvVars.number('PORT', 1337),

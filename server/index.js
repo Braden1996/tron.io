@@ -54,7 +54,7 @@ const listener = app.listen(config('port'), () =>
   console.log(`Server listening on port ${config('port')}`));
 
 const ioHttpServer = socketsInit(app);
-ioHttpServer.listen(3000);
+ioHttpServer.listen(config('websocketPort'));
 
 // We export the listener as it will be handy for our development hot reloader,
 // or for exposing a general extension layer for application customisations.

@@ -3,6 +3,8 @@ import socketioWildcard from 'socketio-wildcard';
 import { eventChannel } from 'redux-saga';
 import { fork, take, call, put } from 'redux-saga/effects';
 
+import config from '../../../config';
+
 import {
   socketsReceiveReady,
   socketsSendReady,
@@ -14,7 +16,7 @@ const patch = socketioWildcard(io.Manager);
 
 function connect() {
   // Should find a better way of getting this address.
-  const socket = io('http://192.168.0.24:3000');
+  const socket = io(config('websocketUrl'));
   patch(socket);
   return new Promise((resolve) => {
     if (socket.connected) {
