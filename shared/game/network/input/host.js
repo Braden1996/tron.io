@@ -10,9 +10,6 @@ import { rebuildCache, copyState } from '../../operations/general';
 export function addComputer(lobby, ply, data, ackFn, aiConfig) {
   if (!lobby.isHost(ply.id)) { return; }
 
-  // How long to calculate a single move?
-  const searchTime = aiConfig.searchTime;
-
   // Create misc data-structures if needed.
   if (lobby.misc.computerPlayers === undefined) {
     lobby.misc.computerPlayers = [];
@@ -68,7 +65,7 @@ export function addComputer(lobby, ply, data, ackFn, aiConfig) {
     const latency = time - aiStartTime;
     aiStartTime = time;
 
-    const payload = { state: sendState, compId, searchTime, latency };
+    const payload = { state: sendState, compId, latency, aiConfig };
     comp.moveFork.send(payload);
   }
 
@@ -134,7 +131,7 @@ export function addComputer(lobby, ply, data, ackFn, aiConfig) {
   lobby.stateController.apply(addCompPly, ply.latency);
 }
 
-export function beginGame(lobby, ply, data, ackFn) {
+export function beginGame(lobby, ply, data, ackFn, aiConfig) {
   if (!lobby.isHost(ply.id)) { return; }
 
   const startGameChange = (state) => {
@@ -154,7 +151,7 @@ export function beginGame(lobby, ply, data, ackFn) {
       sendState.cache = {}; // Rebuild cache in process.
       updateComps.forEach((comp) => {
         const payload = {
-          state: sendState, compId: comp.compId, searchTime: 0
+          state: sendState, compId: comp.compId, aiConfig
         };
 
         comp.moveFork.send(payload);
@@ -218,7 +215,7 @@ export function hostAttachPlayer(lobby, ply, serverConfig) {
   const aiConfig = serverConfig.ai;
 
   socket.on('addcomputer', (d, a) => addComputer(lobby, ply, d, a, aiConfig));
-  socket.on('begingame', (d, a) => beginGame(lobby, ply, d, a));
+  socket.on('begingame', (d, a) => beginGame(lobby, ply, d, a, aiConfig));
   socket.on('endgame', (d, a) => endGame(lobby, ply, d, a));
   socket.on('updatespeed', (d, a) => updateSpeed(lobby, ply, d, a));
   socket.on('updatearenasize', (d, a) => updateArenaSize(lobby, ply, d, a));

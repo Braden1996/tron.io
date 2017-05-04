@@ -37,7 +37,8 @@ const values = {
       stateHistoryLimit: 100,
     },
     ai: {
-      searchTime: 100
+      maxDepth: 10,
+      searchTime: 100,
     }
   },
 

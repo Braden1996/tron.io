@@ -18,12 +18,17 @@ export default class GameServer {
         stateHistoryLimit: 100,
       },
       ai: {
-        searchTime: 100
+        maxDepth: 10,
+        searchTime: 100,
       }
     };
 
     // Merge default config with parameter values.
     if (config.ai) {
+    this.config.ai.maxDepth = config.ai.maxDepth === undefined
+      ? this.config.ai.maxDepth
+      : config.ai.maxDepth;
+
       this.config.ai.searchTime = config.ai.searchTime === undefined
         ? this.config.ai.searchTime
         : config.ai.searchTime;
